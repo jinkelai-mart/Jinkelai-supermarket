@@ -12,13 +12,12 @@
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
 
-  <!-- Header (ផ្តាច់ Link ទៅ Admin រួចរាល់) -->
+  <!-- Header -->
   <header class="bg-emerald-700 text-white sticky top-0 z-30 shadow-md">
     <div class="max-w-4xl mx-auto px-4 py-3">
       <div class="flex justify-between items-center">
-        <!-- ជំនួស <a> មក <div> ដើម្បីកុំឲ្យលោតទៅ admin.html -->
         <div class="flex items-center gap-2 select-none">
-          <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400">
+          <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400" onerror="this.src='https://via.placeholder.com/40'">
           <h1 class="font-bold text-base text-white" id="shopTitle">Jinkelai Shop</h1>
         </div>
         <button onclick="openCart()" class="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
@@ -26,7 +25,6 @@
           <span id="cartLabel">កន្ត្រក</span> (<span id="cartCount">0</span>)
         </button>
       </div>
-      <!-- Language Switcher -->
       <div class="flex gap-1 mt-2 justify-center">
         <button onclick="setLang('km')" id="btn-km" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">ខ្មែរ</button>
         <button onclick="setLang('en')" id="btn-en" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">English</button>
@@ -47,7 +45,6 @@
     <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm flex items-center gap-2" id="cartTitle">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
           <span id="cartTitleText">កន្ត្រកទំនិញ</span>
         </h3>
         <button onclick="closeCart()" class="text-gray-500 font-bold p-1">✕</button>
@@ -68,7 +65,6 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBYgj8O40QZgGi9asF5CpzFBOcetNkIFJE",
@@ -76,95 +72,30 @@
       projectId: "jinkelai-supermarket",
       storageBucket: "jinkelai-supermarket.firebasestorage.app",
       messagingSenderId: "622852418497",
-      appId: "1:622852418497:web:bd84d5cdf8677f00c35d40",
-      measurementId: "G-VFQJ237VE2"
+      appId: "1:622852418497:web:bd84d5cdf8677f00c35d40"
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
     const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
     const TELEGRAM_CHAT_ID = '6530042898';
 
     const i18n = {
-      km: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "បន្លែ និងផ្លែឈើស្រស់ៗ",
-        cartLabel: "កន្ត្រក",
-        cartTitle: "កន្ត្រកទំនិញ",
-        totalLabel: "សរុប៖",
-        checkoutBtn: "បញ្ជាទិញ",
-        namePh: "ឈ្មោះ *",
-        phonePh: "លេខទូរស័ព្ទ *",
-        addressPh: "អាសយដ្ឋាន *",
-        loading: "កំពុងផ្ទុកទំនិញ...",
-        empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock: "អស់ស្តុក",
-        stock: "ស្តុក",
-        buy: "+ ទិញ",
-        emptyCart: "គ្មានទំនិញ",
-        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
-        fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
-        addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
-        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!"
-      },
-      en: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "Fresh Vegetables & Fruits",
-        cartLabel: "Cart",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total:",
-        checkoutBtn: "Checkout",
-        namePh: "Name *",
-        phonePh: "Phone *",
-        addressPh: "Address *",
-        loading: "Loading products...",
-        empty: "No products available yet",
-        outOfStock: "Out of stock",
-        stock: "Stock",
-        buy: "+ Buy",
-        emptyCart: "Cart is empty",
-        orderSuccess: "🎉 Order placed successfully!",
-        fillInfo: "Please fill name, phone and address!",
-        addFirst: "Please add items to cart first!",
-        networkError: "Network or Firebase error!"
-      },
-      zh: {
-        shopTitle: "金克莱超市",
-        sectionTitle: "新鲜蔬菜和水果",
-        cartLabel: "购物车",
-        cartTitle: "购物车",
-        totalLabel: "合计：",
-        checkoutBtn: "下单",
-        namePh: "姓名 *",
-        phonePh: "电话 *",
-        addressPh: "地址 *",
-        loading: "正在加载商品...",
-        empty: "暂无商品",
-        outOfStock: "缺货",
-        stock: "库存",
-        buy: "+ 购买",
-        emptyCart: "购物车为空",
-        orderSuccess: "🎉 下单成功！",
-        fillInfo: "请填写姓名、电话和地址！",
-        addFirst: "请先添加商品到购物车！",
-        networkError: "网络或Firebase错误！"
-      }
+      km: { shopTitle: "Jinkelai Shop", sectionTitle: "បន្លែ និងផ្លែឈើស្រស់ៗ", cartLabel: "កន្ត្រក", cartTitle: "កន្ត្រកទំនិញ", totalLabel: "សរុប៖", checkoutBtn: "បញ្ជាទិញ", namePh: "ឈ្មោះ *", phonePh: "លេខទូរស័ព្ទ *", addressPh: "អាសយដ្ឋាន *", loading: "កំពុងផ្ទុកទំនិញ...", empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ", outOfStock: "អស់ស្តុក", stock: "ស្តុក", buy: "+ ទិញ", emptyCart: "គ្មានទំនិញ", orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!", fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!", addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!" },
+      en: { shopTitle: "Jinkelai Shop", sectionTitle: "Fresh Vegetables & Fruits", cartLabel: "Cart", cartTitle: "Shopping Cart", totalLabel: "Total:", checkoutBtn: "Checkout", namePh: "Name *", phonePh: "Phone *", addressPh: "Address *", loading: "Loading products...", empty: "No products available yet", outOfStock: "Out of stock", stock: "Stock", buy: "+ Buy", emptyCart: "Cart is empty", orderSuccess: "🎉 Order placed successfully!", fillInfo: "Please fill name, phone and address!", addFirst: "Please add items to cart first!" },
+      zh: { shopTitle: "金克莱超市", sectionTitle: "新鲜蔬菜和水果", cartLabel: "购物车", cartTitle: "购物车", totalLabel: "合计：", checkoutBtn: "下单", namePh: "姓名 *", phonePh: "电话 *", addressPh: "地址 *", loading: "正在加载商品...", empty: "暂无商品", outOfStock: "缺货", stock: "库存", buy: "+ 购买", emptyCart: "购物车为空", orderSuccess: "🎉 下单成功！", fillInfo: "请填写姓名、电话和地址！", addFirst: "请先添加商品到购物车！" }
     };
 
     let currentLang = localStorage.getItem('jinkelai_lang') || 'km';
     let products = [];
     let cart = [];
 
-    function t(key) {
-      return i18n[currentLang][key] || i18n.km[key] || key;
-    }
-
+    function t(key) { return i18n[currentLang][key] || i18n.km[key] || key; }
     function getProductName(p) {
       if (currentLang === 'zh' && p.name_zh) return p.name_zh;
       if (currentLang === 'en' && p.name_en) return p.name_en;
-      return p.name_km || p.name_en || p.name_zh || p.name || '—';
+      return p.name_km || p.name || '—';
     }
 
     window.setLang = function(lang) {
@@ -185,8 +116,6 @@
       document.getElementById('custName').placeholder = t('namePh');
       document.getElementById('custPhone').placeholder = t('phonePh');
       document.getElementById('custAddress').placeholder = t('addressPh');
-      document.getElementById('loadingMsg').innerText = products.length === 0 ? t('empty') : t('loading');
-
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
         if (btn) btn.classList.toggle('active', l === currentLang);
@@ -203,9 +132,6 @@
         msg.style.display = 'none';
       }
       renderProducts();
-    }, (error) => {
-      console.error(error);
-      document.getElementById('loadingMsg').innerText = 'Firebase Error / Rules';
     });
 
     function renderProducts() {
@@ -213,11 +139,10 @@
       grid.innerHTML = '';
       products.filter(p => p.active !== false).forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
-        const name = getProductName(p);
         grid.innerHTML += `
-          <div class="bg-white p-2.5 rounded-xl border flex flex-col justify-between">
+          <div class="bg-white p-2.5 rounded-xl border flex flex-col justify-between shadow-sm">
             <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-28 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150'">
-            <h3 class="font-bold text-xs leading-tight">${name}</h3>
+            <h3 class="font-bold text-xs leading-tight">${getProductName(p)}</h3>
             ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
             <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
             <div class="mt-2 flex justify-between items-center">
@@ -236,8 +161,7 @@
       if (!p || p.stock <= 0) return alert(t('outOfStock'));
       const item = cart.find(x => x.id === id);
       const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
-      const name = getProductName(p);
-      if (item) item.qty++; else cart.push({ id: p.id, name, price: finalPrice, qty: 1 });
+      if (item) item.qty++; else cart.push({ id: p.id, name: getProductName(p), price: finalPrice, qty: 1 });
       updateCart();
     };
 
@@ -260,370 +184,23 @@
       const name = document.getElementById('custName').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
       const address = document.getElementById('custAddress').value.trim();
-
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
 
       let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
-      
-      let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
+      let msg = `🛍️ New Order!\n\n${textItems}\n\n💰 Total: $${total}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
 
       try {
-        await addDoc(collection(db, 'orders'), {
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-          total: parseFloat(total),
-          customer: { name, phone, address },
-          status: 'new',
-          createdAt: serverTimestamp()
-        });
-
+        await addDoc(collection(db, 'orders'), { items: cart, total: parseFloat(total), customer: { name, phone, address }, createdAt: serverTimestamp() });
         for (const i of cart) {
           const p = products.find(x => x.id === i.id);
-          if (p) {
-            const newStock = Math.max(0, (p.stock || 0) - i.qty);
-            await updateDoc(doc(db, 'products', i.id), { stock: newStock });
-          }
+          if (p) await updateDoc(doc(db, 'products', i.id), { stock: Math.max(0, (p.stock || 0) - i.qty) });
         }
-
-        const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
-        });
-        const data = await res.json();
-        
-        if (data.ok) {
-          cart = []; 
-          updateCart(); 
-          closeCart();
-          document.getElementById('custName').value = '';
-          document.getElementById('custPhone').value = '';
-          document.getElementById('custAddress').value = '';
-          alert(t('orderSuccess'));
-        } else { 
-          alert("Telegram Error: " + data.description); 
-        }
-      } catch (e) { 
-        console.error(e);
-        alert(t('networkError')); 
-      }
-    };
-
-    applyLang();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="km">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jinkelai Shop</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .lang-btn.active { background: #047857; color: white; }
-  </style>
-</head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
-
-  <!-- Header (ផ្តាច់ Link ទៅ Admin រួចរាល់) -->
-  <header class="bg-emerald-700 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-4xl mx-auto px-4 py-3">
-      <div class="flex justify-between items-center">
-        <!-- ជំនួស <a> មក <div> ដើម្បីកុំឲ្យលោតទៅ admin.html -->
-        <div class="flex items-center gap-2 select-none">
-          <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400">
-          <h1 class="font-bold text-base text-white" id="shopTitle">Jinkelai Shop</h1>
-        </div>
-        <button onclick="openCart()" class="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span id="cartLabel">កន្ត្រក</span> (<span id="cartCount">0</span>)
-        </button>
-      </div>
-      <!-- Language Switcher -->
-      <div class="flex gap-1 mt-2 justify-center">
-        <button onclick="setLang('km')" id="btn-km" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">ខ្មែរ</button>
-        <button onclick="setLang('en')" id="btn-en" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">English</button>
-        <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">中文</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- STORE VIEW -->
-  <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-4">
-    <h2 class="text-sm font-bold text-gray-700" id="sectionTitle">បន្លែ និងផ្លែឈើស្រស់ៗ</h2>
-    <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-    <p id="loadingMsg" class="text-center text-gray-500 text-xs py-8">កំពុងផ្ទុកទំនិញ...</p>
-  </main>
-
-  <!-- CART MODAL -->
-  <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex justify-end opacity-0 pointer-events-none transition-all duration-200">
-    <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm flex items-center gap-2" id="cartTitle">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span id="cartTitleText">កន្ត្រកទំនិញ</span>
-        </h3>
-        <button onclick="closeCart()" class="text-gray-500 font-bold p-1">✕</button>
-      </div>
-      <div id="cartItemsContainer" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs"></div>
-      <div class="border-t pt-2 space-y-2 text-xs">
-        <input type="text" id="custName" class="w-full p-2 border rounded-xl" placeholder="ឈ្មោះ *">
-        <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
-        <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
-        <div class="flex justify-between font-bold text-sm pt-1">
-          <span id="totalLabel">សរុប៖</span><span id="cartTotalPrice" class="text-emerald-700">$0.00</span>
-        </div>
-        <button onclick="checkoutOrder()" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl" id="checkoutBtn">បញ្ជាទិញ</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBYgj8O40QZgGi9asF5CpzFBOcetNkIFJE",
-      authDomain: "jinkelai-supermarket.firebaseapp.com",
-      projectId: "jinkelai-supermarket",
-      storageBucket: "jinkelai-supermarket.firebasestorage.app",
-      messagingSenderId: "622852418497",
-      appId: "1:622852418497:web:bd84d5cdf8677f00c35d40",
-      measurementId: "G-VFQJ237VE2"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
-
-    const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
-    const TELEGRAM_CHAT_ID = '6530042898';
-
-    const i18n = {
-      km: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "បន្លែ និងផ្លែឈើស្រស់ៗ",
-        cartLabel: "កន្ត្រក",
-        cartTitle: "កន្ត្រកទំនិញ",
-        totalLabel: "សរុប៖",
-        checkoutBtn: "បញ្ជាទិញ",
-        namePh: "ឈ្មោះ *",
-        phonePh: "លេខទូរស័ព្ទ *",
-        addressPh: "អាសយដ្ឋាន *",
-        loading: "កំពុងផ្ទុកទំនិញ...",
-        empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock: "អស់ស្តុក",
-        stock: "ស្តុក",
-        buy: "+ ទិញ",
-        emptyCart: "គ្មានទំនិញ",
-        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
-        fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
-        addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
-        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!"
-      },
-      en: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "Fresh Vegetables & Fruits",
-        cartLabel: "Cart",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total:",
-        checkoutBtn: "Checkout",
-        namePh: "Name *",
-        phonePh: "Phone *",
-        addressPh: "Address *",
-        loading: "Loading products...",
-        empty: "No products available yet",
-        outOfStock: "Out of stock",
-        stock: "Stock",
-        buy: "+ Buy",
-        emptyCart: "Cart is empty",
-        orderSuccess: "🎉 Order placed successfully!",
-        fillInfo: "Please fill name, phone and address!",
-        addFirst: "Please add items to cart first!",
-        networkError: "Network or Firebase error!"
-      },
-      zh: {
-        shopTitle: "金克莱超市",
-        sectionTitle: "新鲜蔬菜和水果",
-        cartLabel: "购物车",
-        cartTitle: "购物车",
-        totalLabel: "合计：",
-        checkoutBtn: "下单",
-        namePh: "姓名 *",
-        phonePh: "电话 *",
-        addressPh: "地址 *",
-        loading: "正在加载商品...",
-        empty: "暂无商品",
-        outOfStock: "缺货",
-        stock: "库存",
-        buy: "+ 购买",
-        emptyCart: "购物车为空",
-        orderSuccess: "🎉 下单成功！",
-        fillInfo: "请填写姓名、电话和地址！",
-        addFirst: "请先添加商品到购物车！",
-        networkError: "网络或Firebase错误！"
-      }
-    };
-
-    let currentLang = localStorage.getItem('jinkelai_lang') || 'km';
-    let products = [];
-    let cart = [];
-
-    function t(key) {
-      return i18n[currentLang][key] || i18n.km[key] || key;
-    }
-
-    function getProductName(p) {
-      if (currentLang === 'zh' && p.name_zh) return p.name_zh;
-      if (currentLang === 'en' && p.name_en) return p.name_en;
-      return p.name_km || p.name_en || p.name_zh || p.name || '—';
-    }
-
-    window.setLang = function(lang) {
-      currentLang = lang;
-      localStorage.setItem('jinkelai_lang', lang);
-      applyLang();
-      renderProducts();
-      updateCart();
-    };
-
-    function applyLang() {
-      document.getElementById('shopTitle').innerText = t('shopTitle');
-      document.getElementById('sectionTitle').innerText = t('sectionTitle');
-      document.getElementById('cartLabel').innerText = t('cartLabel');
-      document.getElementById('cartTitleText').innerText = t('cartTitle');
-      document.getElementById('totalLabel').innerText = t('totalLabel');
-      document.getElementById('checkoutBtn').innerText = t('checkoutBtn');
-      document.getElementById('custName').placeholder = t('namePh');
-      document.getElementById('custPhone').placeholder = t('phonePh');
-      document.getElementById('custAddress').placeholder = t('addressPh');
-      document.getElementById('loadingMsg').innerText = products.length === 0 ? t('empty') : t('loading');
-
-      ['km','en','zh'].forEach(l => {
-        const btn = document.getElementById('btn-' + l);
-        if (btn) btn.classList.toggle('active', l === currentLang);
-      });
-    }
-
-    onSnapshot(collection(db, 'products'), (snapshot) => {
-      products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      const msg = document.getElementById('loadingMsg');
-      if (products.length === 0) {
-        msg.style.display = 'block';
-        msg.innerText = t('empty');
-      } else {
-        msg.style.display = 'none';
-      }
-      renderProducts();
-    }, (error) => {
-      console.error(error);
-      document.getElementById('loadingMsg').innerText = 'Firebase Error / Rules';
-    });
-
-    function renderProducts() {
-      const grid = document.getElementById('productGrid');
-      grid.innerHTML = '';
-      products.filter(p => p.active !== false).forEach(p => {
-        const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
-        const name = getProductName(p);
-        grid.innerHTML += `
-          <div class="bg-white p-2.5 rounded-xl border flex flex-col justify-between">
-            <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-28 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150'">
-            <h3 class="font-bold text-xs leading-tight">${name}</h3>
-            ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
-            <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
-            <div class="mt-2 flex justify-between items-center">
-              <div>
-                <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
-                ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}
-              </div>
-              <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
-            </div>
-          </div>`;
-      });
-    }
-
-    window.addToCart = function(id) {
-      const p = products.find(x => x.id === id);
-      if (!p || p.stock <= 0) return alert(t('outOfStock'));
-      const item = cart.find(x => x.id === id);
-      const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
-      const name = getProductName(p);
-      if (item) item.qty++; else cart.push({ id: p.id, name, price: finalPrice, qty: 1 });
-      updateCart();
-    };
-
-    function updateCart() {
-      const container = document.getElementById('cartItemsContainer');
-      let total = 0, count = 0;
-      container.innerHTML = cart.length ? '' : `<p class="text-center text-gray-400 py-4">${t('emptyCart')}</p>`;
-      cart.forEach(i => {
-        total += i.price * i.qty; count += i.qty;
-        container.innerHTML += `<div class="flex justify-between border-b pb-1"><div><b>${i.name}</b><br>$${i.price.toFixed(2)} x ${i.qty}</div><b>$${(i.price*i.qty).toFixed(2)}</b></div>`;
-      });
-      document.getElementById('cartCount').innerText = count;
-      document.getElementById('cartTotalPrice').innerText = `$${total.toFixed(2)}`;
-    }
-
-    window.openCart = function() { document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none'); };
-    window.closeCart = function() { document.getElementById('cartModal').classList.add('opacity-0', 'pointer-events-none'); };
-
-    window.checkoutOrder = async function() {
-      const name = document.getElementById('custName').value.trim();
-      const phone = document.getElementById('custPhone').value.trim();
-      const address = document.getElementById('custAddress').value.trim();
-
-      if (!cart.length) return alert(t('addFirst'));
-      if (!name || !phone || !address) return alert(t('fillInfo'));
-
-      let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
-      let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
-      
-      let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
-
-      try {
-        await addDoc(collection(db, 'orders'), {
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-          total: parseFloat(total),
-          customer: { name, phone, address },
-          status: 'new',
-          createdAt: serverTimestamp()
-        });
-
-        for (const i of cart) {
-          const p = products.find(x => x.id === i.id);
-          if (p) {
-            const newStock = Math.max(0, (p.stock || 0) - i.qty);
-            await updateDoc(doc(db, 'products', i.id), { stock: newStock });
-          }
-        }
-
-        const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
-        });
-        const data = await res.json();
-        
-        if (data.ok) {
-          cart = []; 
-          updateCart(); 
-          closeCart();
-          document.getElementById('custName').value = '';
-          document.getElementById('custPhone').value = '';
-          document.getElementById('custAddress').value = '';
-          alert(t('orderSuccess'));
-        } else { 
-          alert("Telegram Error: " + data.description); 
-        }
-      } catch (e) { 
-        console.error(e);
-        alert(t('networkError')); 
-      }
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg }) });
+        cart = []; updateCart(); closeCart();
+        alert(t('orderSuccess'));
+      } catch (e) { alert("Error checkout!"); }
     };
 
     applyLang();
