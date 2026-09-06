@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Jinkelai Supermarket</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Library សម្រាប់ស្កេន Barcode តាម Camera -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen">
+
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-emerald-800">⚙️ Admin Dashboard</h2>
+      <button id="cancelEditBtn" onclick="cancelEdit()" class="hidden text-xs bg-gray-500 text-white px-2 py-1 rounded">បោះបង់/កំណត់ឡើងវិញ</button>
+    </div>
+
+    <!-- ប៊ូតុងផ្លូវកាត់សម្រាប់ស្កេនបញ្ចូល/កែប្រែស្តុក -->
+    <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
+      <div>
+        <div class="font-bold text-sm text-emerald-900">📦 ស្កេន Barcode ដើម្បីបន្ថែមស្តុក</div>
+        <div class="text-xs text-emerald-700">ស្កេនទំនិញមានស្រាប់ដើម្បីបូកស្តុក ឬបន្ថែមទំនិញថ្មី</div>
+      </div>
+      <button type="button" onclick="startScanner('stock')" class="bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-emerald-800 shadow">
+        📷 ស្កេនទំនិញ
+      </button>
+    </div>
+
+    <form id="productForm" onsubmit="saveProduct(event)" class="space-y-4">
+      <input type="hidden" id="editId">
+
+      <div>
+        <label class="block text-sm font-medium mb-1">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
+        <input type="text" id="pNameKm" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Name in English</label>
+        <input type="text" id="pNameEn" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">中文名称 (Chinese)</label>
+        <input type="text" id="pNameZh" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">តម្លៃ ($) *</label>
+          <input type="number" step="0.01" id="pPrice" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">បញ្ចុះតម្លៃ (%)</label>
+          <input type="number" id="pDiscount" value="0" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label id="stockLabel" class="block text-sm font-medium mb-1">ស្តុក (Stock) *</label>
+          <input type="number" id="pStock" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+          <span id="addStockNotice" class="text-[11px] text-emerald-600 font-bold hidden">អាសន្ន៖ បញ្ចូលចំនួនស្តុកថ្មីដែលត្រូវបូកបន្ថែម</span>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Barcode</label>
+          <div class="flex gap-1">
+            <input type="text" id="pBarcode" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500" onchange="checkBarcodeExist(this.value)">
+            <button type="button" onclick="startScanner('form')" class="bg-blue-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-blue-700 whitespace-nowrap">
+              📷 ស្កេន
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- កន្លែងបង្ហាញ Camera ស្កេន Barcode -->
+      <div id="scannerModal" class="hidden border-2 border-dashed border-blue-500 p-2 rounded text-center bg-gray-50 my-2">
+        <div id="reader" class="w-full max-w-xs mx-auto"></div>
+        <button type="button" onclick="stopScanner()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1 rounded">បិទ Camera</button>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">រូបភាពទំនិញ (Upload Image)</label>
+        <input type="file" id="pImageFile" accept="image/*" onchange="previewImage(event)" class="w-full border p-2 rounded">
+        <img id="imagePreview" class="mt-2 h-28 object-cover rounded hidden">
+      </div>
+
+      <button type="submit" id="saveBtn" class="w-full bg-emerald-700 text-white py-2.5 rounded font-bold hover:bg-emerald-800 transition">
+        រក្សាទុកទំនិញ
+      </button>
+    </form>
+
+    <hr class="my-6">
+
+    <h3 class="text-lg font-bold mb-3">📦 បញ្ជីទំនិញក្នុងស្តុក</h3>
+    <div id="productList" class="space-y-3"></div>
+  </div>
+
+  <!-- Firebase Setup & Barcode Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
+      authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
+      projectId: "jinkelai-supermarket-e4786",
+      storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
+      messagingSenderId: "345735387486",
+      appId: "1:345735387486:web:44fc724756c3b77a7617cf",
+      measurementId: "G-P0G4RNKKMG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let selectedBase64 = '';
+    let productsData = [];
+    let html5QrcodeScanner = null;
+    let scanMode = 'form'; // 'form' ឬ 'stock'
+    let currentExistingStock = 0;
+
+    // មុខងារស្កេន Barcode តាម Camera
+    window.startScanner = function(mode = 'form') {
+      scanMode = mode;
+      const modal = document.getElementById('scannerModal');
+      modal.classList.remove('hidden');
+
+      if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
+      }
+
+      html5QrcodeScanner.render((decodedText) => {
+        document.getElementById('pBarcode').value = decodedText;
+        stopScanner();
+        checkBarcodeExist(decodedText);
+      }, (errorMessage) => {
+        // កំពុងស្កេន...
+      });
+    };
+
+    window.stopScanner = function() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+      }
+      document.getElementById('scannerModal').classList.add('hidden');
+    };
+
+    // ពិនិត្យមើលថា Barcode នេះមានក្នុងស្តុកស្រាប់ ឬនៅ?
+    window.checkBarcodeExist = function(barcode) {
+      if (!barcode) return;
+      const item = productsData.find(p => p.barcode === barcode.trim());
+      
+      if (item) {
+        // បើមានក្នុងស្តុកស្រាប់ ឱ្យដកទិន្នន័យមកដាក់លើ Form
+        editProduct(item.id, true);
+      } else {
+        if (scanMode === 'stock') {
+          alert('មិនទាន់មានទំនិញនេះក្នុងស្តុកនៅឡើយទេ! សូមបំពេញព័ត៌មានដើម្បីបន្ថែមទំនិញថ្មី។');
+        }
+      }
+    };
+
+    window.previewImage = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedBase64 = evt.target.result;
+          const img = document.getElementById('imagePreview');
+          img.src = selectedBase64;
+          img.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    window.saveProduct = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveBtn');
+      btn.innerText = 'កំពុងរក្សាទុក...';
+      btn.disabled = true;
+
+      const editId = document.getElementById('editId').value;
+      const inputStock = parseInt(document.getElementById('pStock').value) || 0;
+
+      // បើជាការកែប្រែ ឬបន្ថែមស្តុក វានឹងបូកចំនួនស្តុកថ្មី ចូលស្តុកចាស់ (ករណីស្កេនបន្ថែម)
+      const finalStock = editId ? (currentExistingStock + inputStock) : inputStock;
+
+      const data = {
+        name_km: document.getElementById('pNameKm').value,
+        name_en: document.getElementById('pNameEn').value,
+        name_zh: document.getElementById('pNameZh').value,
+        price: parseFloat(document.getElementById('pPrice').value),
+        discount: parseFloat(document.getElementById('pDiscount').value) || 0,
+        stock: finalStock,
+        barcode: document.getElementById('pBarcode').value,
+        active: true
+      };
+
+      try {
+        if (selectedBase64) {
+          data.image = selectedBase64;
+        }
+
+        if (editId) {
+          await updateDoc(doc(db, 'products', editId), data);
+          alert(`🎉 បានបូកបន្ថែមស្តុក និងកែប្រែទំនិញជោគជ័យ! (ស្តុកសរុបថ្មី៖ ${finalStock})`);
+        } else {
+          data.image = selectedBase64 || 'https://via.placeholder.com/150';
+          data.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'products'), data);
+          alert('🎉 បន្ថែមទំនិញថ្មីជោគជ័យ!');
+        }
+
+        cancelEdit();
+        loadProducts();
+      } catch (err) {
+        alert('មានបញ្ហា៖ ' + err.message);
+      } finally {
+        btn.innerText = editId ? 'កែប្រែទំនិញ' : 'រក្សាទុកទំនិញ';
+        btn.disabled = false;
+      }
+    };
+
+    window.loadProducts = async function() {
+      const container = document.getElementById('productList');
+      container.innerHTML = 'កំពុងទាញទិន្នន័យ...';
+      try {
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        container.innerHTML = '';
+        productsData = [];
+
+        querySnapshot.forEach((docSnap) => {
+          const item = { id: docSnap.id, ...docSnap.data() };
+          productsData.push(item);
+
+          container.innerHTML += `
+            <div class="flex items-center justify-between p-3 border rounded bg-gray-50">
+              <div class="flex items-center gap-3">
+                <img src="${item.image}" class="w-12 h-12 object-cover rounded border">
+                <div>
+                  <div class="font-bold text-gray-800">${item.name_km}</div>
+                  <div class="text-xs text-gray-500">$${item.price.toFixed(2)} | ស្តុក៖ <b class="text-emerald-700">${item.stock}</b> | Barcode: ${item.barcode || 'គ្មាន'}</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="editProduct('${item.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-bold border border-blue-600 px-2 py-1 rounded">កែ/បន្ថែមស្តុក</button>
+                <button onclick="deleteProduct('${item.id}')" class="text-red-600 hover:text-red-800 text-xs font-bold border border-red-600 px-2 py-1 rounded">លុប</button>
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        container.innerHTML = 'មិនអាចទាញទិន្នន័យបាន៖ ' + err.message;
+      }
+    };
+
+    window.editProduct = function(id, isAddStockMode = false) {
+      const item = productsData.find(p => p.id === id);
+      if (!item) return;
+
+      currentExistingStock = item.stock || 0;
+
+      document.getElementById('editId').value = item.id;
+      document.getElementById('pNameKm').value = item.name_km || '';
+      document.getElementById('pNameEn').value = item.name_en || '';
+      document.getElementById('pNameZh').value = item.name_zh || '';
+      document.getElementById('pPrice').value = item.price || 0;
+      document.getElementById('pDiscount').value = item.discount || 0;
+      document.getElementById('pBarcode').value = item.barcode || '';
+
+      if (isAddStockMode) {
+        // បើស្កេនចំទំនិញមានស្រាប់ ដាក់តម្លៃស្តុក = 0 ដើម្បីឱ្យអ្នកប្រើប្រាស់វាយតែចំនួនស្តុកថ្មីត្រូវបូកបន្ថែម
+        document.getElementById('pStock').value = '';
+        document.getElementById('stockLabel').innerText = `បន្ថែមចំនួនស្តុក (ស្តុកចាស់មាន៖ ${currentExistingStock})`;
+        document.getElementById('addStockNotice').classList.remove('hidden');
+      } else {
+        document.getElementById('pStock').value = 0;
+        document.getElementById('stockLabel').innerText = `បន្ថែមចំនួនស្តុក (ស្តុកចាស់មាន៖ ${currentExistingStock})`;
+        document.getElementById('addStockNotice').classList.remove('hidden');
+      }
+
+      if (item.image) {
+        const img = document.getElementById('imagePreview');
+        img.src = item.image;
+        img.classList.remove('hidden');
+      }
+
+      document.getElementById('saveBtn').innerText = 'បច្ចុប្បន្នភាពទិន្នន័យ / បូកបន្ថែមស្តុក';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEdit = function() {
+      document.getElementById('productForm').reset();
+      document.getElementById('editId').value = '';
+      document.getElementById('imagePreview').classList.add('hidden');
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+      document.getElementById('addStockNotice').classList.add('hidden');
+      document.getElementById('stockLabel').innerText = 'ស្តុក (Stock) *';
+      document.getElementById('saveBtn').innerText = 'រក្សាទុកទំនិញ';
+      selectedBase64 = '';
+      currentExistingStock = 0;
+      stopScanner();
+    };
+
+    window.deleteProduct = async function(id) {
+      if (confirm('តើអ្នកប្រាកដថាចង់លុបទំនិញនេះ?')) {
+        await deleteDoc(doc(db, 'products', id));
+        loadProducts();
+      }
+    };
+
+    loadProducts();
+  </script>
+</body>
+</html>

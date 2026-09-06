@@ -9,99 +9,125 @@
 </head>
 <body class="bg-gray-100 pb-20">
 
-  <!-- Header ជាមួយ Logo & Cart Icon -->
+  <!-- Header -->
   <header class="bg-emerald-800 text-white p-4 sticky top-0 z-40 shadow-md">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-800 font-bold text-xl shadow">
-          🛒
-        </div>
+        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-800 font-bold text-xl shadow">🛒</div>
         <div>
           <h1 class="font-bold text-lg leading-tight">Jinkelai Supermarket</h1>
-          <p class="text-xs text-emerald-200">ផ្សារទំនើប ជិនកើឡាយ</p>
+          <p class="text-xs text-emerald-200" id="i18n-subtitle">ផ្សារទំនើប ជិនកើឡាយ</p>
         </div>
       </div>
 
-      <button onclick="toggleCartModal()" class="relative bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg flex items-center gap-2 transition">
-        <i class="fas fa-shopping-cart text-lg"></i>
-        <span class="font-bold">កន្ត្រក</span>
-        <span id="cartCount" class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- Dropdown Selector 3 ភាសា (Full Support) -->
+        <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 focus:outline-none cursor-pointer">
+          <option value="km">🇰🇭 ខ្មែរ</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="zh">🇨🇳 中文</option>
+        </select>
+
+        <!-- ប៊ូតុងកន្ត្រកទំនិញ -->
+        <button onclick="toggleCartModal()" class="relative bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 rounded-lg flex items-center gap-2 transition text-sm">
+          <i class="fas fa-shopping-cart text-base"></i>
+          <span class="font-bold hidden sm:inline" id="i18n-cartBtn">កន្ត្រក</span>
+          <span id="cartCount" class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- Main Content -->
   <main class="max-w-6xl mx-auto p-4">
-    <h2 class="text-xl font-bold mb-4 text-gray-800">🛍️ ទំនិញទាំងអស់</h2>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800" id="i18n-mainTitle">🛍️ ទំនិញទាំងអស់</h2>
+      <span class="text-xs text-gray-500 font-bold" id="i18n-productCount">ចំនួនទំនិញ៖ 0</span>
+    </div>
     <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="col-span-full text-center py-10 text-gray-500">កំពុងទាញយកទំនិញ...</div>
+      <div class="col-span-full text-center py-10 text-gray-500" id="i18n-loading">កំពុងទាញយកទំនិញ...</div>
     </div>
   </main>
 
-  <!-- Cart & Checkout Modal -->
+  <!-- Cart Modal -->
   <div id="cartModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-end">
     <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between shadow-2xl overflow-y-auto">
       <div>
         <div class="flex justify-between items-center border-b pb-3 mb-4">
-          <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-shopping-bag mr-2 text-emerald-700"></i>កន្ត្រក និងព័ត៌មានដឹកជញ្ជូន</h3>
+          <h3 class="text-lg font-bold text-gray-800">
+            <i class="fas fa-shopping-bag mr-2 text-emerald-700"></i>
+            <span id="i18n-modalTitle">កន្ត្រក និងព័ត៌មានដឹកជញ្ជូន</span>
+          </h3>
           <button onclick="toggleCartModal()" class="text-gray-500 hover:text-red-500 text-xl font-bold">&times;</button>
         </div>
         
         <!-- Form ព័ត៌មានអតិថិជន -->
-        <div class="mb-4 space-y-2">
+        <div class="mb-4 space-y-3">
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">ឈ្មោះអ្នកទិញ *</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1" id="i18n-lblCustName">ឈ្មោះអ្នកទិញ *</label>
             <input type="text" id="custName" placeholder="ឧ. សុខ ជា" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">លេខទូរស័ព្ទ *</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1" id="i18n-lblCustPhone">លេខទូរស័ព្ទ *</label>
             <input type="tel" id="custPhone" placeholder="ឧ. 012 345 678" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">អាសយដ្ឋានដឹកជញ្ជូន *</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1" id="i18n-lblCustAddress">អាសយដ្ឋានដឹកជញ្ជូន *</label>
             <textarea id="custAddress" rows="2" placeholder="ផ្ទះលេខ... ផ្លូវ... ខណ្ឌ/ស្រុក..." class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">រូបភាពទីតាំង/Map (Option)</label>
-            <input type="file" id="locImageFile" accept="image/*" onchange="previewLocImg(event)" class="w-full border p-1 rounded text-xs">
-            <img id="locPreview" class="mt-1 h-20 object-cover rounded hidden">
+            <label class="block text-xs font-bold text-gray-700 mb-1" id="i18n-lblPayMethod">វិធីសាស្ត្របង់ប្រាក់ *</label>
+            <select id="payMethod" onchange="togglePaymentUI()" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500 font-bold">
+              <option value="COD" id="i18n-optCOD">💵 បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)</option>
+              <option value="KHQR" id="i18n-optKHQR">💳 ទូទាត់តាម QR Code (KHQR)</option>
+            </select>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">វិធីសាស្ត្របង់ប្រាក់ *</label>
-            <select id="payMethod" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
-              <option value="បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)">💵 បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)</option>
-              <option value="វេរប្រាក់តាមធនាគារ (ABA / KHQR)">💳 វេរប្រាក់តាមធនាគារ (ABA / KHQR)</option>
-            </select>
+          <!-- Section KHQR & Upload Slip -->
+          <div id="qrSection" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center space-y-2">
+            <p class="text-xs font-bold text-emerald-900" id="i18n-scanNotice">សូមស្កេន QR Code ខាងក្រោមដើម្បីទូទាត់ប្រាក់៖</p>
+            
+            <img id="storeQrImg" src="https://pay.ababank.com/oRF8/d5yora7v" class="w-52 h-auto mx-auto rounded-lg shadow-md border bg-white p-1" alt="ABA KHQR">
+            
+            <p class="text-xs text-gray-700 font-bold">
+              <span id="i18n-accNameLabel">ឈ្មោះគណនី៖</span> 
+              <span class="text-emerald-800 font-extrabold">VUTHY YOL</span>
+            </p>
+            
+            <hr class="my-2 border-emerald-200">
+            <div class="text-left">
+              <label class="block text-xs font-bold text-red-600 mb-1" id="i18n-lblUploadSlip">សូម Upload រូបភាព Slip វេរប្រាក់ *</label>
+              <input type="file" id="paySlipFile" accept="image/*" onchange="previewSlip(event)" class="w-full border p-1 rounded text-xs bg-white">
+              <img id="slipPreview" class="mt-2 h-28 object-cover rounded mx-auto hidden border" alt="Slip Preview">
+            </div>
           </div>
         </div>
 
         <hr class="my-3">
-        <h4 class="font-bold text-sm mb-2 text-gray-700">📦 បញ្ជីទំនិញក្នុងកន្ត្រក</h4>
-        <div id="cartItems" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
+        <h4 class="font-bold text-sm mb-2 text-gray-700" id="i18n-cartListTitle">📦 បញ្ជីទំនិញក្នុងកន្ត្រក</h4>
+        <div id="cartItems" class="space-y-2 max-h-[25vh] overflow-y-auto pr-1"></div>
       </div>
 
       <div class="border-t pt-3 bg-gray-50 p-3 rounded-lg mt-4">
         <div class="flex justify-between font-bold text-lg mb-3">
-          <span>សរុប (Total):</span>
+          <span id="i18n-totalLabel">សរុប (Total):</span>
           <span id="cartTotal" class="text-emerald-700">$0.00</span>
         </div>
-        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-emerald-700 text-white py-3 rounded-lg font-bold hover:bg-emerald-800 transition">
-          ផ្ញើការបញ្ជាទិញ (Order Now)
+        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-emerald-700 text-white py-3 rounded-lg font-bold hover:bg-emerald-800 transition shadow">
+          <span id="i18n-checkoutBtn">ផ្ញើការបញ្ជាទិញ (Order Now)</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase Setup & Telegram Config -->
+  <!-- Firebase Setup & App Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ១. Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
       authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
@@ -112,26 +138,174 @@
       measurementId: "G-P0G4RNKKMG"
     };
 
-    // ២. Telegram Configuration (ដាក់ Bot Token និង Chat ID របស់បង)
-    const TELEGRAM_BOT_TOKEN = "7832628795:AAHQ_YOUR_BOT_TOKEN_HERE"; 
-    const TELEGRAM_CHAT_ID = "123456789"; 
+    const TELEGRAM_BOT_TOKEN = "8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw"; 
+    const TELEGRAM_CHAT_ID = "1138406730"; 
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     let cart = [];
     let productsList = [];
-    let selectedLocBase64 = '';
+    let selectedSlipBase64 = '';
+    let currentLang = localStorage.getItem('app_lang') || 'km';
 
-    // Preview រូបភាពទីតាំង
-    window.previewLocImg = function(e) {
+    // វចនានុក្រមប្រែភាសាពេញលេញ 100% លើគ្រប់ Text
+    const dictionary = {
+      km: {
+        subtitle: "ផ្សារទំនើប ជិនកើឡាយ",
+        cartBtn: "កន្ត្រក",
+        mainTitle: "🛍️ ទំនិញទាំងអស់",
+        productCount: "ចំនួនទំនិញ៖ ",
+        loading: "កំពុងទាញយកទំនិញ...",
+        emptyStore: "មិនទាន់មានទំនិញនៅឡើយទេ",
+        modalTitle: "កន្ត្រក និងព័ត៌មានដឹកជញ្ជូន",
+        lblCustName: "ឈ្មោះអ្នកទិញ *",
+        custNamePh: "ឧ. សុខ ជា",
+        lblCustPhone: "លេខទូរស័ព្ទ *",
+        custPhonePh: "ឧ. 012 345 678",
+        lblCustAddress: "អាសយដ្ឋានដឹកជញ្ជូន *",
+        custAddressPh: "ផ្ទះលេខ... ផ្លូវ... ខណ្ឌ/ស្រុក...",
+        lblPayMethod: "វិធីសាស្ត្របង់ប្រាក់ *",
+        optCOD: "💵 បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)",
+        optKHQR: "💳 ទូទាត់តាម QR Code (KHQR)",
+        scanNotice: "សូមស្កេន QR Code ខាងក្រោមដើម្បីទូទាត់ប្រាក់៖",
+        accNameLabel: "ឈ្មោះគណនី៖",
+        lblUploadSlip: "សូម Upload រូបភាព Slip វេរប្រាក់ *",
+        cartListTitle: "📦 បញ្ជីទំនិញក្នុងកន្ត្រក",
+        emptyCart: "គ្មានទំនិញក្នុងកន្ត្រកទេ",
+        totalLabel: "សរុប (Total):",
+        checkoutBtn: "ផ្ញើការបញ្ជាទិញ (Order Now)",
+        addBtn: "បញ្ចូលកន្ត្រក",
+        stockLabel: "ស្តុក: ",
+        alertSelectProduct: "សូមជ្រើសរើសទំនិញមុននឹងទូទាត់!",
+        alertFillInfo: "សូមបំពេញឈ្មោះ, លេខទូរស័ព្ទ និងអាសយដ្ឋានឱ្យបានគ្រប់!",
+        alertUploadSlip: "សូម Upload រូបភាព Slip វេរប្រាក់ដើម្បីផ្ទៀងផ្ទាត់!",
+        sendingBtn: "កំពុងផ្ញើការបញ្ជាទិញ...",
+        orderSuccess: "🎉 ការបញ្ជាទិញត្រូវបានផ្ញើទៅកាន់ Telegram រួចរាល់!",
+        orderFailed: "មានបញ្ហាក្នុងការផ្ញើ! សូមពិនិត្យមើលម្ដងទៀត។",
+        outOfStock: "អស់ពីស្តុក"
+      },
+      en: {
+        subtitle: "Jinkelai Supermarket",
+        cartBtn: "Cart",
+        mainTitle: "🛍️ All Products",
+        productCount: "Products: ",
+        loading: "Loading products...",
+        emptyStore: "No products available yet",
+        modalTitle: "Cart & Delivery Information",
+        lblCustName: "Customer Name *",
+        custNamePh: "e.g. John Doe",
+        lblCustPhone: "Phone Number *",
+        custPhonePh: "e.g. 012 345 678",
+        lblCustAddress: "Delivery Address *",
+        custAddressPh: "House No... Street... District...",
+        lblPayMethod: "Payment Method *",
+        optCOD: "💵 Cash on Delivery (COD)",
+        optKHQR: "💳 Pay via QR Code (KHQR)",
+        scanNotice: "Please scan the QR Code below to pay:",
+        accNameLabel: "Account Name:",
+        lblUploadSlip: "Please Upload Payment Slip *",
+        cartListTitle: "📦 Items in Cart",
+        emptyCart: "Your cart is empty",
+        totalLabel: "Total:",
+        checkoutBtn: "Order Now",
+        addBtn: "Add to Cart",
+        stockLabel: "Stock: ",
+        alertSelectProduct: "Please select products before checking out!",
+        alertFillInfo: "Please complete your Name, Phone, and Address!",
+        alertUploadSlip: "Please upload your payment slip for verification!",
+        sendingBtn: "Sending Order...",
+        orderSuccess: "🎉 Your order has been sent successfully to Telegram!",
+        orderFailed: "Failed to send order! Please try again.",
+        outOfStock: "Out of stock"
+      },
+      zh: {
+        subtitle: "金客来超市",
+        cartBtn: "购物车",
+        mainTitle: "🛍️ 所有商品",
+        productCount: "商品数量：",
+        loading: "正在加载商品...",
+        emptyStore: "暂无商品",
+        modalTitle: "购物车与配送信息",
+        lblCustName: "客户姓名 *",
+        custNamePh: "例如：张三",
+        lblCustPhone: "联系电话 *",
+        custPhonePh: "例如：012 345 678",
+        lblCustAddress: "配送地址 *",
+        custAddressPh: "门牌号... 街道... 区/县...",
+        lblPayMethod: "支付方式 *",
+        optCOD: "💵 货到付款 (COD)",
+        optKHQR: "💳 扫码支付 (KHQR)",
+        scanNotice: "请扫描下方二维码进行支付：",
+        accNameLabel: "账户名称：",
+        lblUploadSlip: "请上传付款凭证/水单 *",
+        cartListTitle: "📦 购物车中的商品",
+        emptyCart: "购物车是空的",
+        totalLabel: "合计：",
+        checkoutBtn: "立即下单",
+        addBtn: "加入购物车",
+        stockLabel: "库存: ",
+        alertSelectProduct: "请在结算前选择商品！",
+        alertFillInfo: "请完整填写姓名、电话和地址！",
+        alertUploadSlip: "请上传付款凭证以便核对！",
+        sendingBtn: "正在提交订单...",
+        orderSuccess: "🎉 订单已成功发送至 Telegram！",
+        orderFailed: "发送失败，请重试！",
+        outOfStock: "缺货"
+      }
+    };
+
+    window.changeLanguage = function(lang) {
+      currentLang = lang;
+      localStorage.setItem('app_lang', lang);
+      document.getElementById('langSelect').value = lang;
+
+      const t = dictionary[lang];
+      document.getElementById('i18n-subtitle').innerText = t.subtitle;
+      document.getElementById('i18n-cartBtn').innerText = t.cartBtn;
+      document.getElementById('i18n-mainTitle').innerText = t.mainTitle;
+      document.getElementById('i18n-modalTitle').innerText = t.modalTitle;
+      
+      document.getElementById('i18n-lblCustName').innerText = t.lblCustName;
+      document.getElementById('custName').placeholder = t.custNamePh;
+      document.getElementById('i18n-lblCustPhone').innerText = t.lblCustPhone;
+      document.getElementById('custPhone').placeholder = t.custPhonePh;
+      document.getElementById('i18n-lblCustAddress').innerText = t.lblCustAddress;
+      document.getElementById('custAddress').placeholder = t.custAddressPh;
+      
+      document.getElementById('i18n-lblPayMethod').innerText = t.lblPayMethod;
+      document.getElementById('i18n-optCOD').innerText = t.optCOD;
+      document.getElementById('i18n-optKHQR').innerText = t.optKHQR;
+      
+      document.getElementById('i18n-scanNotice').innerText = t.scanNotice;
+      document.getElementById('i18n-accNameLabel').innerText = t.accNameLabel;
+      document.getElementById('i18n-lblUploadSlip').innerText = t.lblUploadSlip;
+      document.getElementById('i18n-cartListTitle').innerText = t.cartListTitle;
+      document.getElementById('i18n-totalLabel').innerText = t.totalLabel;
+      document.getElementById('i18n-checkoutBtn').innerText = t.checkoutBtn;
+
+      renderProducts();
+      updateCartUI();
+    };
+
+    window.togglePaymentUI = function() {
+      const payMethod = document.getElementById('payMethod').value;
+      const qrSection = document.getElementById('qrSection');
+      if (payMethod === 'KHQR') {
+        qrSection.classList.remove('hidden');
+      } else {
+        qrSection.classList.add('hidden');
+      }
+    };
+
+    window.previewSlip = function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(evt) {
-          selectedLocBase64 = evt.target.result;
-          const img = document.getElementById('locPreview');
-          img.src = selectedLocBase64;
+          selectedSlipBase64 = evt.target.result;
+          const img = document.getElementById('slipPreview');
+          img.src = selectedSlipBase64;
           img.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
@@ -139,43 +313,57 @@
     };
 
     async function loadProducts() {
-      const grid = document.getElementById('productGrid');
       try {
         const querySnapshot = await getDocs(collection(db, 'products'));
-        grid.innerHTML = '';
         productsList = [];
 
         if (querySnapshot.empty) {
-          grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">មិនទាន់មានទំនិញនៅឡើយទេ</div>';
+          document.getElementById('productGrid').innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">${dictionary[currentLang].emptyStore}</div>`;
+          document.getElementById('i18n-productCount').innerText = dictionary[currentLang].productCount + '0';
           return;
         }
 
         querySnapshot.forEach((docSnap) => {
-          const p = { id: docSnap.id, ...docSnap.data() };
-          productsList.push(p);
-
-          grid.innerHTML += `
-            <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between border hover:shadow-lg transition">
-              <div>
-                <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-36 object-cover rounded-lg mb-2">
-                <h3 class="font-bold text-gray-800 line-clamp-1">${p.name_km}</h3>
-                <p class="text-xs text-gray-400 line-clamp-1">${p.name_en || ''}</p>
-              </div>
-              <div class="mt-3">
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-emerald-700 font-bold">$${p.price.toFixed(2)}</span>
-                  <span class="text-xs text-gray-500">ស្តុក: ${p.stock}</span>
-                </div>
-                <button onclick="addToCart('${p.id}')" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-1.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
-                  <i class="fas fa-cart-plus"></i> បញ្ចូលកន្ត្រក
-                </button>
-              </div>
-            </div>
-          `;
+          productsList.push({ id: docSnap.id, ...docSnap.data() });
         });
+
+        renderProducts();
       } catch (err) {
-        grid.innerHTML = '<div class="col-span-full text-center text-red-500">មានបញ្ហា៖ ' + err.message + '</div>';
+        document.getElementById('productGrid').innerHTML = '<div class="col-span-full text-center text-red-500">Error: ' + err.message + '</div>';
       }
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      const t = dictionary[currentLang];
+      grid.innerHTML = '';
+
+      document.getElementById('i18n-productCount').innerText = t.productCount + productsList.length;
+
+      productsList.forEach((p) => {
+        let prodName = p.name_km;
+        if (currentLang === 'en') prodName = p.name_en || p.name_km;
+        if (currentLang === 'zh') prodName = p.name_zh || p.name_en || p.name_km;
+
+        grid.innerHTML += `
+          <div class="bg-white rounded-xl shadow p-3 flex flex-col justify-between border hover:shadow-lg transition">
+            <div>
+              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-36 object-cover rounded-lg mb-2" alt="${prodName}">
+              <h3 class="font-bold text-gray-800 line-clamp-1">${prodName}</h3>
+              <p class="text-xs text-gray-400 line-clamp-1">${p.name_en || ''}</p>
+            </div>
+            <div class="mt-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-emerald-700 font-bold">$${Number(p.price || 0).toFixed(2)}</span>
+                <span class="text-xs text-gray-500">${t.stockLabel}${p.stock ?? 0}</span>
+              </div>
+              <button onclick="addToCart('${p.id}')" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-1.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition">
+                <i class="fas fa-cart-plus"></i> ${t.addBtn}
+              </button>
+            </div>
+          </div>
+        `;
+      });
     }
 
     window.addToCart = function(id) {
@@ -201,26 +389,30 @@
       let totalQty = 0;
 
       if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">គ្មានទំនិញក្នុងកន្ត្រកទេ</div>';
+        cartItemsContainer.innerHTML = `<div class="text-center py-4 text-gray-400 text-sm">${dictionary[currentLang].emptyCart}</div>`;
       } else {
         cart.forEach(item => {
           const itemTotal = item.price * item.qty;
           total += itemTotal;
           totalQty += item.qty;
+          
+          let prodName = item.name_km;
+          if (currentLang === 'en') prodName = item.name_en || item.name_km;
+          if (currentLang === 'zh') prodName = item.name_zh || item.name_en || item.name_km;
 
           cartItemsContainer.innerHTML += `
             <div class="flex justify-between items-center p-2 border-b">
               <div class="flex items-center gap-2">
-                <img src="${item.image}" class="w-8 h-8 object-cover rounded">
+                <img src="${item.image}" class="w-8 h-8 object-cover rounded" alt="${prodName}">
                 <div>
-                  <div class="font-bold text-xs line-clamp-1">${item.name_km}</div>
-                  <div class="text-[10px] text-emerald-700">$${item.price.toFixed(2)} x ${item.qty}</div>
+                  <div class="font-bold text-xs line-clamp-1">${prodName}</div>
+                  <div class="text-[10px] text-emerald-700">$${Number(item.price).toFixed(2)} x ${item.qty}</div>
                 </div>
               </div>
               <div class="flex items-center gap-1">
-                <button onclick="changeQty('${item.id}', -1)" class="w-5 h-5 bg-gray-200 rounded font-bold text-xs">-</button>
+                <button onclick="changeQty('${item.id}', -1)" class="w-5 h-5 bg-gray-200 hover:bg-gray-300 rounded font-bold text-xs">-</button>
                 <span class="text-xs font-bold px-1">${item.qty}</span>
-                <button onclick="changeQty('${item.id}', 1)" class="w-5 h-5 bg-gray-200 rounded font-bold text-xs">+</button>
+                <button onclick="changeQty('${item.id}', 1)" class="w-5 h-5 bg-gray-200 hover:bg-gray-300 rounded font-bold text-xs">+</button>
               </div>
             </div>
           `;
@@ -246,18 +438,23 @@
       document.getElementById('cartModal').classList.toggle('hidden');
     };
 
-    // មុខងារផ្ញើការបញ្ជាទិញទៅ Telegram
     window.checkout = async function() {
       const name = document.getElementById('custName').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
       const address = document.getElementById('custAddress').value.trim();
       const payMethod = document.getElementById('payMethod').value;
+      const t = dictionary[currentLang];
 
-      if (cart.length === 0) return alert('សូមជ្រើសរើសទំនិញមុននឹងទូទាត់!');
-      if (!name || !phone || !address) return alert('សូមបំពេញឈ្មោះ, លេខទូរស័ព្ទ និងអាសយដ្ឋានឱ្យបានគ្រប់!');
+      if (cart.length === 0) return alert(t.alertSelectProduct);
+      if (!name || !phone || !address) return alert(t.alertFillInfo);
+
+      if (payMethod === 'KHQR' && !selectedSlipBase64) {
+        return alert(t.alertUploadSlip);
+      }
 
       const btn = document.getElementById('checkoutBtn');
-      btn.innerText = 'កំពុងផ្ញើការបញ្ជាទិញ...';
+      const btnText = document.getElementById('i18n-checkoutBtn');
+      btnText.innerText = t.sendingBtn;
       btn.disabled = true;
 
       let totalAmount = 0;
@@ -269,19 +466,20 @@
         orderListText += `${index + 1}. ${item.name_km} x ${item.qty} = $${itemTotal.toFixed(2)}\n`;
       });
 
+      const payStatusText = payMethod === 'KHQR' ? '💳 វេរប្រាក់តាម KHQR (មាន Slip)' : '💵 បង់ប្រាក់ជាមួយអ្នកដឹក (COD)';
+
       const message = `🛒 *ការបញ្ជាទិញថ្មី - JINKELAI* 🛒\n` +
                       `-----------------------------\n` +
                       `👤 *ឈ្មោះ:* ${name}\n` +
                       `📞 *ទូរស័ព្ទ:* ${phone}\n` +
                       `📍 *អាសយដ្ឋាន:* ${address}\n` +
-                      `💳 *ការបង់ប្រាក់:* ${payMethod}\n` +
+                      `💳 *ការបង់ប្រាក់:* ${payStatusText}\n` +
                       `-----------------------------\n` +
                       `📦 *បញ្ជីទំនិញ:*\n${orderListText}` +
                       `-----------------------------\n` +
                       `💰 *សរុប (TOTAL):* $${totalAmount.toFixed(2)}`;
 
       try {
-        // ផ្ញើសារអក្សរទៅ Telegram
         const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -292,13 +490,12 @@
           })
         });
 
-        // បើមាន Upload រូបភាពទីតាំង វានឹងផ្ញើរូបភាពទៅ Telegram ថែមទៀត
-        if (selectedLocBase64) {
-          const blob = await (await fetch(selectedLocBase64)).blob();
+        if (payMethod === 'KHQR' && selectedSlipBase64) {
+          const blob = await (await fetch(selectedSlipBase64)).blob();
           const formData = new FormData();
           formData.append('chat_id', TELEGRAM_CHAT_ID);
-          formData.append('photo', blob, 'location.jpg');
-          formData.append('caption', `📍 រូបភាពទីតាំងរបស់អតិថិជន៖ ${name}`);
+          formData.append('photo', blob, 'slip.jpg');
+          formData.append('caption', `🧾 Slip វេរប្រាក់របស់អតិថិជន៖ ${name} ($${totalAmount.toFixed(2)})`);
 
           await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
             method: 'POST',
@@ -307,27 +504,29 @@
         }
 
         if (res.ok) {
-          alert('🎉 ការបញ្ជាទិញត្រូវបានផ្ញើទៅកាន់ Telegram រួចរាល់!');
+          alert(t.orderSuccess);
           cart = [];
           document.getElementById('custName').value = '';
           document.getElementById('custPhone').value = '';
           document.getElementById('custAddress').value = '';
-          document.getElementById('locImageFile').value = '';
-          document.getElementById('locPreview').classList.add('hidden');
-          selectedLocBase64 = '';
+          document.getElementById('paySlipFile').value = '';
+          document.getElementById('slipPreview').classList.add('hidden');
+          selectedSlipBase64 = '';
           updateCartUI();
           toggleCartModal();
         } else {
-          alert('មានបញ្ហាក្នុងការផ្ញើ! សូមពិនិត្យ Bot Token/Chat ID ឡើងវិញ។');
+          alert(t.orderFailed);
         }
       } catch (err) {
-        alert('មានបញ្ហា៖ ' + err.message);
+        alert('Error: ' + err.message);
       } finally {
-        btn.innerText = 'ផ្ញើការបញ្ជាទិញ (Order Now)';
+        btnText.innerText = t.checkoutBtn;
         btn.disabled = false;
       }
     };
 
+    // Initialize UI & Language state
+    changeLanguage(currentLang);
     loadProducts();
   </script>
 </body>
