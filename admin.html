@@ -6,7 +6,7 @@
     <title>Jinkelai Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (v8 Compat) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
@@ -26,18 +26,17 @@
             <span class="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-full font-semibold">Online</span>
         </header>
 
-        <!-- ១. គ្រប់គ្រង KHQR Payment (បន្ថែម QR Code ថ្មី & ជ្រើសរើសប្រើ) -->
+        <!-- 1. Multi-QR Code Management -->
         <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
             <h3 class="font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-qrcode text-red-600"></i> គ្រប់គ្រងរូបភាព KHQR Payment
             </h3>
 
-            <!-- បន្ថែម QR Code ថ្មីចូលប្រព័ន្ធ -->
             <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
                 <h4 class="text-xs font-bold text-gray-700"><i class="fa-solid fa-plus-circle text-blue-600 mr-1"></i>បន្ថែម QR Code ធនាគារថ្មី</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" id="qrBankName" placeholder="ឈ្មោះធនាគារ (ឧ. ABA, Wing, ACLEDA) *" class="text-xs border rounded-lg p-2.5 outline-none focus:border-red-600">
-                    <input type="text" id="qrAccName" placeholder="ឈ្មោះគណនី (ឧ. VUTHY YOL) *" class="text-xs border rounded-lg p-2.5 outline-none focus:border-red-600">
+                    <input type="text" id="qrBankName" placeholder="ឈ្មោះធនាគារ (ឧ. ABA, Wing) *" class="text-xs border rounded-lg p-2.5 outline-none">
+                    <input type="text" id="qrAccName" placeholder="ឈ្មោះគណនី (ឧ. VUTHY YOL) *" class="text-xs border rounded-lg p-2.5 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">ជ្រើសរើសរូបភាព QR Code *</label>
@@ -48,7 +47,6 @@
                 </button>
             </div>
 
-            <!-- បញ្ជី QR Code ដែលមានស្រាប់ក្នុងប្រព័ន្ធ -->
             <div>
                 <h4 class="text-xs font-bold text-gray-700 mb-2">បញ្ជី QR Code ទាំងអស់ (ជ្រើសរើសមួយដើម្បីបង្ហាញលើទំព័រអតិថិជន)៖</h4>
                 <div id="qrCodeList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -57,7 +55,7 @@
             </div>
         </div>
 
-        <!-- ២. បន្ថែមទំនិញថ្មី (Add New Product) -->
+        <!-- 2. Product Management (Add Product) -->
         <div class="bg-white p-5 rounded-xl shadow-sm border">
             <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-box-open text-green-600"></i> បន្ថែមទំនិញថ្មីទៅក្នុងហាង
@@ -77,7 +75,7 @@
             </button>
         </div>
 
-        <!-- ៣. បញ្ជីទំនិញទាំងអស់ (Product List) -->
+        <!-- 3. Product List (View/Delete) -->
         <div class="bg-white p-5 rounded-xl shadow-sm border">
             <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-list text-blue-600"></i> បញ្ជីទំនិញក្នុងប្រព័ន្ធ
@@ -89,30 +87,26 @@
     </div>
 
     <script>
+        // Firebase Config ពិតប្រាកដរបស់បង
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
+            authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
+            projectId: "jinkelai-supermarket-e4786",
+            storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
+            messagingSenderId: "345735387486",
+            appId: "1:345735387486:web:44fc724756c3b77a7617cf",
+            measurementId: "G-P0G4RNKKMG"
         };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // -------------------------------------------------------------
-        // ១. មុខងារ QR CODE MANAGEMENT (ថែម QR ថ្មី & ជ្រើសរើសប្រើ)
-        // -------------------------------------------------------------
-
-        // បន្ថែម QR Code ថ្មីចូល Firestore Collection "qr_codes"
+        // 1. QR Code Logic
         async function addNewQRCode() {
             const bankName = document.getElementById('qrBankName').value.trim();
             const accName = document.getElementById('qrAccName').value.trim();
             const file = document.getElementById('qrFileInput').files[0];
 
-            if (!bankName || !accName || !file) {
-                return alert("សូមបំពេញឈ្មោះធនាគារ ឈ្មោះគណនី និងជ្រើសរើសរូបភាព QR Code!");
-            }
+            if (!bankName || !accName || !file) return alert("សូមបំពេញព័ត៌មាន និងជ្រើសរើសរូប QR!");
 
             const btn = document.getElementById('btnAddQR');
             btn.disabled = true; btn.innerText = "កំពុងរក្សាទុក...";
@@ -126,25 +120,19 @@
                         qr_url: e.target.result,
                         created_at: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    alert("បានរក្សាទុក QR Code ថ្មីជោគជ័យ!");
+                    alert("បានរក្សាទុក QR ថ្មីជោគជ័យ!");
                     document.getElementById('qrBankName').value = "";
                     document.getElementById('qrAccName').value = "";
                     document.getElementById('qrFileInput').value = "";
-                } catch (err) {
-                    alert("មានបញ្ហាក្នុងការរក្សាទុក!");
-                } finally {
-                    btn.disabled = false; btn.innerText = "+ រក្សាទុក QR Code ថ្មីនេះ";
-                }
+                } catch (err) { alert("មានបញ្ហាក្នុងការរក្សាទុក!"); }
+                finally { btn.disabled = false; btn.innerText = "+ រក្សាទុក QR Code ថ្មីនេះ"; }
             };
             reader.readAsDataURL(file);
         }
 
-        // បង្ហាញបញ្ជី QR Code ទាំងអស់ និងសម្គាល់ QR ដែលកំពុងដំណើរការ (Active)
         let activeQrUrl = "";
         db.collection("settings").doc("payment").onSnapshot((doc) => {
-            if (doc.exists && doc.data().qr_code_url) {
-                activeQrUrl = doc.data().qr_code_url;
-            }
+            if (doc.exists && doc.data().qr_code_url) activeQrUrl = doc.data().qr_code_url;
             renderQRList();
         });
 
@@ -152,7 +140,7 @@
             db.collection("qr_codes").orderBy("created_at", "desc").onSnapshot((snapshot) => {
                 const list = document.getElementById('qrCodeList');
                 if (snapshot.empty) {
-                    list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មាន QR Code នៅឡើយទេ</p>`;
+                    list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មាន QR Code ទេ</p>`;
                     return;
                 }
                 list.innerHTML = snapshot.docs.map(doc => {
@@ -178,7 +166,6 @@
             });
         }
 
-        // កំណត់ជ្រើសរើស QR Code មួយឱ្យដំណើរការលើ Customer App (`index.html`)
         async function setActiveQR(docId, bankName, accName) {
             try {
                 const doc = await db.collection("qr_codes").doc(docId).get();
@@ -189,23 +176,16 @@
                         acc_name: accName,
                         updated_at: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    alert(`បានផ្លាស់ប្តូរទៅប្រើ QR Code របស់ ${bankName} រួចរាល់!`);
+                    alert(`បានដូរទៅប្រើ QR Code របស់ ${bankName} រួចរាល់!`);
                 }
-            } catch (err) {
-                alert("មានបញ្ហាក្នុងការផ្លាស់ប្តូរ QR Code!");
-            }
+            } catch (err) { alert("មានបញ្ហាក្នុងការដូរ QR!"); }
         }
 
-        // លុប QR Code
         async function deleteQR(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុប QR Code នេះមែនទេ?")) {
-                await db.collection("qr_codes").doc(id).delete();
-            }
+            if (confirm("តើអ្នកពិតជាចង់លុប QR នេះមែនទេ?")) await db.collection("qr_codes").doc(id).delete();
         }
 
-        // -------------------------------------------------------------
-        // ២. មុខងារ PRODUCT MANAGEMENT (ថែម & លុបទំនិញ)
-        // -------------------------------------------------------------
+        // 2. Product Management Logic
         async function addNewProduct() {
             const nameKm = document.getElementById('pNameKm').value.trim();
             const nameEn = document.getElementById('pNameEn').value.trim();
@@ -244,7 +224,7 @@
         db.collection("products").orderBy("created_at", "desc").onSnapshot((snapshot) => {
             const list = document.getElementById('adminProductList');
             if (snapshot.empty) {
-                list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មានទំនិញនៅឡើយទេ</p>`;
+                list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មានទំនិញទេ</p>`;
                 return;
             }
             list.innerHTML = snapshot.docs.map(doc => {
@@ -267,9 +247,7 @@
         });
 
         async function deleteProduct(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) {
-                await db.collection("products").doc(id).delete();
-            }
+            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) await db.collection("products").doc(id).delete();
         }
     </script>
 </body>
