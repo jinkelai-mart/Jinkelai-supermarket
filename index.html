@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            <!-- Search Bar (ត្រង់កន្លែងគូសរង្វង់) -->
+            <!-- Search Bar -->
             <div class="w-full md:w-1/2 order-3 md:order-2">
                 <div class="relative w-full">
                     <input type="text" id="searchInput" oninput="filterProducts()" 
@@ -39,19 +39,23 @@
                 </div>
             </div>
 
-            <!-- Right Controls: Language & Cart -->
-            <div class="flex items-center space-x-3 order-2 md:order-3 shrink-0 ml-auto md:ml-0">
+            <!-- Language, Cart, & Admin Link -->
+            <div class="flex items-center space-x-2 order-2 md:order-3 shrink-0 ml-auto md:ml-0">
                 <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-green-800 text-white text-xs rounded px-2 py-1 outline-none border border-green-600">
-                    <option value="km">🇰🇭 ភាសាខ្មែរ</option>
-                    <option value="en">🇬🇧 English</option>
+                    <option value="km">🇰🇭 ខ្មែរ</option>
+                    <option value="en">🇬🇧 EN</option>
                     <option value="zh">🇨🇳 中文</option>
                 </select>
                 
-                <button onclick="toggleCartModal()" class="relative bg-green-800 hover:bg-green-900 px-3 py-1.5 rounded-lg flex items-center space-x-2 transition">
-                    <i class="fa-solid fa-basket-shopping text-base"></i>
-                    <span data-i18n="cart" class="hidden sm:inline text-xs font-semibold">កន្ត្រក</span>
-                    <span id="cartBadge" class="bg-yellow-400 text-green-900 font-bold text-xs rounded-full px-2 py-0.5 ml-1">0</span>
+                <button onclick="toggleCartModal()" class="relative bg-green-800 hover:bg-green-900 px-3 py-1.5 rounded-lg flex items-center space-x-1 transition text-xs font-semibold">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span id="cartBadge" class="bg-yellow-400 text-green-900 font-bold rounded-full px-1.5 py-0.5 ml-1">0</span>
                 </button>
+
+                <!-- Admin Link Button -->
+                <a href="admin.html" class="bg-green-900 hover:bg-black text-white p-1.5 rounded-lg text-xs transition" title="Admin Dashboard">
+                    <i class="fa-solid fa-user-gear"></i>
+                </a>
             </div>
 
         </div>
@@ -60,13 +64,19 @@
     <main class="container mx-auto px-4 py-6 flex-grow">
         <div class="flex justify-between items-center mb-4">
             <h3 data-i18n="productsList" class="text-lg font-bold text-gray-800 border-l-4 border-green-600 pl-3">ទំនិញទាំងអស់</h3>
-            <span id="productCount" class="text-xs text-gray-500"></span>
+            <span id="productCount" class="text-xs text-gray-500">កំពុងផ្ទុកទិន្នន័យ...</span>
         </div>
         
         <!-- Product Grid -->
         <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         
-        <!-- No Search Result Message -->
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center py-12">
+            <i class="fa-solid fa-spinner fa-spin text-4xl text-green-600 mb-2"></i>
+            <p class="text-sm text-gray-500">កំពុងទាញទិន្នន័យទំនិញពី Database...</p>
+        </div>
+
+        <!-- No Results Message -->
         <div id="noResults" class="hidden text-center py-12 text-gray-500">
             <i class="fa-solid fa-magnifying-glass text-4xl mb-2 text-gray-300"></i>
             <p data-i18n="noProductFound">មិនមានទំនិញដែលអ្នកកំពុងស្វែងរកទេ!</p>
@@ -95,10 +105,10 @@
                     <h4 data-i18n="khqrPayment" class="font-semibold text-gray-700 mb-2 text-sm">ទូទាត់តាម QR Code (KHQR)</h4>
                     <div class="bg-gray-50 border rounded-xl p-4 flex flex-col items-center justify-center">
                         <div class="bg-white p-2 border rounded-lg shadow-sm mb-2">
-                            <img id="qrCodeImg" src="https://via.placeholder.com/200?text=Loading+QR..." alt="KHQR Payment" class="w-44 h-44 object-contain">
+                            <img id="qrCodeImg" src="https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?w=300" alt="KHQR Payment" class="w-44 h-44 object-contain">
                         </div>
-                        <span class="font-bold text-sm text-gray-800">ABA KHQR</span>
-                        <span class="text-xs text-gray-500">ឈ្មោះគណនី: <strong class="text-gray-700">VUTHY YOL</strong></span>
+                        <span id="qrBankDisplay" class="font-bold text-sm text-gray-800">ABA KHQR</span>
+                        <span class="text-xs text-gray-500">ឈ្មោះគណនី: <strong id="qrAccDisplay" class="text-gray-700">VUTHY YOL</strong></span>
                     </div>
 
                     <div class="mt-4">
@@ -126,6 +136,7 @@
         const TELEGRAM_BOT_TOKEN = "8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw";
         const TELEGRAM_CHAT_ID = "1138406730";
 
+        // Firebase Configuration (ប្រើ Config របស់បង)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -134,27 +145,13 @@
             messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
-        firebase.initializeApp(firebaseConfig);
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
 
-        // Realtime QR Code
-        db.collection("settings").doc("payment").onSnapshot((doc) => {
-            if (doc.exists && doc.data().qr_code_url) {
-                document.getElementById('qrCodeImg').src = doc.data().qr_code_url;
-            }
-        });
-
-        const products = [
-            { id: 1, name_km: "ថៃហ្គឺរបៀរ៣៣០មល*២៤", name_en: "Tiger Lager Beer Pint 330ml", name_zh: "老虎啤酒 330ml*24", price: 18.50, img: "https://via.placeholder.com/150" },
-            { id: 2, name_km: "អានឆ័រកំប៉ុង*៣៣០មល*២៤", name_en: "Anchor Cans 330ml", name_zh: "安客啤酒 330ml*24", price: 13.90, img: "https://via.placeholder.com/150" },
-            { id: 3, name_km: "Tiger Crystal Beer Pint", name_en: "Tiger Crystal Beer Pint 330ml", name_zh: "老虎水晶啤酒 330ml*24", price: 20.00, img: "https://via.placeholder.com/150" },
-            { id: 4, name_km: "ហនុមានដបបៀរ*២៤", name_en: "Hanuman Beer Bottle 330ml", name_zh: "哈努曼啤酒 330ml*24", price: 15.90, img: "https://via.placeholder.com/150" },
-            { id: 5, name_km: "កូរ៉ូណាចម្រុះ*២៤", name_en: "Corona Extra 330ml*24", name_zh: "科罗娜啤酒 330ml*24", price: 34.90, img: "https://via.placeholder.com/150" },
-            { id: 6, name_km: "ហានីហ្គេន ប្រាក់ដប៣៣០មល*២៤", name_en: "Heineken Silver Bottle 330ml", name_zh: "喜力银啤酒 330ml*24", price: 23.50, img: "https://via.placeholder.com/150" },
-            { id: 7, name_km: "ស្រាបៀរកម្ពុជា ដប៣៣០មល*២៤", name_en: "Cambodia Beer Bottle 330ml", name_zh: "柬埔寨啤酒 330ml*24", price: 15.70, img: "https://via.placeholder.com/150" },
-            { id: 8, name_km: "ស្រាបៀរអង្គរ ដប ៣៣០មល*២៤", name_en: "Angkor Small Pint 330ml*24", name_zh: "吴哥啤酒 330ml*24", price: 15.20, img: "https://via.placeholder.com/150" }
-        ];
-
+        let products = [];
         let cart = [];
         let currentLang = 'km';
 
@@ -164,10 +161,45 @@
             zh: { searchPlaceholder: "搜索商品...", cart: "购物车", productsList: "所有商品", addToCart: "加入购物车", cartTitle: "购物车与结账", selectedItems: "已选商品", totalAmount: "总计:", khqrPayment: "KHQR 扫码支付", uploadSlip: "请上传付款凭证截图 *", confirmOrder: "确认订单", sendingOrder: "正在发送订单...", emptyCart: "您的购物车是空的！", fillAllFields: "请填写完整信息并上传凭证！", orderSuccess: "下单成功！", orderFailed: "发送订单失败！", noProductFound: "未找到相关商品！" }
         };
 
-        document.addEventListener("DOMContentLoaded", () => { 
-            renderProducts(products); 
-            updateCartUI(); 
+        // ទាញយកទិន្នន័យទំនិញ Realtime ពី Firebase Firestore
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchProductsFromFirebase();
+            fetchQRSettings();
         });
+
+        function fetchProductsFromFirebase() {
+            db.collection("products").onSnapshot((snapshot) => {
+                products = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    products.push({
+                        id: doc.id,
+                        name_km: data.name_km || data.name || "គ្មានឈ្មោះ",
+                        name_en: data.name_en || data.name || "",
+                        name_zh: data.name_zh || data.name || "",
+                        price: parseFloat(data.price) || 0,
+                        img: data.image_url || data.img || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=300"
+                    });
+                });
+
+                document.getElementById('loadingSpinner').classList.add('hidden');
+                renderProducts(products);
+                updateCartUI();
+            }, (error) => {
+                console.error("Firebase Error: ", error);
+                document.getElementById('loadingSpinner').innerHTML = `<p class="text-red-500">មានបញ្ហាក្នុងការទាញទិន្នន័យពី Firebase!</p>`;
+            });
+        }
+
+        function fetchQRSettings() {
+            db.collection("settings").doc("payment").onSnapshot((doc) => {
+                if (doc.exists && doc.data().qr_code_url) {
+                    document.getElementById('qrCodeImg').src = doc.data().qr_code_url;
+                    if(doc.data().bank_name) document.getElementById('qrBankDisplay').innerText = doc.data().bank_name;
+                    if(doc.data().acc_name) document.getElementById('qrAccDisplay').innerText = doc.data().acc_name;
+                }
+            });
+        }
 
         function changeLanguage(lang) {
             currentLang = lang;
@@ -180,7 +212,6 @@
             renderCartItems();
         }
 
-        // មុខងារ Search និង Filter ទំនិញ
         function filterProducts() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = products.filter(p => {
@@ -195,7 +226,6 @@
         function renderProducts(productList) {
             const grid = document.getElementById('productGrid');
             const noResults = document.getElementById('noResults');
-            
             document.getElementById('productCount').innerText = `ចំនួនសរុប៖ ${productList.length}`;
 
             if (productList.length === 0) {
@@ -208,11 +238,11 @@
             grid.innerHTML = productList.map(p => `
                 <div class="bg-white rounded-xl border p-3 flex flex-col justify-between hover:shadow-md transition">
                     <div>
-                        <img src="${p.img}" class="w-full h-36 object-cover rounded-lg mb-2">
+                        <img src="${p.img}" class="w-full h-36 object-cover rounded-lg mb-2 bg-gray-100" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'">
                         <h4 class="font-semibold text-xs text-gray-800 mb-1 line-clamp-2">${p[`name_${currentLang}`] || p.name_km}</h4>
                         <div class="text-green-700 font-bold text-sm">$${p.price.toFixed(2)}</div>
                     </div>
-                    <button onclick="addToCart(${p.id})" class="mt-3 w-full bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-1.5 rounded-lg text-xs border border-green-200 flex items-center justify-center transition">
+                    <button onclick="addToCart('${p.id}')" class="mt-3 w-full bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-1.5 rounded-lg text-xs border border-green-200 flex items-center justify-center transition">
                         <i class="fa-solid fa-cart-plus mr-1"></i> ${i18n[currentLang].addToCart}
                     </button>
                 </div>
@@ -221,7 +251,12 @@
 
         function addToCart(id) {
             const item = cart.find(i => i.id === id);
-            if (item) item.qty++; else cart.push({ ...products.find(p => p.id === id), qty: 1 });
+            if (item) {
+                item.qty++;
+            } else {
+                const prod = products.find(p => p.id === id);
+                if (prod) cart.push({ ...prod, qty: 1 });
+            }
             updateCartUI();
         }
 
@@ -266,8 +301,7 @@
 
             const btn = document.getElementById('btnSubmitOrder');
             const btnText = document.getElementById('btnText');
-            btn.disabled = true;
-            btnText.innerText = i18n[currentLang].sendingOrder;
+            btn.disabled = true; btnText.innerText = i18n[currentLang].sendingOrder;
 
             try {
                 let totalAmount = cart.reduce((s, i) => s + (i.price * i.qty), 0);
@@ -292,8 +326,7 @@
             } catch (err) {
                 alert(i18n[currentLang].orderFailed);
             } finally {
-                btn.disabled = false;
-                btnText.innerText = i18n[currentLang].confirmOrder;
+                btn.disabled = false; btnText.innerText = i18n[currentLang].confirmOrder;
             }
         }
     </script>
