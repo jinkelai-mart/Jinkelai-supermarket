@@ -336,13 +336,13 @@
       const price = parseFloat(document.getElementById('pPrice').value);
       const discount = parseFloat(document.getElementById('pDiscount').value) || 0;
       const stockRaw = document.getElementById('pStock').value;
-      const stock = Math.floor(parseFloat(stockRaw));
+      let stock = Math.floor(parseFloat(stockRaw));
+      if (isNaN(stock) || stock < 0) stock = 0;
       const barcode = document.getElementById('pBarcode').value.trim();
       const editId = document.getElementById('editId').value;
 
       if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
       if (isNaN(price) || price < 0) return alert("សូមបញ្ចូលតម្លៃឱ្យត្រឹមត្រូវ!");
-      if (isNaN(stock) || stock < 0) return alert("ស្តុកត្រូវជាចំនួនគត់ (ឧទាហរណ៍: 50)!");
 
       const btn = document.getElementById('saveBtn');
       const oldText = btn.innerText;
