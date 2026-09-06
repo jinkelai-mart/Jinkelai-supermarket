@@ -1,344 +1,188 @@
 <!DOCTYPE html>
 <html lang="km">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Jinkelai</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin store-Jinkelai Supermarket</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen font-['Kantumruy_Pro'] flex flex-col">
+<body class="bg-gray-100 p-4 min-h-screen">
 
-  <!-- LOGIN -->
-  <div id="loginSection" class="fixed inset-0 bg-emerald-900/90 z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
-      <div class="text-center">
-        <span class="text-4xl">🛍️🛒</span>
-        <h2 class="text-lg font-bold text-gray-800 mt-2">Jinkelai Admin</h2>
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-emerald-800 text-center">⚙️ Admin Dashboard</h2>
+
+    <form id="productForm" onsubmit="saveProduct(event)" class="space-y-4">
+      <input type="hidden" id="editId">
+
+      <div>
+        <label class="block text-sm font-medium mb-1">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
+        <input type="text" id="pNameKm" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
       </div>
-      <div class="space-y-3 text-xs">
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Name in English</label>
+        <input type="text" id="pNameEn" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">中文名称 (Chinese)</label>
+        <input type="text" id="pNameZh" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block font-semibold mb-1">Email</label>
-          <input type="email" id="loginEmail" placeholder="admin@gmail.com" value="admin@gmail.com" class="w-full p-2.5 border rounded-xl">
+          <label class="block text-sm font-medium mb-1">តម្លៃ ($) *</label>
+          <input type="number" step="0.01" id="pPrice" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block font-semibold mb-1">Password</label>
-          <input type="password" id="loginPass" placeholder="1234" value="1234" class="w-full p-2.5 border rounded-xl">
+          <label class="block text-sm font-medium mb-1">បញ្ចុះតម្លៃ (%)</label>
+          <input type="number" id="pDiscount" value="0" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
         </div>
-        <button onclick="doLogin()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
       </div>
-    </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">ស្តុក *</label>
+          <input type="number" id="pStock" required class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Barcode</label>
+          <input type="text" id="pBarcode" class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">រូបភាពទំនិញ (Upload Image)</label>
+        <input type="file" id="pImageFile" accept="image/*" onchange="previewImage(event)" class="w-full border p-2 rounded">
+        <img id="imagePreview" class="mt-2 h-28 object-cover rounded hidden">
+      </div>
+
+      <button type="submit" id="saveBtn" class="w-full bg-emerald-700 text-white py-2 rounded font-bold hover:bg-emerald-800 transition">
+        រក្សាទុកទំនិញ
+      </button>
+    </form>
+
+    <hr class="my-6">
+
+    <h3 class="text-lg font-bold mb-3">📦 បញ្ជីទំនិញ</h3>
+    <div id="productList" class="space-y-3"></div>
   </div>
 
-  <!-- DASHBOARD -->
-  <div id="adminDashboard" class="hidden flex-1 flex flex-col">
-    <header class="bg-emerald-800 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-30">
-      <h1 class="font-bold text-base">⚙️ Admin Dashboard</h1>
-      <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-xs rounded-lg font-bold">ចាកចេញ</button>
-    </header>
-
-    <main class="max-w-4xl w-full mx-auto p-4 space-y-5 flex-1">
-
-      <!-- Change Password -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
-          <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
-        </div>
-      </div>
-
-      <!-- Add / Edit Product -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
-        
-        <div class="space-y-2 text-xs">
-          <div>
-            <label class="font-semibold text-gray-600">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
-            <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្រាបៀរកម្ពុជា" class="w-full p-2 border rounded-xl mt-1">
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">Name in English</label>
-            <input type="text" id="pNameEn" placeholder="Cambodia Beer" class="w-full p-2 border rounded-xl mt-1">
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">中文名称 (Chinese)</label>
-            <input type="text" id="pNameZh" placeholder="柬埔寨啤酒" class="w-full p-2 border rounded-xl mt-1">
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600">តម្លៃ ($) *</label>
-              <input type="number" id="pPrice" step="0.01" placeholder="15.70" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600">បញ្ចុះតម្លៃ (%)</label>
-              <input type="number" id="pDiscount" placeholder="0" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600">ស្តុក *</label>
-              <input type="number" id="pStock" placeholder="10" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600">Barcode</label>
-              <div class="flex gap-1 mt-1">
-                <input type="text" id="pBarcode" placeholder="វាយ ឬស្កែន" class="flex-1 p-2 border rounded-xl">
-                <button type="button" onclick="startBarcodeScan()" class="bg-blue-600 text-white px-3 rounded-xl text-xs font-bold whitespace-nowrap">📷 ស្កែន</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Barcode Scanner Modal -->
-          <div id="scannerModal" class="fixed inset-0 z-[200] bg-black/80 hidden flex-col items-center justify-center p-4">
-            <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3">
-              <div class="flex justify-between items-center">
-                <h3 class="font-bold text-sm">📷 ស្កែន Barcode</h3>
-                <button onclick="stopBarcodeScan()" class="text-gray-500 font-bold text-lg">✕</button>
-              </div>
-              <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
-              <button onclick="stopBarcodeScan()" class="w-full py-2 bg-gray-200 rounded-xl font-bold text-xs">បិទ</button>
-            </div>
-          </div>
-
-          <!-- Image Upload -->
-          <div>
-            <label class="font-semibold text-gray-600">រូបភាពទំនិញ (Upload)</label>
-            <input type="file" id="pImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-            <div id="imagePreview" class="mt-2 hidden">
-              <img id="previewImg" class="w-24 h-24 object-cover rounded-lg border">
-            </div>
-          </div>
-
-          <input type="hidden" id="editId" value="">
-          <div class="flex gap-2 pt-2">
-            <button onclick="saveProduct()" class="flex-1 bg-emerald-700 text-white font-bold py-2.5 rounded-xl" id="saveBtn">រក្សាទុកទំនិញ</button>
-            <button onclick="cancelEdit()" id="cancelBtn" class="hidden bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl">បោះបង់</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Product List -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">📦 បញ្ជីទំនិញ (Firebase)</h3>
-        <div id="adminProductList" class="space-y-2 text-xs">
-          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
+  <!-- Firebase Setup -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBYgj8O40QZgGi9asF5CpzFBOcetNkIFJE",
-      authDomain: "jinkelai-supermarket.firebaseapp.com",
-      projectId: "jinkelai-supermarket",
-      storageBucket: "jinkelai-supermarket.firebasestorage.app",
-      messagingSenderId: "622852418497",
-      appId: "1:622852418497:web:bd84d5cdf8677f00c35d40"
+      apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
+      authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
+      projectId: "jinkelai-supermarket-e4786",
+      storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
+      messagingSenderId: "345735387486",
+      appId: "1:345735387486:web:44fc724756c3b77a7617cf",
+      measurementId: "G-P0G4RNKKMG"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
-    let adminAuth = JSON.parse(localStorage.getItem('jinkelai_admin')) || { email: 'admin@gmail.com', pass: '1234' };
-    let products = [];
-    let selectedFile = null;
+    let selectedBase64 = '';
 
-    document.getElementById('pImageFile')?.addEventListener('change', (e) => {
+    window.previewImage = function(e) {
       const file = e.target.files[0];
       if (file) {
-        selectedFile = file;
         const reader = new FileReader();
-        reader.onload = (ev) => {
-          document.getElementById('previewImg').src = ev.target.result;
-          document.getElementById('imagePreview').classList.remove('hidden');
+        reader.onload = function(evt) {
+          selectedBase64 = evt.target.result;
+          const img = document.getElementById('imagePreview');
+          img.src = selectedBase64;
+          img.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
       }
-    });
-
-    let html5QrCode = null;
-    window.startBarcodeScan = function() {
-      document.getElementById('scannerModal').classList.remove('hidden');
-      document.getElementById('scannerModal').classList.add('flex');
-      html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, (text) => {
-        document.getElementById('pBarcode').value = text;
-        stopBarcodeScan();
-      }).catch(() => stopBarcodeScan());
     };
 
-    window.stopBarcodeScan = function() {
-      if (html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{});
-      document.getElementById('scannerModal').classList.add('hidden');
-    };
-
-    onSnapshot(collection(db, 'products'), (snapshot) => {
-      products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderAdminList();
-    });
-
-    window.doLogin = function() {
-      const e = document.getElementById('loginEmail').value.trim();
-      const p = document.getElementById('loginPass').value.trim();
-      if (e === adminAuth.email && p === adminAuth.pass) {
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        renderAdminList();
-      } else {
-        alert("Email ឬ Password មិនត្រឹមត្រូវ!");
-      }
-    };
-
-    window.doLogout = function() {
-      document.getElementById('loginSection').classList.remove('hidden');
-      document.getElementById('adminDashboard').classList.add('hidden');
-    };
-
-    window.changePassword = function() {
-      const np = document.getElementById('newPass').value.trim();
-      if (!np) return alert("សូមបញ្ចូលលេខសម្ងាត់ថ្មី!");
-      adminAuth.pass = np;
-      localStorage.setItem('jinkelai_admin', JSON.stringify(adminAuth));
-      alert("🎉 ប្តូរលេខសម្ងាត់ជោគជ័យ!");
-    };
-
-    function renderAdminList() {
-      const container = document.getElementById('adminProductList');
-      container.innerHTML = products.length ? '' : '<p class="text-center text-gray-400 py-4">គ្មានទំនិញ</p>';
-      products.forEach((p) => {
-        container.innerHTML += `
-          <div class="flex items-center justify-between p-3 border rounded-xl bg-white gap-2">
-            <div class="flex items-center gap-3">
-              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-12 h-12 object-cover rounded-lg border">
-              <div>
-                <h4 class="font-bold text-gray-800 text-xs">${p.name_km || p.name || '—'}</h4>
-                <p class="text-[10px] text-gray-500">$${p.price} · ស្តុក: ${p.stock}</p>
-              </div>
-            </div>
-            <div class="flex gap-1">
-              <button onclick="window.editProduct('${p.id}')" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px]">✏️ Edit</button>
-              <button onclick="window.deleteProduct('${p.id}')" class="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px]">🗑️ Delete</button>
-            </div>
-          </div>`;
-      });
-    }
-
-    // Helper Convert File to Base64 (ប្រសិនបើ Firebase Storage Error)
-    const fileToBase64 = file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-
-    window.saveProduct = async function() {
-      const name_km = document.getElementById('pNameKm').value.trim();
-      const name_en = document.getElementById('pNameEn').value.trim();
-      const name_zh = document.getElementById('pNameZh').value.trim();
-      const price = parseFloat(document.getElementById('pPrice').value);
-      const discount = parseFloat(document.getElementById('pDiscount').value) || 0;
-      const stock = parseInt(document.getElementById('pStock').value);
-      const barcode = document.getElementById('pBarcode').value.trim();
-      const editId = document.getElementById('editId').value;
-
-      if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
-      if (isNaN(price)) return alert("សូមបញ្ចូលតម្លៃ!");
-      if (isNaN(stock)) return alert("សូមបញ្ចូលចំនួនស្តុក!");
-
+    window.saveProduct = async function(e) {
+      e.preventDefault();
       const btn = document.getElementById('saveBtn');
       btn.innerText = 'កំពុងរក្សាទុក...';
       btn.disabled = true;
 
+      const editId = document.getElementById('editId').value;
+      const data = {
+        name_km: document.getElementById('pNameKm').value,
+        name_en: document.getElementById('pNameEn').value,
+        name_zh: document.getElementById('pNameZh').value,
+        price: parseFloat(document.getElementById('pPrice').value),
+        discount: parseFloat(document.getElementById('pDiscount').value) || 0,
+        stock: parseInt(document.getElementById('pStock').value),
+        barcode: document.getElementById('pBarcode').value,
+        active: true
+      };
+
       try {
-        let imageUrl = '';
-
-        if (selectedFile) {
-          try {
-            // ព្យាយាម Upload ទៅ Firebase Storage
-            const storageRef = ref(storage, 'products/' + Date.now() + '_' + selectedFile.name);
-            const uploadResult = await uploadBytes(storageRef, selectedFile);
-            imageUrl = await getDownloadURL(uploadResult.ref);
-          } catch (storageErr) {
-            console.warn("Storage Error, fallback to Base64:", storageErr);
-            // បើ Storage Error វានឹងប្រើ Base64 ជំនួស មិនឲ្យទាក់ស្ទះឡើយ
-            imageUrl = await fileToBase64(selectedFile);
-          }
+        if (selectedBase64) {
+          data.image = selectedBase64;
         }
-
-        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, active: true };
 
         if (editId) {
-          if (imageUrl) data.image = imageUrl;
           await updateDoc(doc(db, 'products', editId), data);
-          alert("🎉 កែប្រែទំនិញជោគជ័យ!");
+          alert('🎉 កែប្រែទំនិញជោគជ័យ!');
         } else {
-          data.image = imageUrl || 'https://via.placeholder.com/150';
+          data.image = selectedBase64 || 'https://via.placeholder.com/150';
           data.createdAt = serverTimestamp();
           await addDoc(collection(db, 'products'), data);
-          alert("🎉 បន្ថែមទំនិញជោគជ័យ!");
+          alert('🎉 បន្ថែមទំនិញជោគជ័យ!');
         }
 
-        cancelEdit();
-      } catch (e) {
-        console.error("Save error:", e);
-        alert("មានបញ្ហា៖ " + e.message);
+        document.getElementById('productForm').reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('imagePreview').classList.add('hidden');
+        selectedBase64 = '';
+        loadProducts();
+      } catch (err) {
+        alert('មានបញ្ហា៖ ' + err.message);
       } finally {
         btn.innerText = 'រក្សាទុកទំនិញ';
         btn.disabled = false;
       }
     };
 
-    window.editProduct = function(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('editId').value = id;
-      document.getElementById('pNameKm').value = p.name_km || p.name || '';
-      document.getElementById('pNameEn').value = p.name_en || '';
-      document.getElementById('pNameZh').value = p.name_zh || '';
-      document.getElementById('pPrice').value = p.price || '';
-      document.getElementById('pDiscount').value = p.discount || 0;
-      document.getElementById('pStock').value = p.stock || 0;
-      document.getElementById('pBarcode').value = p.barcode || '';
-      if (p.image) {
-        document.getElementById('previewImg').src = p.image;
-        document.getElementById('imagePreview').classList.remove('hidden');
+    window.loadProducts = async function() {
+      const container = document.getElementById('productList');
+      container.innerHTML = 'កំពុងទាញទិន្នន័យ...';
+      try {
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        container.innerHTML = '';
+        querySnapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          container.innerHTML += `
+            <div class="flex items-center justify-between p-3 border rounded">
+              <div class="flex items-center gap-3">
+                <img src="${item.image}" class="w-12 h-12 object-cover rounded">
+                <div>
+                  <div class="font-bold">${item.name_km}</div>
+                  <div class="text-sm text-gray-500">$${item.price} | ស្តុក: ${item.stock}</div>
+                </div>
+              </div>
+              <button onclick="deleteProduct('${docSnap.id}')" class="text-red-600 hover:underline text-sm font-bold">លុប</button>
+            </div>
+          `;
+        });
+      } catch (err) {
+        container.innerHTML = 'មិនអាចទាញទិន្នន័យបាន៖ ' + err.message;
       }
-      document.getElementById('formTitle').innerText = '✏️ កែប្រែទំនិញ';
-      document.getElementById('cancelBtn').classList.remove('hidden');
-    };
-
-    window.cancelEdit = function() {
-      document.getElementById('editId').value = '';
-      document.getElementById('pNameKm').value = '';
-      document.getElementById('pNameEn').value = '';
-      document.getElementById('pNameZh').value = '';
-      document.getElementById('pPrice').value = '';
-      document.getElementById('pDiscount').value = '';
-      document.getElementById('pStock').value = '';
-      document.getElementById('pBarcode').value = '';
-      document.getElementById('pImageFile').value = '';
-      document.getElementById('imagePreview').classList.add('hidden');
-      selectedFile = null;
-      document.getElementById('formTitle').innerText = '➕ បន្ថែមទំនិញថ្មី';
-      document.getElementById('cancelBtn').classList.add('hidden');
     };
 
     window.deleteProduct = async function(id) {
-      if (confirm("តើបងប្រាកដជាចង់លុបទំនិញនេះមែនទេ?")) {
+      if (confirm('តើអ្នកប្រាកដថាចង់លុបទំនិញនេះ?')) {
         await deleteDoc(doc(db, 'products', id));
+        loadProducts();
       }
     };
+
+    // Load ទំនិញពេលបើក Admin Page
+    loadProducts();
   </script>
 </body>
 </html>
