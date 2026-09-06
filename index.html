@@ -22,7 +22,6 @@
         </div>
       </div>
 
-      <!-- កន្ត្រកទំនិញ Floating Bar -->
       <button onclick="toggleCartModal()" class="relative bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-lg flex items-center gap-2 transition">
         <i class="fas fa-shopping-cart text-lg"></i>
         <span class="font-bold">កន្ត្រក</span>
@@ -39,34 +38,70 @@
     </div>
   </main>
 
-  <!-- Cart Modal -->
+  <!-- Cart & Checkout Modal -->
   <div id="cartModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-end">
-    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between shadow-2xl">
+    <div class="bg-white w-full max-w-md h-full p-4 flex flex-col justify-between shadow-2xl overflow-y-auto">
       <div>
         <div class="flex justify-between items-center border-b pb-3 mb-4">
-          <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-shopping-bag mr-2 text-emerald-700"></i>កន្ត្រកទំនិញ</h3>
+          <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-shopping-bag mr-2 text-emerald-700"></i>កន្ត្រក និងព័ត៌មានដឹកជញ្ជូន</h3>
           <button onclick="toggleCartModal()" class="text-gray-500 hover:text-red-500 text-xl font-bold">&times;</button>
         </div>
-        <div id="cartItems" class="space-y-3 overflow-y-auto max-h-[60vh] pr-1"></div>
+        
+        <!-- Form ព័ត៌មានអតិថិជន -->
+        <div class="mb-4 space-y-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">ឈ្មោះអ្នកទិញ *</label>
+            <input type="text" id="custName" placeholder="ឧ. សុខ ជា" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">លេខទូរស័ព្ទ *</label>
+            <input type="tel" id="custPhone" placeholder="ឧ. 012 345 678" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">អាសយដ្ឋានដឹកជញ្ជូន *</label>
+            <textarea id="custAddress" rows="2" placeholder="ផ្ទះលេខ... ផ្លូវ... ខណ្ឌ/ស្រុក..." class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">រូបភាពទីតាំង/Map (Option)</label>
+            <input type="file" id="locImageFile" accept="image/*" onchange="previewLocImg(event)" class="w-full border p-1 rounded text-xs">
+            <img id="locPreview" class="mt-1 h-20 object-cover rounded hidden">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">វិធីសាស្ត្របង់ប្រាក់ *</label>
+            <select id="payMethod" class="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-emerald-500">
+              <option value="បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)">💵 បង់ប្រាក់ជាមួយអ្នកដឹកជញ្ជូន (COD)</option>
+              <option value="វេរប្រាក់តាមធនាគារ (ABA / KHQR)">💳 វេរប្រាក់តាមធនាគារ (ABA / KHQR)</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="my-3">
+        <h4 class="font-bold text-sm mb-2 text-gray-700">📦 បញ្ជីទំនិញក្នុងកន្ត្រក</h4>
+        <div id="cartItems" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
       </div>
 
-      <div class="border-t pt-4 bg-gray-50 p-3 rounded-lg">
-        <div class="flex justify-between font-bold text-lg mb-4">
+      <div class="border-t pt-3 bg-gray-50 p-3 rounded-lg mt-4">
+        <div class="flex justify-between font-bold text-lg mb-3">
           <span>សរុប (Total):</span>
           <span id="cartTotal" class="text-emerald-700">$0.00</span>
         </div>
-        <button onclick="checkout()" class="w-full bg-emerald-700 text-white py-3 rounded-lg font-bold hover:bg-emerald-800 transition">
-          បន្តទៅការទូទាត់ (Checkout)
+        <button id="checkoutBtn" onclick="checkout()" class="w-full bg-emerald-700 text-white py-3 rounded-lg font-bold hover:bg-emerald-800 transition">
+          ផ្ញើការបញ្ជាទិញ (Order Now)
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase Integration -->
+  <!-- Firebase Setup & Telegram Config -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // ១. Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
       authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
@@ -77,11 +112,31 @@
       measurementId: "G-P0G4RNKKMG"
     };
 
+    // ២. Telegram Configuration (ដាក់ Bot Token និង Chat ID របស់បង)
+    const TELEGRAM_BOT_TOKEN = "7832628795:AAHQ_YOUR_BOT_TOKEN_HERE"; 
+    const TELEGRAM_CHAT_ID = "123456789"; 
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     let cart = [];
     let productsList = [];
+    let selectedLocBase64 = '';
+
+    // Preview រូបភាពទីតាំង
+    window.previewLocImg = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedLocBase64 = evt.target.result;
+          const img = document.getElementById('locPreview');
+          img.src = selectedLocBase64;
+          img.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
     async function loadProducts() {
       const grid = document.getElementById('productGrid');
@@ -146,7 +201,7 @@
       let totalQty = 0;
 
       if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<div class="text-center py-8 text-gray-400">គ្មានទំនិញក្នុងកន្ត្រកទេ</div>';
+        cartItemsContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">គ្មានទំនិញក្នុងកន្ត្រកទេ</div>';
       } else {
         cart.forEach(item => {
           const itemTotal = item.price * item.qty;
@@ -156,16 +211,16 @@
           cartItemsContainer.innerHTML += `
             <div class="flex justify-between items-center p-2 border-b">
               <div class="flex items-center gap-2">
-                <img src="${item.image}" class="w-10 h-10 object-cover rounded">
+                <img src="${item.image}" class="w-8 h-8 object-cover rounded">
                 <div>
-                  <div class="font-bold text-sm line-clamp-1">${item.name_km}</div>
-                  <div class="text-xs text-emerald-700">$${item.price.toFixed(2)} x ${item.qty}</div>
+                  <div class="font-bold text-xs line-clamp-1">${item.name_km}</div>
+                  <div class="text-[10px] text-emerald-700">$${item.price.toFixed(2)} x ${item.qty}</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 bg-gray-200 rounded font-bold">-</button>
-                <span class="text-sm font-bold">${item.qty}</span>
-                <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 bg-gray-200 rounded font-bold">+</button>
+              <div class="flex items-center gap-1">
+                <button onclick="changeQty('${item.id}', -1)" class="w-5 h-5 bg-gray-200 rounded font-bold text-xs">-</button>
+                <span class="text-xs font-bold px-1">${item.qty}</span>
+                <button onclick="changeQty('${item.id}', 1)" class="w-5 h-5 bg-gray-200 rounded font-bold text-xs">+</button>
               </div>
             </div>
           `;
@@ -191,12 +246,86 @@
       document.getElementById('cartModal').classList.toggle('hidden');
     };
 
-    window.checkout = function() {
+    // មុខងារផ្ញើការបញ្ជាទិញទៅ Telegram
+    window.checkout = async function() {
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+      const payMethod = document.getElementById('payMethod').value;
+
       if (cart.length === 0) return alert('សូមជ្រើសរើសទំនិញមុននឹងទូទាត់!');
-      alert('🎉 ការបញ្ជាទិញទទួលបានជោគជ័យ!');
-      cart = [];
-      updateCartUI();
-      toggleCartModal();
+      if (!name || !phone || !address) return alert('សូមបំពេញឈ្មោះ, លេខទូរស័ព្ទ និងអាសយដ្ឋានឱ្យបានគ្រប់!');
+
+      const btn = document.getElementById('checkoutBtn');
+      btn.innerText = 'កំពុងផ្ញើការបញ្ជាទិញ...';
+      btn.disabled = true;
+
+      let totalAmount = 0;
+      let orderListText = '';
+      
+      cart.forEach((item, index) => {
+        const itemTotal = item.price * item.qty;
+        totalAmount += itemTotal;
+        orderListText += `${index + 1}. ${item.name_km} x ${item.qty} = $${itemTotal.toFixed(2)}\n`;
+      });
+
+      const message = `🛒 *ការបញ្ជាទិញថ្មី - JINKELAI* 🛒\n` +
+                      `-----------------------------\n` +
+                      `👤 *ឈ្មោះ:* ${name}\n` +
+                      `📞 *ទូរស័ព្ទ:* ${phone}\n` +
+                      `📍 *អាសយដ្ឋាន:* ${address}\n` +
+                      `💳 *ការបង់ប្រាក់:* ${payMethod}\n` +
+                      `-----------------------------\n` +
+                      `📦 *បញ្ជីទំនិញ:*\n${orderListText}` +
+                      `-----------------------------\n` +
+                      `💰 *សរុប (TOTAL):* $${totalAmount.toFixed(2)}`;
+
+      try {
+        // ផ្ញើសារអក្សរទៅ Telegram
+        const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+          })
+        });
+
+        // បើមាន Upload រូបភាពទីតាំង វានឹងផ្ញើរូបភាពទៅ Telegram ថែមទៀត
+        if (selectedLocBase64) {
+          const blob = await (await fetch(selectedLocBase64)).blob();
+          const formData = new FormData();
+          formData.append('chat_id', TELEGRAM_CHAT_ID);
+          formData.append('photo', blob, 'location.jpg');
+          formData.append('caption', `📍 រូបភាពទីតាំងរបស់អតិថិជន៖ ${name}`);
+
+          await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+          });
+        }
+
+        if (res.ok) {
+          alert('🎉 ការបញ្ជាទិញត្រូវបានផ្ញើទៅកាន់ Telegram រួចរាល់!');
+          cart = [];
+          document.getElementById('custName').value = '';
+          document.getElementById('custPhone').value = '';
+          document.getElementById('custAddress').value = '';
+          document.getElementById('locImageFile').value = '';
+          document.getElementById('locPreview').classList.add('hidden');
+          selectedLocBase64 = '';
+          updateCartUI();
+          toggleCartModal();
+        } else {
+          alert('មានបញ្ហាក្នុងការផ្ញើ! សូមពិនិត្យ Bot Token/Chat ID ឡើងវិញ។');
+        }
+      } catch (err) {
+        alert('មានបញ្ហា៖ ' + err.message);
+      } finally {
+        btn.innerText = 'ផ្ញើការបញ្ជាទិញ (Order Now)';
+        btn.disabled = false;
+      }
     };
 
     loadProducts();
