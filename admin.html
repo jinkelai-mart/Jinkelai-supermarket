@@ -1,276 +1,467 @@
 <!DOCTYPE html>
 <html lang="km">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jinkelai Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;600;700&display=swap');
-        body { font-family: 'Kantumruy Pro', sans-serif; }
-    </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Jinkelai</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800 p-4 md:p-6 pb-20">
+<body class="bg-gray-100 text-gray-800 min-h-screen font-['Kantumruy_Pro'] flex flex-col">
 
-    <div class="max-w-5xl mx-auto space-y-6">
-        <!-- Header -->
-        <header class="bg-slate-800 text-white p-4 rounded-xl flex justify-between items-center shadow-sm">
-            <div>
-                <h1 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-user-shield text-green-400"></i> Jinkelai Admin</h1>
-                <p class="text-xs text-gray-400">ប្រព័ន្ធគ្រប់គ្រងហាងទំនិញ</p>
-            </div>
-            <span class="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-full font-semibold">Online</span>
-        </header>
-
-        <!-- ១. គ្រប់គ្រង KHQR Payment (បន្ថែម QR Code ថ្មី & ជ្រើសរើសប្រើ) -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
-            <h3 class="font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
-                <i class="fa-solid fa-qrcode text-red-600"></i> គ្រប់គ្រងរូបភាព KHQR Payment
-            </h3>
-
-            <!-- បន្ថែម QR Code ថ្មីចូលប្រព័ន្ធ -->
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="text-xs font-bold text-gray-700"><i class="fa-solid fa-plus-circle text-blue-600 mr-1"></i>បន្ថែម QR Code ធនាគារថ្មី</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" id="qrBankName" placeholder="ឈ្មោះធនាគារ (ឧ. ABA, Wing, ACLEDA) *" class="text-xs border rounded-lg p-2.5 outline-none focus:border-red-600">
-                    <input type="text" id="qrAccName" placeholder="ឈ្មោះគណនី (ឧ. VUTHY YOL) *" class="text-xs border rounded-lg p-2.5 outline-none focus:border-red-600">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">ជ្រើសរើសរូបភាព QR Code *</label>
-                    <input type="file" id="qrFileInput" accept="image/*" class="w-full text-xs text-gray-500 border rounded-lg p-1.5 bg-white">
-                </div>
-                <button onclick="addNewQRCode()" id="btnAddQR" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-xs transition">
-                    + រក្សាទុក QR Code ថ្មីនេះ
-                </button>
-            </div>
-
-            <!-- បញ្ជី QR Code ដែលមានស្រាប់ក្នុងប្រព័ន្ធ -->
-            <div>
-                <h4 class="text-xs font-bold text-gray-700 mb-2">បញ្ជី QR Code ទាំងអស់ (ជ្រើសរើសមួយដើម្បីបង្ហាញលើទំព័រអតិថិជន)៖</h4>
-                <div id="qrCodeList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    <p class="text-xs text-gray-400 col-span-full text-center py-4">កំពុងផ្ទុក QR Code...</p>
-                </div>
-            </div>
+  <!-- LOGIN -->
+  <div id="loginSection" class="fixed inset-0 bg-emerald-900/90 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
+      <div class="text-center">
+        <span class="text-4xl">🛍️🛒</span>
+        <h2 class="text-lg font-bold text-gray-800 mt-2">Jinkelai Admin</h2>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Email</label>
+          <input type="email" id="loginEmail" placeholder="Email" class="w-full p-2.5 border rounded-xl" autocomplete="username">
         </div>
-
-        <!-- ២. បន្ថែមទំនិញថ្មី (Add New Product) -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border">
-            <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
-                <i class="fa-solid fa-box-open text-green-600"></i> បន្ថែមទំនិញថ្មីទៅក្នុងហាង
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <input type="text" id="pNameKm" placeholder="ឈ្មោះទំនិញ (ភាសាខ្មែរ) *" class="border rounded-lg p-2.5 outline-none focus:border-green-600">
-                <input type="text" id="pNameEn" placeholder="ឈ្មោះទំនិញ (English)" class="border rounded-lg p-2.5 outline-none focus:border-green-600">
-                <input type="text" id="pNameZh" placeholder="ឈ្មោះទំនិញ (中文)" class="border rounded-lg p-2.5 outline-none focus:border-green-600">
-                <input type="number" step="0.01" id="pPrice" placeholder="តម្លៃ ($) *" class="border rounded-lg p-2.5 outline-none focus:border-green-600">
-                <div class="md:col-span-2">
-                    <label class="block text-gray-500 mb-1">រូបភាពទំនិញ *</label>
-                    <input type="file" id="pImgInput" accept="image/*" class="w-full border rounded-lg p-1.5">
-                </div>
-            </div>
-            <button onclick="addNewProduct()" id="btnAddProduct" class="mt-4 w-full bg-green-700 hover:bg-green-800 text-white font-bold py-2.5 rounded-lg text-xs transition">
-                + បន្ថែមទំនិញចូលប្រព័ន្ធ
-            </button>
+        <div>
+          <label class="block font-semibold mb-1">Password</label>
+          <input type="password" id="loginPass" placeholder="Password" class="w-full p-2.5 border rounded-xl" autocomplete="current-password">
         </div>
-
-        <!-- ៣. បញ្ជីទំនិញទាំងអស់ (Product List) -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border">
-            <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2 border-b pb-2">
-                <i class="fa-solid fa-list text-blue-600"></i> បញ្ជីទំនិញក្នុងប្រព័ន្ធ
-            </h3>
-            <div id="adminProductList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto">
-                <p class="text-xs text-gray-400 col-span-full text-center py-4">កំពុងផ្ទុកទំនិញ...</p>
-            </div>
-        </div>
+        <button onclick="doLogin()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+  <!-- DASHBOARD -->
+  <div id="adminDashboard" class="hidden flex-1 flex flex-col">
+    <header class="bg-emerald-800 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-30">
+      <h1 class="font-bold text-base">⚙️ Admin Dashboard</h1>
+      <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-xs rounded-lg font-bold">ចាកចេញ</button>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto p-4 space-y-5 flex-1">
+
+      <!-- Change Password -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
+          <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
+        </div>
+      </div>
+
+      <!-- Add / Edit Product -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
+        
+        <div class="space-y-2 text-xs">
+          <!-- 3 Languages -->
+          <div>
+            <label class="font-semibold text-gray-600">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
+            <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្ពៃបៃតង" class="w-full p-2 border rounded-xl mt-1">
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">Name in English</label>
+            <input type="text" id="pNameEn" placeholder="e.g. Green Bok Choy" class="w-full p-2 border rounded-xl mt-1">
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">中文名称 (Chinese)</label>
+            <input type="text" id="pNameZh" placeholder="例如：青菜" class="w-full p-2 border rounded-xl mt-1">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-semibold text-gray-600">តម្លៃ ($) *</label>
+              <input type="number" id="pPrice" step="0.01" placeholder="1.80" class="w-full p-2 border rounded-xl mt-1">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600">បញ្ចុះតម្លៃ (%)</label>
+              <input type="number" id="pDiscount" placeholder="0" class="w-full p-2 border rounded-xl mt-1">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-semibold text-gray-600">ស្តុក *</label>
+              <input type="number" id="pStock" placeholder="50" class="w-full p-2 border rounded-xl mt-1">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600">Barcode</label>
+              <div class="flex gap-1 mt-1">
+                <input type="text" id="pBarcode" placeholder="វាយ ឬស្កែន" class="flex-1 p-2 border rounded-xl">
+                <button type="button" onclick="startBarcodeScan()" class="bg-blue-600 text-white px-3 rounded-xl text-xs font-bold whitespace-nowrap">📷 ស្កែន</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barcode Scanner Modal -->
+          <div id="scannerModal" class="fixed inset-0 z-[200] bg-black/80 hidden flex-col items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm">📷 ស្កែន Barcode</h3>
+                <button onclick="stopBarcodeScan()" class="text-gray-500 font-bold text-lg">✕</button>
+              </div>
+              <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
+              <p class="text-center text-xs text-gray-500">ដាក់ Barcode នៅកណ្តាលកាមេរ៉ា</p>
+              <button onclick="stopBarcodeScan()" class="w-full py-2 bg-gray-200 rounded-xl font-bold text-xs">បិទ</button>
+            </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div>
+            <label class="font-semibold text-gray-600">រូបភាពទំនិញ (Upload)</label>
+            <input type="file" id="pImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+            <div id="imagePreview" class="mt-2 hidden">
+              <img id="previewImg" class="w-24 h-24 object-cover rounded-lg border">
+            </div>
+          </div>
+
+          <input type="hidden" id="editId" value="">
+          <div class="flex gap-2">
+            <button onclick="saveProduct()" class="flex-1 bg-emerald-700 text-white font-bold py-2.5 rounded-xl" id="saveBtn">រក្សាទុកទំនិញ</button>
+            <button onclick="cancelEdit()" id="cancelBtn" class="hidden bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl">បោះបង់</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product List -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700">📦 បញ្ជីទំនិញ (Firebase)</h3>
+        <div id="adminProductList" class="space-y-2 text-xs">
+          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
+        </div>
+      </div>
+
+      <!-- Orders -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700">🧾 ការបញ្ជាទិញថ្មីៗ</h3>
+        <div id="ordersList" class="space-y-2 text-xs">
+          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
+      authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
+      projectId: "jinkelai-supermarket-e4786",
+      storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
+      messagingSenderId: "345735387486",
+      appId: "1:345735387486:web:44fc724756c3b77a7617cf",
+      measurementId: "G-P0G4RNKKMG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let adminAuth = JSON.parse(localStorage.getItem('jinkelai_admin')) || { email: 'admin@gmail.com', pass: '1234' };
+    let products = [];
+    let orders = [];
+    let selectedFile = null;
+
+    // Image preview
+    document.getElementById('pImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('previewImg').src = ev.target.result;
+          document.getElementById('imagePreview').classList.remove('hidden');
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        reader.readAsDataURL(file);
+      }
+    });
 
-        // -------------------------------------------------------------
-        // ១. មុខងារ QR CODE MANAGEMENT (ថែម QR ថ្មី & ជ្រើសរើសប្រើ)
-        // -------------------------------------------------------------
+    // ===== Barcode Scanner =====
+    let html5QrCode = null;
 
-        // បន្ថែម QR Code ថ្មីចូល Firestore Collection "qr_codes"
-        async function addNewQRCode() {
-            const bankName = document.getElementById('qrBankName').value.trim();
-            const accName = document.getElementById('qrAccName').value.trim();
-            const file = document.getElementById('qrFileInput').files[0];
+    window.startBarcodeScan = function() {
+      const modal = document.getElementById('scannerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
 
-            if (!bankName || !accName || !file) {
-                return alert("សូមបំពេញឈ្មោះធនាគារ ឈ្មោះគណនី និងជ្រើសរើសរូបភាព QR Code!");
-            }
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decodedText) => {
+          document.getElementById('pBarcode').value = decodedText;
+          stopBarcodeScan();
+          alert("✅ ស្កែនបាន៖ " + decodedText);
+        },
+        (errorMessage) => {
+          // ignore continuous scan errors
+        }
+      ).catch((err) => {
+        alert("មិនអាចបើកកាមេរ៉ា៖ " + err);
+        stopBarcodeScan();
+      });
+    };
 
-            const btn = document.getElementById('btnAddQR');
-            btn.disabled = true; btn.innerText = "កំពុងរក្សាទុក...";
+    window.stopBarcodeScan = function() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          html5QrCode = null;
+        }).catch(() => {});
+      }
+      const modal = document.getElementById('scannerModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    await db.collection("qr_codes").add({
-                        bank_name: bankName,
-                        acc_name: accName,
-                        qr_url: e.target.result,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    alert("បានរក្សាទុក QR Code ថ្មីជោគជ័យ!");
-                    document.getElementById('qrBankName').value = "";
-                    document.getElementById('qrAccName').value = "";
-                    document.getElementById('qrFileInput').value = "";
-                } catch (err) {
-                    alert("មានបញ្ហាក្នុងការរក្សាទុក!");
-                } finally {
-                    btn.disabled = false; btn.innerText = "+ រក្សាទុក QR Code ថ្មីនេះ";
-                }
-            };
-            reader.readAsDataURL(file);
+    // Real-time products
+    onSnapshot(collection(db, 'products'), (snapshot) => {
+      products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
+        renderAdminList();
+      }
+    }, (err) => {
+      console.error(err);
+      document.getElementById('adminProductList').innerHTML = '<p class="text-red-500 text-center">Firestore Error / Rules</p>';
+    });
+
+    // Real-time orders
+    onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
+      orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!document.getElementById('adminDashboard').classList.contains('hidden')) {
+        renderOrders();
+      }
+    });
+
+    window.doLogin = function() {
+      const e = document.getElementById('loginEmail').value.trim();
+      const p = document.getElementById('loginPass').value.trim();
+      if (e === adminAuth.email && p === adminAuth.pass) {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        renderAdminList();
+        renderOrders();
+      } else {
+        alert("Email ឬ Password មិនត្រឹមត្រូវ!");
+      }
+    };
+
+    window.doLogout = function() {
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('adminDashboard').classList.add('hidden');
+    };
+
+    window.changePassword = function() {
+      const np = document.getElementById('newPass').value.trim();
+      if (!np) return alert("សូមបញ្ចូលលេខសម្ងាត់ថ្មី!");
+      adminAuth.pass = np;
+      localStorage.setItem('jinkelai_admin', JSON.stringify(adminAuth));
+      document.getElementById('newPass').value = '';
+      alert("🎉 ប្តូរលេខសម្ងាត់ជោគជ័យ!");
+    };
+
+    function renderAdminList() {
+      const container = document.getElementById('adminProductList');
+      container.innerHTML = products.length ? '' : '<p class="text-center text-gray-400 py-4">គ្មានទំនិញ (បន្ថែមខាងលើ)</p>';
+      
+      products.forEach((p) => {
+        const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
+        const nameKm = p.name_km || p.name || '—';
+        const nameEn = p.name_en || '';
+        const nameZh = p.name_zh || '';
+        
+        container.innerHTML += `
+          <div class="flex flex-col sm:flex-row items-start justify-between p-3 border rounded-xl gap-2 ${p.active ? 'bg-white' : 'bg-gray-100 opacity-60'}">
+            <div class="flex items-start gap-3 w-full">
+              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-14 h-14 object-cover rounded-lg border flex-shrink-0" onerror="this.src='https://via.placeholder.com/150'">
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-gray-800 text-sm">${nameKm}</h4>
+                ${nameEn ? `<p class="text-[11px] text-gray-500">${nameEn}</p>` : ''}
+                ${nameZh ? `<p class="text-[11px] text-gray-500">${nameZh}</p>` : ''}
+                <div class="text-[11px] text-gray-500 mt-1">
+                  $${finalPrice} ${p.discount > 0 ? `(-${p.discount}%)` : ''} · 
+                  ស្តុក: <b class="${p.stock <= 0 ? 'text-red-500' : ''}">${p.stock <= 0 ? 'អស់' : p.stock}</b>
+                  ${p.barcode ? ` · <span class="text-blue-600">${p.barcode}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
+              <button onclick="window.editProduct('${p.id}')" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">✏️ កែ</button>
+              <button onclick="window.toggleActive('${p.id}')" class="px-2 py-1 rounded text-[10px] font-bold ${p.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-300 text-gray-600'}">
+                ${p.active ? '👁️' : '🙈'}
+              </button>
+              <button onclick="window.deleteProduct('${p.id}')" class="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px] font-bold">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('ordersList');
+      container.innerHTML = orders.length ? '' : '<p class="text-center text-gray-400 py-4">មិនទាន់មានការបញ្ជាទិញ</p>';
+      
+      orders.slice(0, 30).forEach(o => {
+        const itemsText = (o.items || []).map(i => `${i.name} x${i.qty}`).join(', ');
+        const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : '—';
+        container.innerHTML += `
+          <div class="p-3 border rounded-xl bg-gray-50">
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <p class="font-bold text-gray-800">${o.customer?.name || '—'} · ${o.customer?.phone || ''}</p>
+                <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
+                <p class="text-[11px] mt-1">${itemsText}</p>
+                <p class="text-[10px] text-gray-400 mt-1">${dateStr}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-emerald-700">$${Number(o.total || 0).toFixed(2)}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded ${o.status === 'new' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200'}">${o.status || 'new'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.saveProduct = async function() {
+      const name_km = document.getElementById('pNameKm').value.trim();
+      const name_en = document.getElementById('pNameEn').value.trim();
+      const name_zh = document.getElementById('pNameZh').value.trim();
+      const price = parseFloat(document.getElementById('pPrice').value);
+      const discount = parseFloat(document.getElementById('pDiscount').value) || 0;
+      const stockRaw = document.getElementById('pStock').value;
+      const stock = Math.floor(parseFloat(stockRaw));
+      const barcode = document.getElementById('pBarcode').value.trim();
+      const editId = document.getElementById('editId').value;
+
+      if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
+      if (isNaN(price) || price < 0) return alert("សូមបញ្ចូលតម្លៃឱ្យត្រឹមត្រូវ!");
+      if (isNaN(stock) || stock < 0) return alert("ស្តុកត្រូវជាចំនួនគត់ (ឧទាហរណ៍: 50)!");
+
+      const btn = document.getElementById('saveBtn');
+      const oldText = btn.innerText;
+      btn.innerText = 'កំពុងរក្សាទុក...';
+      btn.disabled = true;
+
+      try {
+        let imageUrl = '';
+
+        // Upload image if selected
+        if (selectedFile) {
+          try {
+            const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storageRef = ref(storage, 'products/' + Date.now() + '_' + safeName);
+            await uploadBytes(storageRef, selectedFile);
+            imageUrl = await getDownloadURL(storageRef);
+          } catch (uploadErr) {
+            console.error('Upload error:', uploadErr);
+            alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nនឹងរក្សាទុកដោយគ្មានរូប។\nសូមពិនិត្យ Firebase Storage Rules!");
+          }
         }
 
-        // បង្ហាញបញ្ជី QR Code ទាំងអស់ និងសម្គាល់ QR ដែលកំពុងដំណើរការ (Active)
-        let activeQrUrl = "";
-        db.collection("settings").doc("payment").onSnapshot((doc) => {
-            if (doc.exists && doc.data().qr_code_url) {
-                activeQrUrl = doc.data().qr_code_url;
-            }
-            renderQRList();
-        });
+        const data = {
+          name_km,
+          name_en,
+          name_zh,
+          price,
+          discount,
+          stock,
+          barcode,
+          active: true
+        };
 
-        function renderQRList() {
-            db.collection("qr_codes").orderBy("created_at", "desc").onSnapshot((snapshot) => {
-                const list = document.getElementById('qrCodeList');
-                if (snapshot.empty) {
-                    list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មាន QR Code នៅឡើយទេ</p>`;
-                    return;
-                }
-                list.innerHTML = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const isActive = data.qr_url === activeQrUrl;
-                    return `
-                        <div class="border rounded-xl p-3 bg-white flex items-center space-x-3 relative ${isActive ? 'border-2 border-green-500 bg-green-50/30' : 'border-gray-200'}">
-                            <img src="${data.qr_url}" class="w-16 h-16 object-contain border rounded-lg bg-gray-50 shrink-0">
-                            <div class="flex-grow overflow-hidden">
-                                <h5 class="font-bold text-xs text-gray-800 truncate">${data.bank_name}</h5>
-                                <p class="text-[11px] text-gray-500 truncate">${data.acc_name}</p>
-                                ${isActive 
-                                    ? `<span class="inline-block mt-1 text-[10px] bg-green-500 text-white font-bold px-2 py-0.5 rounded">កំពុងប្រើប្រាស់</span>`
-                                    : `<button onclick="setActiveQR('${doc.id}', '${data.bank_name}', '${data.acc_name}')" class="mt-1 text-[10px] bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded">ប្រើប្រាស់ QR នេះ</button>`
-                                }
-                            </div>
-                            <button onclick="deleteQR('${doc.id}')" class="text-red-400 hover:text-red-600 p-1">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-            });
+        if (editId) {
+          if (imageUrl) data.image = imageUrl;
+          await updateDoc(doc(db, 'products', editId), data);
+          alert("🎉 កែប្រែទំនិញជោគជ័យ!");
+        } else {
+          data.image = imageUrl || 'https://via.placeholder.com/300?text=No+Image';
+          data.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'products'), data);
+          alert("🎉 បន្ថែមទំនិញជោគជ័យ!");
         }
 
-        // កំណត់ជ្រើសរើស QR Code មួយឱ្យដំណើរការលើ Customer App (`index.html`)
-        async function setActiveQR(docId, bankName, accName) {
-            try {
-                const doc = await db.collection("qr_codes").doc(docId).get();
-                if (doc.exists) {
-                    await db.collection("settings").doc("payment").set({
-                        qr_code_url: doc.data().qr_url,
-                        bank_name: bankName,
-                        acc_name: accName,
-                        updated_at: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    alert(`បានផ្លាស់ប្តូរទៅប្រើ QR Code របស់ ${bankName} រួចរាល់!`);
-                }
-            } catch (err) {
-                alert("មានបញ្ហាក្នុងការផ្លាស់ប្តូរ QR Code!");
-            }
+        cancelEdit();
+      } catch (e) {
+        console.error(e);
+        alert("មានបញ្ហា Firebase: " + (e.code || '') + " " + e.message);
+      } finally {
+        btn.innerText = oldText;
+        btn.disabled = false;
+      }
+    };
+
+    window.editProduct = function(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('editId').value = id;
+      document.getElementById('pNameKm').value = p.name_km || p.name || '';
+      document.getElementById('pNameEn').value = p.name_en || '';
+      document.getElementById('pNameZh').value = p.name_zh || '';
+      document.getElementById('pPrice').value = p.price || '';
+      document.getElementById('pDiscount').value = p.discount || 0;
+      document.getElementById('pStock').value = p.stock || 0;
+      document.getElementById('pBarcode').value = p.barcode || '';
+      
+      document.getElementById('formTitle').innerText = '✏️ កែប្រែទំនិញ';
+      document.getElementById('saveBtn').innerText = 'រក្សាទុកការកែប្រែ';
+      document.getElementById('cancelBtn').classList.remove('hidden');
+
+      if (p.image) {
+        document.getElementById('previewImg').src = p.image;
+        document.getElementById('imagePreview').classList.remove('hidden');
+      }
+
+      selectedFile = null;
+      document.getElementById('pImageFile').value = '';
+
+      document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.cancelEdit = function() {
+      document.getElementById('editId').value = '';
+      document.getElementById('pNameKm').value = '';
+      document.getElementById('pNameEn').value = '';
+      document.getElementById('pNameZh').value = '';
+      document.getElementById('pPrice').value = '';
+      document.getElementById('pDiscount').value = '';
+      document.getElementById('pStock').value = '';
+      document.getElementById('pBarcode').value = '';
+      document.getElementById('pImageFile').value = '';
+      document.getElementById('imagePreview').classList.add('hidden');
+      selectedFile = null;
+
+      document.getElementById('formTitle').innerText = '➕ បន្ថែមទំនិញថ្មី';
+      document.getElementById('saveBtn').innerText = 'រក្សាទុកទំនិញ';
+      document.getElementById('cancelBtn').classList.add('hidden');
+    };
+
+    window.toggleActive = async function(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      try {
+        await updateDoc(doc(db, 'products', id), { active: !p.active });
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    };
+
+    window.deleteProduct = async function(id) {
+      if (confirm("តើបងប្រាកដជាចង់លុបទំនិញនេះមែនទេ?")) {
+        try {
+          await deleteDoc(doc(db, 'products', id));
+        } catch (e) {
+          alert("Error: " + e.message);
         }
-
-        // លុប QR Code
-        async function deleteQR(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុប QR Code នេះមែនទេ?")) {
-                await db.collection("qr_codes").doc(id).delete();
-            }
-        }
-
-        // -------------------------------------------------------------
-        // ២. មុខងារ PRODUCT MANAGEMENT (ថែម & លុបទំនិញ)
-        // -------------------------------------------------------------
-        async function addNewProduct() {
-            const nameKm = document.getElementById('pNameKm').value.trim();
-            const nameEn = document.getElementById('pNameEn').value.trim();
-            const nameZh = document.getElementById('pNameZh').value.trim();
-            const price = parseFloat(document.getElementById('pPrice').value);
-            const imgFile = document.getElementById('pImgInput').files[0];
-
-            if (!nameKm || isNaN(price) || !imgFile) return alert("សូមបំពេញឈ្មោះ តម្លៃ និងជ្រើសរើសរូបភាពទំនិញ!");
-
-            const btn = document.getElementById('btnAddProduct');
-            btn.disabled = true; btn.innerText = "កំពុងរក្សាទុកទំនិញ...";
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    await db.collection("products").add({
-                        name_km: nameKm,
-                        name_en: nameEn || nameKm,
-                        name_zh: nameZh || nameKm,
-                        price: price,
-                        img: e.target.result,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    alert("បានបន្ថែមទំនិញថ្មីជោគជ័យ!");
-                    document.getElementById('pNameKm').value = "";
-                    document.getElementById('pNameEn').value = "";
-                    document.getElementById('pNameZh').value = "";
-                    document.getElementById('pPrice').value = "";
-                    document.getElementById('pImgInput').value = "";
-                } catch (err) { alert("មានបញ្ហាក្នុងការបន្ថែមទំនិញ!"); }
-                finally { btn.disabled = false; btn.innerText = "+ បន្ថែមទំនិញចូលប្រព័ន្ធ"; }
-            };
-            reader.readAsDataURL(imgFile);
-        }
-
-        db.collection("products").orderBy("created_at", "desc").onSnapshot((snapshot) => {
-            const list = document.getElementById('adminProductList');
-            if (snapshot.empty) {
-                list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មានទំនិញនៅឡើយទេ</p>`;
-                return;
-            }
-            list.innerHTML = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return `
-                    <div class="border rounded-lg p-2.5 flex items-center justify-between bg-gray-50">
-                        <div class="flex items-center space-x-2 overflow-hidden">
-                            <img src="${data.img}" class="w-10 h-10 object-cover rounded border shrink-0">
-                            <div class="truncate">
-                                <h4 class="font-semibold text-xs truncate">${data.name_km}</h4>
-                                <span class="text-green-700 font-bold text-xs">$${data.price.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <button onclick="deleteProduct('${doc.id}')" class="text-red-500 hover:text-red-700 p-1 shrink-0">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        });
-
-        async function deleteProduct(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) {
-                await db.collection("products").doc(id).delete();
-            }
-        }
-    </script>
+      }
+    };
+  </script>
 </body>
 </html>
