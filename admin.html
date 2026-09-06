@@ -6,7 +6,6 @@
     <title>Jinkelai Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs (v8 Compat) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
@@ -17,7 +16,6 @@
 <body class="bg-gray-100 text-gray-800 p-4 md:p-6 pb-20">
 
     <div class="max-w-5xl mx-auto space-y-6">
-        <!-- Header -->
         <header class="bg-slate-800 text-white p-4 rounded-xl flex justify-between items-center shadow-sm">
             <div>
                 <h1 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-user-shield text-green-400"></i> Jinkelai Admin</h1>
@@ -26,7 +24,7 @@
             <span class="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-full font-semibold">Online</span>
         </header>
 
-        <!-- 1. Multi-QR Code Management -->
+        <!-- 1. Multi-QR Management -->
         <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
             <h3 class="font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-qrcode text-red-600"></i> គ្រប់គ្រងរូបភាព KHQR Payment
@@ -55,7 +53,7 @@
             </div>
         </div>
 
-        <!-- 2. Product Management (Add Product) -->
+        <!-- 2. Product Management -->
         <div class="bg-white p-5 rounded-xl shadow-sm border">
             <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-box-open text-green-600"></i> បន្ថែមទំនិញថ្មីទៅក្នុងហាង
@@ -75,7 +73,7 @@
             </button>
         </div>
 
-        <!-- 3. Product List (View/Delete) -->
+        <!-- 3. Product List -->
         <div class="bg-white p-5 rounded-xl shadow-sm border">
             <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2 border-b pb-2">
                 <i class="fa-solid fa-list text-blue-600"></i> បញ្ជីទំនិញក្នុងប្រព័ន្ធ
@@ -87,8 +85,7 @@
     </div>
 
     <script>
-        // Firebase Config ពិតប្រាកដរបស់បង
-        const firebaseConfig = {
+        var firebaseConfig = {
             apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
             authDomain: "jinkelai-supermarket-e4786.firebaseapp.com",
             projectId: "jinkelai-supermarket-e4786",
@@ -97,157 +94,169 @@
             appId: "1:345735387486:web:44fc724756c3b77a7617cf",
             measurementId: "G-P0G4RNKKMG"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
 
-        // 1. QR Code Logic
-        async function addNewQRCode() {
-            const bankName = document.getElementById('qrBankName').value.trim();
-            const accName = document.getElementById('qrAccName').value.trim();
-            const file = document.getElementById('qrFileInput').files[0];
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        var db = firebase.firestore();
+
+        function addNewQRCode() {
+            var bankName = document.getElementById('qrBankName').value.trim();
+            var accName = document.getElementById('qrAccName').value.trim();
+            var file = document.getElementById('qrFileInput').files[0];
 
             if (!bankName || !accName || !file) return alert("សូមបំពេញព័ត៌មាន និងជ្រើសរើសរូប QR!");
 
-            const btn = document.getElementById('btnAddQR');
-            btn.disabled = true; btn.innerText = "កំពុងរក្សាទុក...";
+            var btn = document.getElementById('btnAddQR');
+            btn.disabled = true; 
+            btn.innerText = "កំពុងរក្សាទុក...";
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    await db.collection("qr_codes").add({
-                        bank_name: bankName,
-                        acc_name: accName,
-                        qr_url: e.target.result,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                db.collection("qr_codes").add({
+                    bank_name: bankName,
+                    acc_name: accName,
+                    qr_url: e.target.result,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(function() {
                     alert("បានរក្សាទុក QR ថ្មីជោគជ័យ!");
                     document.getElementById('qrBankName').value = "";
                     document.getElementById('qrAccName').value = "";
                     document.getElementById('qrFileInput').value = "";
-                } catch (err) { alert("មានបញ្ហាក្នុងការរក្សាទុក!"); }
-                finally { btn.disabled = false; btn.innerText = "+ រក្សាទុក QR Code ថ្មីនេះ"; }
+                }).catch(function(err) {
+                    alert("មានបញ្ហាក្នុងការរក្សាទុក!");
+                }).then(function() {
+                    btn.disabled = false; 
+                    btn.innerText = "+ រក្សាទុក QR Code ថ្មីនេះ";
+                });
             };
             reader.readAsDataURL(file);
         }
 
-        let activeQrUrl = "";
-        db.collection("settings").doc("payment").onSnapshot((doc) => {
-            if (doc.exists && doc.data().qr_code_url) activeQrUrl = doc.data().qr_code_url;
+        var activeQrUrl = "";
+        db.collection("settings").doc("payment").onSnapshot(function(doc) {
+            if (doc.exists && doc.data().qr_code_url) {
+                activeQrUrl = doc.data().qr_code_url;
+            }
             renderQRList();
         });
 
         function renderQRList() {
-            db.collection("qr_codes").orderBy("created_at", "desc").onSnapshot((snapshot) => {
-                const list = document.getElementById('qrCodeList');
+            db.collection("qr_codes").orderBy("created_at", "desc").onSnapshot(function(snapshot) {
+                var list = document.getElementById('qrCodeList');
                 if (snapshot.empty) {
-                    list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មាន QR Code ទេ</p>`;
+                    list.innerHTML = '<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មាន QR Code ទេ</p>';
                     return;
                 }
-                list.innerHTML = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const isActive = data.qr_url === activeQrUrl;
-                    return `
-                        <div class="border rounded-xl p-3 bg-white flex items-center space-x-3 relative ${isActive ? 'border-2 border-green-500 bg-green-50/30' : 'border-gray-200'}">
-                            <img src="${data.qr_url}" class="w-16 h-16 object-contain border rounded-lg bg-gray-50 shrink-0">
-                            <div class="flex-grow overflow-hidden">
-                                <h5 class="font-bold text-xs text-gray-800 truncate">${data.bank_name}</h5>
-                                <p class="text-[11px] text-gray-500 truncate">${data.acc_name}</p>
-                                ${isActive 
-                                    ? `<span class="inline-block mt-1 text-[10px] bg-green-500 text-white font-bold px-2 py-0.5 rounded">កំពុងប្រើប្រាស់</span>`
-                                    : `<button onclick="setActiveQR('${doc.id}', '${data.bank_name}', '${data.acc_name}')" class="mt-1 text-[10px] bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded">ប្រើប្រាស់ QR នេះ</button>`
-                                }
-                            </div>
-                            <button onclick="deleteQR('${doc.id}')" class="text-red-400 hover:text-red-600 p-1">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    `;
+                list.innerHTML = snapshot.docs.map(function(doc) {
+                    var data = doc.data();
+                    var isActive = data.qr_url === activeQrUrl;
+                    var activeBadge = isActive 
+                        ? '<span class="inline-block mt-1 text-[10px] bg-green-500 text-white font-bold px-2 py-0.5 rounded">កំពុងប្រើប្រាស់</span>'
+                        : '<button onclick="setActiveQR(\'' + doc.id + '\', \'' + data.bank_name + '\', \'' + data.acc_name + '\')" class="mt-1 text-[10px] bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded">ប្រើប្រាស់ QR នេះ</button>';
+
+                    return '<div class="border rounded-xl p-3 bg-white flex items-center space-x-3 relative ' + (isActive ? 'border-2 border-green-500 bg-green-50/30' : 'border-gray-200') + '">' +
+                        '<img src="' + data.qr_url + '" class="w-16 h-16 object-contain border rounded-lg bg-gray-50 shrink-0">' +
+                        '<div class="flex-grow overflow-hidden">' +
+                            '<h5 class="font-bold text-xs text-gray-800 truncate">' + data.bank_name + '</h5>' +
+                            '<p class="text-[11px] text-gray-500 truncate">' + data.acc_name + '</p>' +
+                            activeBadge +
+                        '</div>' +
+                        '<button onclick="deleteQR(\'' + doc.id + '\')" class="text-red-400 hover:text-red-600 p-1">' +
+                            '<i class="fa-solid fa-trash-can text-xs"></i>' +
+                        '</button>' +
+                    '</div>';
                 }).join('');
             });
         }
 
-        async function setActiveQR(docId, bankName, accName) {
-            try {
-                const doc = await db.collection("qr_codes").doc(docId).get();
+        function setActiveQR(docId, bankName, accName) {
+            db.collection("qr_codes").doc(docId).get().then(function(doc) {
                 if (doc.exists) {
-                    await db.collection("settings").doc("payment").set({
+                    return db.collection("settings").doc("payment").set({
                         qr_code_url: doc.data().qr_url,
                         bank_name: bankName,
                         acc_name: accName,
                         updated_at: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    alert(`បានដូរទៅប្រើ QR Code របស់ ${bankName} រួចរាល់!`);
                 }
-            } catch (err) { alert("មានបញ្ហាក្នុងការដូរ QR!"); }
+            }).then(function() {
+                alert("បានដូរទៅប្រើ QR Code របស់ " + bankName + " រួចរាល់!");
+            }).catch(function(err) {
+                alert("មានបញ្ហាក្នុងការដូរ QR!");
+            });
         }
 
-        async function deleteQR(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុប QR នេះមែនទេ?")) await db.collection("qr_codes").doc(id).delete();
+        function deleteQR(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុប QR នេះមែនទេ?")) {
+                db.collection("qr_codes").doc(id).delete();
+            }
         }
 
-        // 2. Product Management Logic
-        async function addNewProduct() {
-            const nameKm = document.getElementById('pNameKm').value.trim();
-            const nameEn = document.getElementById('pNameEn').value.trim();
-            const nameZh = document.getElementById('pNameZh').value.trim();
-            const price = parseFloat(document.getElementById('pPrice').value);
-            const imgFile = document.getElementById('pImgInput').files[0];
+        function addNewProduct() {
+            var nameKm = document.getElementById('pNameKm').value.trim();
+            var nameEn = document.getElementById('pNameEn').value.trim();
+            var nameZh = document.getElementById('pNameZh').value.trim();
+            var price = parseFloat(document.getElementById('pPrice').value);
+            var imgFile = document.getElementById('pImgInput').files[0];
 
             if (!nameKm || isNaN(price) || !imgFile) return alert("សូមបំពេញឈ្មោះ តម្លៃ និងជ្រើសរើសរូបភាពទំនិញ!");
 
-            const btn = document.getElementById('btnAddProduct');
-            btn.disabled = true; btn.innerText = "កំពុងរក្សាទុកទំនិញ...";
+            var btn = document.getElementById('btnAddProduct');
+            btn.disabled = true; 
+            btn.innerText = "កំពុងរក្សាទុកទំនិញ...";
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    await db.collection("products").add({
-                        name_km: nameKm,
-                        name_en: nameEn || nameKm,
-                        name_zh: nameZh || nameKm,
-                        price: price,
-                        img: e.target.result,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                db.collection("products").add({
+                    name_km: nameKm,
+                    name_en: nameEn || nameKm,
+                    name_zh: nameZh || nameKm,
+                    price: price,
+                    img: e.target.result,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(function() {
                     alert("បានបន្ថែមទំនិញថ្មីជោគជ័យ!");
                     document.getElementById('pNameKm').value = "";
                     document.getElementById('pNameEn').value = "";
                     document.getElementById('pNameZh').value = "";
                     document.getElementById('pPrice').value = "";
                     document.getElementById('pImgInput').value = "";
-                } catch (err) { alert("មានបញ្ហាក្នុងការបន្ថែមទំនិញ!"); }
-                finally { btn.disabled = false; btn.innerText = "+ បន្ថែមទំនិញចូលប្រព័ន្ធ"; }
+                }).catch(function(err) {
+                    alert("មានបញ្ហាក្នុងការបន្ថែមទំនិញ!");
+                }).then(function() {
+                    btn.disabled = false; 
+                    btn.innerText = "+ បន្ថែមទំនិញចូលប្រព័ន្ធ";
+                });
             };
             reader.readAsDataURL(imgFile);
         }
 
-        db.collection("products").orderBy("created_at", "desc").onSnapshot((snapshot) => {
-            const list = document.getElementById('adminProductList');
+        db.collection("products").orderBy("created_at", "desc").onSnapshot(function(snapshot) {
+            var list = document.getElementById('adminProductList');
             if (snapshot.empty) {
-                list.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មានទំនិញទេ</p>`;
+                list.innerHTML = '<p class="text-xs text-gray-400 col-span-full text-center py-4">មិនទាន់មានទំនិញទេ</p>';
                 return;
             }
-            list.innerHTML = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return `
-                    <div class="border rounded-lg p-2.5 flex items-center justify-between bg-gray-50">
-                        <div class="flex items-center space-x-2 overflow-hidden">
-                            <img src="${data.img}" class="w-10 h-10 object-cover rounded border shrink-0">
-                            <div class="truncate">
-                                <h4 class="font-semibold text-xs truncate">${data.name_km}</h4>
-                                <span class="text-green-700 font-bold text-xs">$${data.price.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <button onclick="deleteProduct('${doc.id}')" class="text-red-500 hover:text-red-700 p-1 shrink-0">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
-                    </div>
-                `;
+            list.innerHTML = snapshot.docs.map(function(doc) {
+                var data = doc.data();
+                return '<div class="border rounded-lg p-2.5 flex items-center justify-between bg-gray-50">' +
+                    '<div class="flex items-center space-x-2 overflow-hidden">' +
+                        '<img src="' + data.img + '" class="w-10 h-10 object-cover rounded border shrink-0">' +
+                        '<div class="truncate">' +
+                            '<h4 class="font-semibold text-xs truncate">' + data.name_km + '</h4>' +
+                            '<span class="text-green-700 font-bold text-xs">$' + data.price.toFixed(2) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button onclick="deleteProduct(\'' + doc.id + '\')" class="text-red-500 hover:text-red-700 p-1 shrink-0">' +
+                        '<i class="fa-solid fa-trash-can text-sm"></i>' +
+                    '</button>' +
+                '</div>';
             }).join('');
         });
 
-        async function deleteProduct(id) {
-            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) await db.collection("products").doc(id).delete();
+        function deleteProduct(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) {
+                db.collection("products").doc(id).delete();
+            }
         }
     </script>
 </body>
