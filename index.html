@@ -8,6 +8,24 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .lang-btn.active { background: #047857; color: white; }
+    #cartBadge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #cartBadge.hidden { display: none; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
@@ -17,14 +35,13 @@
     <div class="max-w-4xl mx-auto px-4 py-3">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2">
-          <div class="flex items-center gap-2">
-            <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400">
-            <h1 class="font-bold text-base text-white" id="shopTitle">Jinkelai Shop</h1>
-          </div>
+          <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400" onerror="this.style.display='none'">
+          <h1 class="font-bold text-base text-white" id="shopTitle">Jinkelai Shop</h1>
         </div>
-        <button onclick="openCart()" class="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
+        <button onclick="openCart()" class="relative flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span id="cartLabel">កន្ត្រក</span> (<span id="cartCount">0</span>)
+          <span id="cartLabel">កន្ត្រក</span>
+          <span id="cartBadge" class="hidden">0</span>
         </button>
       </div>
       <!-- Language Switcher -->
@@ -45,7 +62,7 @@
 
   <!-- CART MODAL -->
   <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex justify-end opacity-0 pointer-events-none transition-all duration-200">
-    <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl">
+    <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm flex items-center gap-2" id="cartTitle">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -58,6 +75,36 @@
         <input type="text" id="custName" class="w-full p-2 border rounded-xl" placeholder="ឈ្មោះ *">
         <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
         <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
+
+        <!-- Location Image -->
+        <div>
+          <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)</label>
+          <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+          <div id="locPreview" class="mt-1 hidden">
+            <img id="locPreviewImg" class="w-20 h-20 object-cover rounded-lg border">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="space-y-1">
+          <p class="font-semibold text-gray-700" id="payLabel">វិធីទូទាត់ប្រាក់ *</p>
+          <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
+            <input type="radio" name="payMethod" value="cod" checked class="accent-emerald-700">
+            <span id="payCod">💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)</span>
+          </label>
+          <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
+            <input type="radio" name="payMethod" value="khqr" class="accent-emerald-700">
+            <span id="payKhqr">📱 ទូទាត់តាម KHQR</span>
+          </label>
+        </div>
+
+        <!-- KHQR Display (shown when selected) -->
+        <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
+          <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
+          <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
+          <p id="khqrAccountText" class="text-[10px] text-gray-600"></p>
+        </div>
+
         <div class="flex justify-between font-bold text-sm pt-1">
           <span id="totalLabel">សរុប៖</span><span id="cartTotalPrice" class="text-emerald-700">$0.00</span>
         </div>
@@ -68,7 +115,8 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
@@ -84,9 +132,11 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
+    // Telegram: Group ID (negative number for groups)
     const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
-    const TELEGRAM_CHAT_ID = '6530042898';
+    const TELEGRAM_CHAT_ID = '-5583649092';  // Group ID
 
     // ===== Multi-language =====
     const i18n = {
@@ -109,7 +159,12 @@
         orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
         fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
         addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
-        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!"
+        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!",
+        locLabel: "រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",
+        payLabel: "វិធីទូទាត់ប្រាក់ *",
+        payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",
+        payKhqr: "📱 ទូទាត់តាម KHQR",
+        khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់"
       },
       en: {
         shopTitle: "Jinkelai Shop",
@@ -130,7 +185,12 @@
         orderSuccess: "🎉 Order placed successfully!",
         fillInfo: "Please fill name, phone and address!",
         addFirst: "Please add items to cart first!",
-        networkError: "Network or Firebase error!"
+        networkError: "Network or Firebase error!",
+        locLabel: "Delivery location photo (optional)",
+        payLabel: "Payment method *",
+        payCod: "💵 Cash on Delivery (COD)",
+        payKhqr: "📱 Pay via KHQR",
+        khqrTitle: "Scan KHQR to pay"
       },
       zh: {
         shopTitle: "金克莱超市",
@@ -151,13 +211,20 @@
         orderSuccess: "🎉 下单成功！",
         fillInfo: "请填写姓名、电话和地址！",
         addFirst: "请先添加商品到购物车！",
-        networkError: "网络或Firebase错误！"
+        networkError: "网络或Firebase错误！",
+        locLabel: "送货地点照片（可选）",
+        payLabel: "支付方式 *",
+        payCod: "💵 货到付款 (COD)",
+        payKhqr: "📱 KHQR支付",
+        khqrTitle: "扫描KHQR支付"
       }
     };
 
     let currentLang = localStorage.getItem('jinkelai_lang') || 'km';
     let products = [];
     let cart = [];
+    let selectedLocFile = null;
+    let khqrData = { image: '', account: '' };
 
     function t(key) {
       return i18n[currentLang][key] || i18n.km[key] || key;
@@ -188,12 +255,61 @@
       document.getElementById('custPhone').placeholder = t('phonePh');
       document.getElementById('custAddress').placeholder = t('addressPh');
       document.getElementById('loadingMsg').innerText = products.length === 0 ? t('empty') : t('loading');
+      document.getElementById('locLabel').innerText = t('locLabel');
+      document.getElementById('payLabel').innerText = t('payLabel');
+      document.getElementById('payCod').innerText = t('payCod');
+      document.getElementById('payKhqr').innerText = t('payKhqr');
+      document.getElementById('khqrTitle').innerText = t('khqrTitle');
 
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
         if (btn) btn.classList.toggle('active', l === currentLang);
       });
     }
+
+    // Load KHQR settings
+    async function loadKhqr() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'khqr'));
+        if (snap.exists()) {
+          khqrData = snap.data();
+          if (khqrData.image) {
+            document.getElementById('khqrImg').src = khqrData.image;
+          }
+          if (khqrData.account) {
+            document.getElementById('khqrAccountText').innerText = khqrData.account;
+          }
+        }
+      } catch (e) {
+        console.error('Load KHQR', e);
+      }
+    }
+
+    // Show/hide KHQR box based on radio
+    document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const box = document.getElementById('khqrBox');
+        if (radio.value === 'khqr' && radio.checked) {
+          box.classList.remove('hidden');
+        } else {
+          box.classList.add('hidden');
+        }
+      });
+    });
+
+    // Location image preview
+    document.getElementById('locImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedLocFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('locPreviewImg').src = ev.target.result;
+          document.getElementById('locPreview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     onSnapshot(collection(db, 'products'), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -251,35 +367,68 @@
         total += i.price * i.qty; count += i.qty;
         container.innerHTML += `<div class="flex justify-between border-b pb-1"><div><b>${i.name}</b><br>$${i.price.toFixed(2)} x ${i.qty}</div><b>$${(i.price*i.qty).toFixed(2)}</b></div>`;
       });
-      document.getElementById('cartCount').innerText = count;
+      // Red badge
+      const badge = document.getElementById('cartBadge');
+      if (count > 0) {
+        badge.innerText = count > 99 ? '99+' : count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
       document.getElementById('cartTotalPrice').innerText = `$${total.toFixed(2)}`;
     }
 
-    window.openCart = function() { document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none'); };
+    window.openCart = function() { 
+      document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none'); 
+      // Show KHQR if selected
+      const selected = document.querySelector('input[name="payMethod"]:checked');
+      if (selected && selected.value === 'khqr') {
+        document.getElementById('khqrBox').classList.remove('hidden');
+      }
+    };
     window.closeCart = function() { document.getElementById('cartModal').classList.add('opacity-0', 'pointer-events-none'); };
 
     window.checkoutOrder = async function() {
       const name = document.getElementById('custName').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
       const address = document.getElementById('custAddress').value.trim();
+      const payMethod = document.querySelector('input[name="payMethod"]:checked')?.value || 'cod';
 
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
 
       let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
+      const payText = payMethod === 'khqr' ? '📱 KHQR' : '💵 COD (ដឹកជញ្ជូន)';
       
-      let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
+      let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n💳 Payment: ${payText}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
 
       try {
+        let locationImageUrl = '';
+
+        // Upload location image if selected
+        if (selectedLocFile) {
+          try {
+            const safeName = selectedLocFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storageRef = ref(storage, 'orders/loc_' + Date.now() + '_' + safeName);
+            await uploadBytes(storageRef, selectedLocFile);
+            locationImageUrl = await getDownloadURL(storageRef);
+          } catch (upErr) {
+            console.error('Location upload failed', upErr);
+          }
+        }
+
         await addDoc(collection(db, 'orders'), {
           items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
           total: parseFloat(total),
           customer: { name, phone, address },
+          paymentMethod: payMethod,
+          locationImage: locationImageUrl || null,
           status: 'new',
           createdAt: serverTimestamp()
         });
 
+        // Update stock
         for (const i of cart) {
           const p = products.find(x => x.id === i.id);
           if (p) {
@@ -288,10 +437,15 @@
           }
         }
 
+        // Send to Telegram Group
         const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+          body: JSON.stringify({ 
+            chat_id: TELEGRAM_CHAT_ID, 
+            text: msg,
+            parse_mode: 'HTML'
+          })
         });
         const data = await res.json();
         
@@ -302,17 +456,24 @@
           document.getElementById('custName').value = '';
           document.getElementById('custPhone').value = '';
           document.getElementById('custAddress').value = '';
+          document.getElementById('locImageFile').value = '';
+          document.getElementById('locPreview').classList.add('hidden');
+          selectedLocFile = null;
+          document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
+          document.getElementById('khqrBox').classList.add('hidden');
           alert(t('orderSuccess'));
         } else { 
-          alert("Telegram Error: " + data.description); 
+          console.error('Telegram error:', data);
+          alert("Telegram Error: " + (data.description || JSON.stringify(data)) + "\n\nសូមធ្វើឱ្យ Bot ជា Admin ក្នុង Group!"); 
         }
       } catch (e) { 
         console.error(e);
-        alert(t('networkError')); 
+        alert(t('networkError') + '\n' + e.message); 
       }
     };
 
     applyLang();
+    loadKhqr();
   </script>
 </body>
 </html>
