@@ -15,17 +15,19 @@
       <div class="text-center">
         <span class="text-4xl">🛍️🛒</span>
         <h2 class="text-lg font-bold text-gray-800 mt-2">Jinkelai Admin</h2>
+        <p class="text-[11px] text-gray-500 mt-1">Firebase Authentication</p>
       </div>
       <div class="space-y-3 text-xs">
         <div>
           <label class="block font-semibold mb-1">Email</label>
-          <input type="email" id="loginEmail" placeholder="Email" class="w-full p-2.5 border rounded-xl" autocomplete="username">
+          <input type="email" id="loginEmail" placeholder="Email" value="nhoemvuthy25@gmail.com" class="w-full p-2.5 border rounded-xl" autocomplete="username">
         </div>
         <div>
           <label class="block font-semibold mb-1">Password</label>
           <input type="password" id="loginPass" placeholder="Password" class="w-full p-2.5 border rounded-xl" autocomplete="current-password">
         </div>
-        <button onclick="doLogin()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
+        <button onclick="doLogin()" id="loginBtn" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
+        <p id="loginError" class="text-center text-red-500 text-[11px] hidden"></p>
       </div>
     </div>
   </div>
@@ -44,6 +46,7 @@
           <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
           <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
         </div>
+        <p id="passStatus" class="text-center text-[11px] text-gray-500"></p>
       </div>
 
       <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
@@ -152,6 +155,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
     import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
@@ -169,9 +173,9 @@
 
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let adminAuth = JSON.parse(localStorage.getItem('jinkelai_admin')) || { email: 'admin@gmail.com', pass: '1234' };
     let products = [];
     let orders = [];
     let selectedFile = null;
@@ -233,6 +237,7 @@
     }
 
     window.saveKhqrSettings = async function() {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
       const account = document.getElementById('khqrAccount').value.trim();
       const statusEl = document.getElementById('khqrStatus');
       statusEl.innerText = 'កំពុងរក្សាទុក...';
@@ -303,28 +308,76 @@
       if (!document.getElementById('adminDashboard').classList.contains('hidden')) renderOrders();
     });
 
-    window.doLogin = function() {
-      const e = document.getElementById('loginEmail').value.trim();
-      const p = document.getElementById('loginPass').value.trim();
-      if (e === adminAuth.email && p === adminAuth.pass) {
+    // Firebase Auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
         renderAdminList();
         renderOrders();
         loadKhqrSettings();
-      } else alert("Email ឬ Password មិនត្រឹមត្រូវ!");
+      } else {
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('adminDashboard').classList.add('hidden');
+      }
+    });
+
+    window.doLogin = async function() {
+      const e = document.getElementById('loginEmail').value.trim();
+      const p = document.getElementById('loginPass').value.trim();
+      const errEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      if (!e || !p) {
+        errEl.innerText = 'សូមបញ្ចូល Email និង Password!';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      btn.disabled = true;
+      btn.innerText = 'កំពុងចូល...';
+      errEl.classList.add('hidden');
+      try {
+        await signInWithEmailAndPassword(auth, e, p);
+        // onAuthStateChanged will handle UI
+      } catch (err) {
+        console.error(err);
+        let msg = 'Email ឬ Password មិនត្រឹមត្រូវ!';
+        if (err.code === 'auth/user-not-found') msg = 'មិនមាន User នេះ!';
+        if (err.code === 'auth/wrong-password') msg = 'Password មិនត្រឹមត្រូវ!';
+        if (err.code === 'auth/invalid-credential') msg = 'Email ឬ Password មិនត្រឹមត្រូវ!';
+        if (err.code === 'auth/too-many-requests') msg = 'ព្យាយាមច្រើនពេក សូមរង់ចាំ!';
+        errEl.innerText = msg;
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'ចូលប្រព័ន្ធ / Login';
+      }
     };
-    window.doLogout = function() {
-      document.getElementById('loginSection').classList.remove('hidden');
-      document.getElementById('adminDashboard').classList.add('hidden');
+
+    window.doLogout = async function() {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error(e);
+      }
     };
-    window.changePassword = function() {
+
+    window.changePassword = async function() {
       const np = document.getElementById('newPass').value.trim();
+      const statusEl = document.getElementById('passStatus');
       if (!np) return alert("សូមបញ្ចូលលេខសម្ងាត់ថ្មី!");
-      adminAuth.pass = np;
-      localStorage.setItem('jinkelai_admin', JSON.stringify(adminAuth));
-      document.getElementById('newPass').value = '';
-      alert("🎉 ប្តូរលេខសម្ងាត់ជោគជ័យ!");
+      if (!auth.currentUser) return alert('សូម Login មុន!');
+      statusEl.innerText = 'កំពុងផ្លាស់ប្តូរ...';
+      try {
+        await updatePassword(auth.currentUser, np);
+        document.getElementById('newPass').value = '';
+        statusEl.innerText = '🎉 ប្តូរលេខសម្ងាត់ជោគជ័យ!';
+      } catch (e) {
+        console.error(e);
+        statusEl.innerText = '❌ បរាជ័យ: ' + (e.message || e.code);
+        if (e.code === 'auth/requires-recent-login') {
+          statusEl.innerText = '❌ សូម Logout រួច Login ឡើងវិញ មុនផ្លាស់ប្តូរ Password';
+        }
+      }
     };
 
     function renderAdminList() {
@@ -386,6 +439,7 @@
     }
 
     window.saveProduct = async function() {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
       const name_km = document.getElementById('pNameKm').value.trim();
       const name_en = document.getElementById('pNameEn').value.trim();
       const name_zh = document.getElementById('pNameZh').value.trim();
@@ -481,6 +535,7 @@
     };
 
     window.toggleActive = async function(id) {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
       const p = products.find(x => x.id === id);
       if (!p) return;
       try { await updateDoc(doc(db, 'products', id), { active: !p.active }); }
@@ -488,6 +543,7 @@
     };
 
     window.deleteProduct = async function(id) {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
       if (confirm("តើបងប្រាកដជាចង់លុបទំនិញនេះមែនទេ?")) {
         try { await deleteDoc(doc(db, 'products', id)); }
         catch (e) { alert("Error: " + e.message); }
