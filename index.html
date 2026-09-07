@@ -26,6 +26,18 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     #cartBadge.hidden { display: none; }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1;
+    }
+    #searchInput::placeholder { color: #a7f3d0; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
@@ -44,20 +56,31 @@
           <span id="cartBadge" class="hidden">0</span>
         </button>
       </div>
+
       <!-- Language Switcher -->
       <div class="flex gap-1 mt-2 justify-center">
         <button onclick="setLang('km')" id="btn-km" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">ខ្មែរ</button>
         <button onclick="setLang('en')" id="btn-en" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">English</button>
         <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">中文</button>
       </div>
+
+      <!-- Search Box (inside green header) -->
+      <div class="relative mt-2.5">
+        <input type="text" id="searchInput"
+          class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25"
+          placeholder="🔍 ស្វែងរកទំនិញ..."
+          oninput="filterProducts()">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200 text-sm pointer-events-none">🔍</span>
+      </div>
     </div>
   </header>
 
   <!-- STORE VIEW -->
-  <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-4">
-    <h2 class="text-sm font-bold text-gray-700" id="sectionTitle">បន្លែ និងផ្លែឈើស្រស់ៗ</h2>
+  <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-3">
+    <h2 class="text-sm font-bold text-gray-700" id="sectionTitle">ទំនិញគ្រប់មុខមាននៅទីនេះ</h2>
     <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     <p id="loadingMsg" class="text-center text-gray-500 text-xs py-8">កំពុងផ្ទុកទំនិញ...</p>
+    <p id="noResultMsg" class="text-center text-gray-400 text-xs py-6 hidden">គ្មានទំនិញត្រូវនឹងការស្វែងរក</p>
   </main>
 
   <!-- CART MODAL -->
@@ -98,7 +121,7 @@
           </label>
         </div>
 
-        <!-- KHQR Display (shown when selected) -->
+        <!-- KHQR Display -->
         <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
           <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
           <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
@@ -132,9 +155,9 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    // Telegram: Group ID (negative number for groups)
+    // Telegram Supergroup
     const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
-    const TELEGRAM_CHAT_ID = '-5583649092';  // Group ID
+    const TELEGRAM_CHAT_ID = '-1003962677132';
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
 
     async function uploadToImgBB(file) {
@@ -149,11 +172,10 @@
       throw new Error((data.error && data.error.message) || 'ImgBB upload failed');
     }
 
-    // ===== Multi-language =====
     const i18n = {
       km: {
         shopTitle: "Jinkelai Shop",
-        sectionTitle: "បន្លែ និងផ្លែឈើស្រស់ៗ",
+        sectionTitle: "ទំនិញគ្រប់មុខមាននៅទីនេះ",
         cartLabel: "កន្ត្រក",
         cartTitle: "កន្ត្រកទំនិញ",
         totalLabel: "សរុប៖",
@@ -175,11 +197,14 @@
         payLabel: "វិធីទូទាត់ប្រាក់ *",
         payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",
         payKhqr: "📱 ទូទាត់តាម KHQR",
-        khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់"
+        khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់",
+        searchPh: " ស្វែងរកទំនិញ...",
+        noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក",
+        remove: "លុប"
       },
       en: {
         shopTitle: "Jinkelai Shop",
-        sectionTitle: "Fresh Vegetables & Fruits",
+        sectionTitle: "All products available here",
         cartLabel: "Cart",
         cartTitle: "Shopping Cart",
         totalLabel: "Total:",
@@ -201,11 +226,14 @@
         payLabel: "Payment method *",
         payCod: "💵 Cash on Delivery (COD)",
         payKhqr: "📱 Pay via KHQR",
-        khqrTitle: "Scan KHQR to pay"
+        khqrTitle: "Scan KHQR to pay",
+        searchPh: " Search products...",
+        noResult: "No products match your search",
+        remove: "Remove"
       },
       zh: {
         shopTitle: "金克莱超市",
-        sectionTitle: "新鲜蔬菜和水果",
+        sectionTitle: "这里有所有商品",
         cartLabel: "购物车",
         cartTitle: "购物车",
         totalLabel: "合计：",
@@ -227,7 +255,10 @@
         payLabel: "支付方式 *",
         payCod: "💵 货到付款 (COD)",
         payKhqr: "📱 KHQR支付",
-        khqrTitle: "扫描KHQR支付"
+        khqrTitle: "扫描KHQR支付",
+        searchPh: " 搜索商品...",
+        noResult: "没有匹配的商品",
+        remove: "删除"
       }
     };
 
@@ -236,6 +267,7 @@
     let cart = [];
     let selectedLocFile = null;
     let khqrData = { image: '', account: '' };
+    let searchQuery = '';
 
     function t(key) {
       return i18n[currentLang][key] || i18n.km[key] || key;
@@ -271,6 +303,8 @@
       document.getElementById('payCod').innerText = t('payCod');
       document.getElementById('payKhqr').innerText = t('payKhqr');
       document.getElementById('khqrTitle').innerText = t('khqrTitle');
+      document.getElementById('searchInput').placeholder = t('searchPh');
+      document.getElementById('noResultMsg').innerText = t('noResult');
 
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
@@ -278,37 +312,27 @@
       });
     }
 
-    // Load KHQR settings
     async function loadKhqr() {
       try {
         const snap = await getDoc(doc(db, 'settings', 'khqr'));
         if (snap.exists()) {
           khqrData = snap.data();
-          if (khqrData.image) {
-            document.getElementById('khqrImg').src = khqrData.image;
-          }
-          if (khqrData.account) {
-            document.getElementById('khqrAccountText').innerText = khqrData.account;
-          }
+          if (khqrData.image) document.getElementById('khqrImg').src = khqrData.image;
+          if (khqrData.account) document.getElementById('khqrAccountText').innerText = khqrData.account;
         }
       } catch (e) {
         console.error('Load KHQR', e);
       }
     }
 
-    // Show/hide KHQR box based on radio
     document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
       radio.addEventListener('change', () => {
         const box = document.getElementById('khqrBox');
-        if (radio.value === 'khqr' && radio.checked) {
-          box.classList.remove('hidden');
-        } else {
-          box.classList.add('hidden');
-        }
+        if (radio.value === 'khqr' && radio.checked) box.classList.remove('hidden');
+        else box.classList.add('hidden');
       });
     });
 
-    // Location image preview
     document.getElementById('locImageFile')?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -321,6 +345,11 @@
         reader.readAsDataURL(file);
       }
     });
+
+    window.filterProducts = function() {
+      searchQuery = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      renderProducts();
+    };
 
     onSnapshot(collection(db, 'products'), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -339,25 +368,49 @@
 
     function renderProducts() {
       const grid = document.getElementById('productGrid');
+      const noResult = document.getElementById('noResultMsg');
       grid.innerHTML = '';
-      products.filter(p => p.active !== false).forEach(p => {
+
+      let list = products.filter(p => p.active !== false);
+
+      if (searchQuery) {
+        list = list.filter(p => {
+          const nameKm = (p.name_km || p.name || '').toLowerCase();
+          const nameEn = (p.name_en || '').toLowerCase();
+          const nameZh = (p.name_zh || '').toLowerCase();
+          const barcode = (p.barcode || '').toLowerCase();
+          return nameKm.includes(searchQuery) || nameEn.includes(searchQuery) ||
+                 nameZh.includes(searchQuery) || barcode.includes(searchQuery);
+        });
+      }
+
+      if (list.length === 0 && products.length > 0 && searchQuery) {
+        noResult.classList.remove('hidden');
+      } else {
+        noResult.classList.add('hidden');
+      }
+
+      const frag = document.createDocumentFragment();
+      list.forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
         const name = getProductName(p);
-        grid.innerHTML += `
-          <div class="bg-white p-2.5 rounded-xl border flex flex-col justify-between">
-            <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-28 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150'">
-            <h3 class="font-bold text-xs leading-tight">${name}</h3>
-            ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
-            <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
-            <div class="mt-2 flex justify-between items-center">
-              <div>
-                <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
-                ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}
-              </div>
-              <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
+        const div = document.createElement('div');
+        div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between';
+        div.innerHTML = `
+          <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover rounded-lg mb-1 bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+          <h3 class="font-bold text-xs leading-tight">${name}</h3>
+          ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
+          <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
+          <div class="mt-2 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
+              ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}
             </div>
+            <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
           </div>`;
+        frag.appendChild(div);
       });
+      grid.appendChild(frag);
     }
 
     window.addToCart = function(id) {
@@ -366,19 +419,65 @@
       const item = cart.find(x => x.id === id);
       const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
       const name = getProductName(p);
-      if (item) item.qty++; else cart.push({ id: p.id, name, price: finalPrice, qty: 1 });
+      if (item) {
+        if (item.qty >= p.stock) return alert(t('outOfStock'));
+        item.qty++;
+      } else {
+        cart.push({ id: p.id, name, price: finalPrice, qty: 1 });
+      }
+      updateCart();
+    };
+
+    window.changeQty = function(id, delta) {
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+      const p = products.find(x => x.id === id);
+      const max = p ? (p.stock || 99) : 99;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(x => x.id !== id);
+      } else if (item.qty > max) {
+        item.qty = max;
+        alert(t('outOfStock'));
+      }
+      updateCart();
+    };
+
+    window.removeFromCart = function(id) {
+      cart = cart.filter(x => x.id !== id);
       updateCart();
     };
 
     function updateCart() {
       const container = document.getElementById('cartItemsContainer');
       let total = 0, count = 0;
-      container.innerHTML = cart.length ? '' : `<p class="text-center text-gray-400 py-4">${t('emptyCart')}</p>`;
-      cart.forEach(i => {
-        total += i.price * i.qty; count += i.qty;
-        container.innerHTML += `<div class="flex justify-between border-b pb-1"><div><b>${i.name}</b><br>$${i.price.toFixed(2)} x ${i.qty}</div><b>$${(i.price*i.qty).toFixed(2)}</b></div>`;
-      });
-      // Red badge
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-4">${t('emptyCart')}</p>`;
+      } else {
+        container.innerHTML = '';
+        cart.forEach(i => {
+          total += i.price * i.qty;
+          count += i.qty;
+          container.innerHTML += `
+            <div class="border rounded-xl p-2.5 bg-gray-50">
+              <div class="flex justify-between items-start gap-2">
+                <div class="flex-1 min-w-0">
+                  <b class="text-xs leading-tight block truncate">${i.name}</b>
+                  <span class="text-[11px] text-gray-500">$${i.price.toFixed(2)}</span>
+                </div>
+                <button onclick="window.removeFromCart('${i.id}')" class="text-red-500 text-[11px] font-bold px-1.5 py-0.5 hover:bg-red-50 rounded">${t('remove')}</button>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-1.5">
+                  <button onclick="window.changeQty('${i.id}', -1)" class="qty-btn bg-gray-200 hover:bg-gray-300 text-gray-700">−</button>
+                  <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
+                  <button onclick="window.changeQty('${i.id}', 1)" class="qty-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-800">+</button>
+                </div>
+                <b class="text-emerald-700">$${(i.price * i.qty).toFixed(2)}</b>
+              </div>
+            </div>`;
+        });
+      }
       const badge = document.getElementById('cartBadge');
       if (count > 0) {
         badge.innerText = count > 99 ? '99+' : count;
@@ -389,15 +488,16 @@
       document.getElementById('cartTotalPrice').innerText = `$${total.toFixed(2)}`;
     }
 
-    window.openCart = function() { 
-      document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none'); 
-      // Show KHQR if selected
+    window.openCart = function() {
+      document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none');
       const selected = document.querySelector('input[name="payMethod"]:checked');
       if (selected && selected.value === 'khqr') {
         document.getElementById('khqrBox').classList.remove('hidden');
       }
     };
-    window.closeCart = function() { document.getElementById('cartModal').classList.add('opacity-0', 'pointer-events-none'); };
+    window.closeCart = function() {
+      document.getElementById('cartModal').classList.add('opacity-0', 'pointer-events-none');
+    };
 
     window.checkoutOrder = async function() {
       const name = document.getElementById('custName').value.trim();
@@ -409,30 +509,24 @@
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
 
-      // Prevent double click
       btn.disabled = true;
       btn.innerText = 'កំពុងដំណើរការ...';
 
       let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
       const payText = payMethod === 'khqr' ? '📱 KHQR' : '💵 COD (ដឹកជញ្ជូន)';
-      
       let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n💳 Payment: ${payText}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
 
       try {
         let locationImageUrl = '';
-
-        // Upload location image via ImgBB (optional - don't block order)
         if (selectedLocFile) {
           try {
             locationImageUrl = await uploadToImgBB(selectedLocFile);
           } catch (upErr) {
-            console.error('Location upload failed (continuing without image):', upErr);
-            locationImageUrl = '';
+            console.error('Location upload failed:', upErr);
           }
         }
 
-        // 1. Save order to Firebase (most important)
         await addDoc(collection(db, 'orders'), {
           items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
           total: parseFloat(total),
@@ -443,7 +537,6 @@
           createdAt: serverTimestamp()
         });
 
-        // 2. Update stock
         for (const i of cart) {
           const p = products.find(x => x.id === i.id);
           if (p) {
@@ -452,29 +545,22 @@
           }
         }
 
-        // 3. Send to Telegram Group (optional - don't block success)
         let telegramOk = false;
         try {
           const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              chat_id: TELEGRAM_CHAT_ID, 
-              text: msg
-            })
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
           });
           const data = await res.json();
           telegramOk = data.ok === true;
-          if (!telegramOk) {
-            console.error('Telegram error:', data);
-          }
+          if (!telegramOk) console.error('Telegram error:', data);
         } catch (tgErr) {
           console.error('Telegram network error:', tgErr);
         }
 
-        // Clear cart and form - order already saved
-        cart = []; 
-        updateCart(); 
+        cart = [];
+        updateCart();
         closeCart();
         document.getElementById('custName').value = '';
         document.getElementById('custPhone').value = '';
@@ -490,10 +576,9 @@
         } else {
           alert(t('orderSuccess') + '\n\n⚠️ ការបញ្ជាទិញបានរក្សាទុកហើយ ប៉ុន្តែ Telegram មិនទាន់ចូល Group។\nសូមធ្វើឱ្យ Bot ជា Administrator ក្នុង Group!');
         }
-
-      } catch (e) { 
+      } catch (e) {
         console.error(e);
-        alert(t('networkError') + '\n' + (e.message || e)); 
+        alert(t('networkError') + '\n' + (e.message || e));
       } finally {
         btn.disabled = false;
         btn.innerText = t('checkoutBtn');
