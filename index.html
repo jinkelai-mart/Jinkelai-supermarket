@@ -393,9 +393,14 @@
       const phone = document.getElementById('custPhone').value.trim();
       const address = document.getElementById('custAddress').value.trim();
       const payMethod = document.querySelector('input[name="payMethod"]:checked')?.value || 'cod';
+      const btn = document.getElementById('checkoutBtn');
 
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
+
+      // Prevent double click
+      btn.disabled = true;
+      btn.innerText = 'កំពុងដំណើរការ...';
 
       let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
@@ -406,7 +411,7 @@
       try {
         let locationImageUrl = '';
 
-        // Upload location image if selected
+        // Upload location image if selected (optional - don't block order)
         if (selectedLocFile) {
           try {
             const safeName = selectedLocFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -414,10 +419,12 @@
             await uploadBytes(storageRef, selectedLocFile);
             locationImageUrl = await getDownloadURL(storageRef);
           } catch (upErr) {
-            console.error('Location upload failed', upErr);
+            console.error('Location upload failed (continuing without image):', upErr);
+            // continue without image - do not stop order
           }
         }
 
+        // 1. Save order to Firebase (most important)
         await addDoc(collection(db, 'orders'), {
           items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
           total: parseFloat(total),
@@ -428,7 +435,7 @@
           createdAt: serverTimestamp()
         });
 
-        // Update stock
+        // 2. Update stock
         for (const i of cart) {
           const p = products.find(x => x.id === i.id);
           if (p) {
@@ -437,38 +444,51 @@
           }
         }
 
-        // Send to Telegram Group
-        const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            chat_id: TELEGRAM_CHAT_ID, 
-            text: msg,
-            parse_mode: 'HTML'
-          })
-        });
-        const data = await res.json();
-        
-        if (data.ok) {
-          cart = []; 
-          updateCart(); 
-          closeCart();
-          document.getElementById('custName').value = '';
-          document.getElementById('custPhone').value = '';
-          document.getElementById('custAddress').value = '';
-          document.getElementById('locImageFile').value = '';
-          document.getElementById('locPreview').classList.add('hidden');
-          selectedLocFile = null;
-          document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
-          document.getElementById('khqrBox').classList.add('hidden');
-          alert(t('orderSuccess'));
-        } else { 
-          console.error('Telegram error:', data);
-          alert("Telegram Error: " + (data.description || JSON.stringify(data)) + "\n\nសូមធ្វើឱ្យ Bot ជា Admin ក្នុង Group!"); 
+        // 3. Send to Telegram Group (optional - don't block success)
+        let telegramOk = false;
+        try {
+          const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              chat_id: TELEGRAM_CHAT_ID, 
+              text: msg
+            })
+          });
+          const data = await res.json();
+          telegramOk = data.ok === true;
+          if (!telegramOk) {
+            console.error('Telegram error:', data);
+          }
+        } catch (tgErr) {
+          console.error('Telegram network error:', tgErr);
         }
+
+        // Clear cart and form - order already saved
+        cart = []; 
+        updateCart(); 
+        closeCart();
+        document.getElementById('custName').value = '';
+        document.getElementById('custPhone').value = '';
+        document.getElementById('custAddress').value = '';
+        document.getElementById('locImageFile').value = '';
+        document.getElementById('locPreview').classList.add('hidden');
+        selectedLocFile = null;
+        document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
+        document.getElementById('khqrBox').classList.add('hidden');
+
+        if (telegramOk) {
+          alert(t('orderSuccess'));
+        } else {
+          alert(t('orderSuccess') + '\n\n⚠️ ការបញ្ជាទិញបានរក្សាទុកហើយ ប៉ុន្តែ Telegram មិនទាន់ចូល Group។\nសូមធ្វើឱ្យ Bot ជា Administrator ក្នុង Group!');
+        }
+
       } catch (e) { 
         console.error(e);
-        alert(t('networkError') + '\n' + e.message); 
+        alert(t('networkError') + '\n' + (e.message || e)); 
+      } finally {
+        btn.disabled = false;
+        btn.innerText = t('checkoutBtn');
       }
     };
 
