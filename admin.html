@@ -6,7 +6,6 @@
   <title>Admin - Jinkelai</title>
   <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen font-['Kantumruy_Pro'] flex flex-col">
 
@@ -28,7 +27,6 @@
           <input type="password" id="loginPass" class="w-full p-2.5 border rounded-xl">
         </div>
         <button onclick="doLogin()" id="loginBtn" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
-        <p id="loginError" class="text-center text-red-500 text-[11px] hidden"></p>
       </div>
     </div>
   </div>
@@ -60,13 +58,13 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label class="font-semibold text-gray-600">ជ្រើសរើសប្រភេទទំនិញ *</label>
-              <select id="pCategory" class="w-full p-2 border rounded-xl mt-1">
+              <select id="pCategory" class="w-full p-2 border rounded-xl mt-1 bg-white">
                 <option value="">-- ជ្រើសរើសប្រភេទ --</option>
               </select>
             </div>
             <div>
               <label class="font-semibold text-gray-600">ប្រភេទការលក់ *</label>
-              <select id="pSaleType" class="w-full p-2 border rounded-xl mt-1">
+              <select id="pSaleType" class="w-full p-2 border rounded-xl mt-1 bg-white">
                 <option value="retail">ទំនិញលក់រាយ (Retail)</option>
                 <option value="wholesale">ទំនិញលក់ដុំ (Wholesale)</option>
               </select>
@@ -92,33 +90,27 @@
             </div>
             <div>
               <label class="font-semibold text-gray-600">បញ្ចុះតម្លៃ (%)</label>
-              <input type="number" id="pDiscount" class="w-full p-2 border rounded-xl mt-1">
+              <input type="number" id="pDiscount" value="0" class="w-full p-2 border rounded-xl mt-1">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="font-semibold text-gray-600">ស្តុក *</label>
-              <input type="number" id="pStock" class="w-full p-2 border rounded-xl mt-1">
+              <input type="number" id="pStock" value="10" class="w-full p-2 border rounded-xl mt-1">
             </div>
             <div>
               <label class="font-semibold text-gray-600">Barcode</label>
-              <div class="flex gap-1 mt-1">
-                <input type="text" id="pBarcode" class="flex-1 p-2 border rounded-xl">
-                <button type="button" onclick="startBarcodeScan()" class="bg-blue-600 text-white px-3 rounded-xl text-xs font-bold whitespace-nowrap">📷 ស្កែន</button>
-              </div>
+              <input type="text" id="pBarcode" class="w-full p-2 border rounded-xl mt-1">
             </div>
           </div>
 
           <div>
             <label class="font-semibold text-gray-600">រូបភាពទំនិញ</label>
             <input type="file" id="pImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-            <div id="imagePreview" class="mt-2 hidden">
-              <img id="previewImg" class="w-24 h-24 object-cover rounded-lg border">
-            </div>
           </div>
 
           <input type="hidden" id="editId" value="">
-          <div class="flex gap-2">
+          <div class="flex gap-2 pt-2">
             <button onclick="saveProduct()" class="flex-1 bg-emerald-700 text-white font-bold py-2.5 rounded-xl" id="saveBtn">រក្សាទុកទំនិញ</button>
             <button onclick="cancelEdit()" id="cancelBtn" class="hidden bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl">បោះបង់</button>
           </div>
@@ -145,8 +137,7 @@
       projectId: "jinkelai-supermarket-e4786",
       storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
       messagingSenderId: "345735387486",
-      appId: "1:345735387486:web:44fc724756c3b77a7617cf",
-      measurementId: "G-P0G4RNKKMG"
+      appId: "1:345735387486:web:44fc724756c3b77a7617cf"
     };
 
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
@@ -165,23 +156,13 @@
       const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.data && data.data.url) return data.data.url;
-      throw new Error('ImgBB upload failed');
+      throw new Error('Upload failed');
     }
 
     document.getElementById('pImageFile')?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          document.getElementById('previewImg').src = ev.target.result;
-          document.getElementById('imagePreview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
+      if (e.target.files[0]) selectedFile = e.target.files[0];
     });
 
-    // Realtime listeners
     onSnapshot(collection(db, 'categories'), (snapshot) => {
       categories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       renderCategoryUI();
@@ -210,7 +191,6 @@
 
     window.doLogout = async function() { await signOut(auth); };
 
-    // Add Category
     window.addCategory = async function() {
       const name = document.getElementById('catNameInput').value.trim();
       if (!name) return alert('សូមបញ្ចូលឈ្មោះ Category!');
@@ -227,17 +207,21 @@
     function renderCategoryUI() {
       const list = document.getElementById('categoryList');
       const select = document.getElementById('pCategory');
+      const currentSelected = select.value;
+
       list.innerHTML = '';
       select.innerHTML = '<option value="">-- ជ្រើសរើសប្រភេទ --</option>';
 
       categories.forEach(c => {
         list.innerHTML += `
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 font-semibold">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg border text-xs">
             ${c.name}
-            <button onclick="deleteCategory('${c.id}')" class="text-red-500 font-bold ml-1 hover:text-red-700">✕</button>
+            <button onclick="deleteCategory('${c.id}')" class="text-red-500 font-bold ml-1">✕</button>
           </span>`;
         select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
       });
+
+      if (currentSelected) select.value = currentSelected;
     }
 
     function renderAdminList() {
@@ -245,22 +229,18 @@
       container.innerHTML = products.length ? '' : '<p class="text-center text-gray-400 py-4">គ្មានទំនិញ</p>';
       products.forEach((p) => {
         const cat = categories.find(c => c.id === p.categoryId);
-        const catName = cat ? cat.name : 'គ្មាន';
-        const saleTypeName = p.saleType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ';
+        const catName = cat ? cat.name : 'ទូទៅ';
         
         container.innerHTML += `
-          <div class="flex flex-col sm:flex-row items-start justify-between p-3 border rounded-xl gap-2 bg-white">
-            <div class="flex items-start gap-3 w-full">
-              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-14 h-14 object-cover rounded-lg border flex-shrink-0">
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-gray-800 text-sm">${p.name_km || p.name || '—'}</h4>
-                <p class="text-[10px] text-emerald-700 font-semibold mt-0.5">ប្រភេទ: ${catName} | ${saleTypeName}</p>
-                <div class="text-[11px] text-gray-500 mt-1">
-                  $${p.price} | ស្តុក: <b>${p.stock}</b>
-                </div>
+          <div class="flex items-center justify-between p-2.5 border rounded-xl bg-white">
+            <div class="flex items-center gap-3">
+              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-12 h-12 object-cover rounded-lg border">
+              <div>
+                <h4 class="font-bold text-gray-800">${p.name_km || p.name || '—'}</h4>
+                <p class="text-[10px] text-emerald-700">ប្រភេទ: ${catName} | តម្លៃ: $${p.price} | ស្តុក: ${p.stock}</p>
               </div>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex gap-1">
               <button onclick="window.editProduct('${p.id}')" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">✏️ កែ</button>
               <button onclick="window.deleteProduct('${p.id}')" class="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px] font-bold">🗑️</button>
             </div>
@@ -269,38 +249,57 @@
     }
 
     window.saveProduct = async function() {
-      const categoryId = document.getElementById('pCategory').value;
+      let categoryId = document.getElementById('pCategory').value;
       const saleType = document.getElementById('pSaleType').value;
       const name_km = document.getElementById('pNameKm').value.trim();
       const price = parseFloat(document.getElementById('pPrice').value);
       const stock = parseInt(document.getElementById('pStock').value) || 0;
       const editId = document.getElementById('editId').value;
+      const saveBtn = document.getElementById('saveBtn');
 
-      if (!categoryId) return alert("សូមជ្រើសរើសប្រភេទទំនិញ (Category)!");
       if (!name_km) return alert("សូមបំពេញឈ្មោះទំនិញ!");
+      if (isNaN(price)) return alert("សូមបញ្ចូលតម្លៃទំនិញ!");
 
-      let imageUrl = '';
-      if (selectedFile) imageUrl = await uploadToImgBB(selectedFile);
-
-      const data = {
-        categoryId, saleType, name_km,
-        name_en: document.getElementById('pNameEn').value.trim(),
-        name_zh: document.getElementById('pNameZh').value.trim(),
-        price, stock,
-        discount: parseFloat(document.getElementById('pDiscount').value) || 0,
-        barcode: document.getElementById('pBarcode').value.trim(),
-        active: true
-      };
-
-      if (editId) {
-        if (imageUrl) data.image = imageUrl;
-        await updateDoc(doc(db, 'products', editId), data);
-      } else {
-        data.image = imageUrl || 'https://via.placeholder.com/300';
-        data.createdAt = serverTimestamp();
-        await addDoc(collection(db, 'products'), data);
+      // ប្រសិនបើមិនទាន់ជ្រើសរើស Category វានឹងរើស Category ដំបូងស្វ័យប្រវត្តិ
+      if (!categoryId && categories.length > 0) {
+        categoryId = categories[0].id;
       }
-      cancelEdit();
+
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'កំពុងរក្សាទុក...';
+
+      try {
+        let imageUrl = '';
+        if (selectedFile) imageUrl = await uploadToImgBB(selectedFile);
+
+        const data = {
+          categoryId: categoryId || 'general',
+          saleType, name_km,
+          name_en: document.getElementById('pNameEn').value.trim(),
+          name_zh: document.getElementById('pNameZh').value.trim(),
+          price, stock,
+          discount: parseFloat(document.getElementById('pDiscount').value) || 0,
+          barcode: document.getElementById('pBarcode').value.trim(),
+          active: true
+        };
+
+        if (editId) {
+          if (imageUrl) data.image = imageUrl;
+          await updateDoc(doc(db, 'products', editId), data);
+        } else {
+          data.image = imageUrl || 'https://via.placeholder.com/300';
+          data.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'products'), data);
+        }
+
+        cancelEdit();
+        alert('រក្សាទុកបានជោគជ័យ!');
+      } catch (err) {
+        alert('មានបញ្ហាពេលរក្សាទុក៖ ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'រក្សាទុកទំនិញ';
+      }
     };
 
     window.editProduct = function(id) {
@@ -309,7 +308,7 @@
       document.getElementById('editId').value = id;
       document.getElementById('pCategory').value = p.categoryId || '';
       document.getElementById('pSaleType').value = p.saleType || 'retail';
-      document.getElementById('pNameKm').value = p.name_km || '';
+      document.getElementById('pNameKm').value = p.name_km || p.name || '';
       document.getElementById('pNameEn').value = p.name_en || '';
       document.getElementById('pNameZh').value = p.name_zh || '';
       document.getElementById('pPrice').value = p.price || '';
@@ -323,7 +322,15 @@
     window.cancelEdit = function() {
       document.getElementById('editId').value = '';
       document.getElementById('pNameKm').value = '';
+      document.getElementById('pNameEn').value = '';
+      document.getElementById('pNameZh').value = '';
       document.getElementById('pPrice').value = '';
+      document.getElementById('pDiscount').value = '0';
+      document.getElementById('pStock').value = '10';
+      document.getElementById('pBarcode').value = '';
+      document.getElementById('pImageFile').value = '';
+      selectedFile = null;
+      document.getElementById('formTitle').innerText = '➕ បន្ថែមទំនិញថ្មី';
       document.getElementById('cancelBtn').classList.add('hidden');
     };
 
