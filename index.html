@@ -9,35 +9,20 @@
   <style>
     .lang-btn.active { background: #047857; color: white; }
     #cartBadge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #ef4444;
-      color: white;
-      font-size: 10px;
-      font-weight: bold;
-      min-width: 18px;
-      height: 18px;
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      position: absolute; top: -6px; right: -6px; background: #ef4444; color: white;
+      font-size: 10px; font-weight: bold; min-width: 18px; height: 18px;
+      border-radius: 9999px; display: flex; align-items: center; justify-content: center;
+      padding: 0 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     #cartBadge.hidden { display: none; }
-    .qty-btn {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 14px;
-      line-height: 1;
-    }
+    .qty-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; font-size: 14px; }
     #searchInput::placeholder { color: #a7f3d0; }
+    
+    /* Horizontal Category Scroll */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .cat-pill { transition: all 0.2s ease; }
+    .cat-pill.active { background-color: #047857; color: #ffffff; font-weight: bold; border-color: #047857; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
@@ -64,12 +49,11 @@
         <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">中文</button>
       </div>
 
-      <!-- Search Box (inside green header) -->
+      <!-- Search Box -->
       <div class="relative mt-2.5">
         <input type="text" id="searchInput"
           class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25"
-          placeholder="🔍 ស្វែងរកទំនិញ..."
-          oninput="filterProducts()">
+          placeholder="🔍 ស្វែងរកទំនិញ..." oninput="filterProducts()">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200 text-sm pointer-events-none">🔍</span>
       </div>
     </div>
@@ -77,6 +61,14 @@
 
   <!-- STORE VIEW -->
   <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-3">
+    
+    <!-- Category Horizontal Scroll Bar -->
+    <div class="overflow-x-auto no-scrollbar py-1">
+      <div id="categoryContainer" class="flex gap-2 whitespace-nowrap">
+        <!-- Categories injected dynamically -->
+      </div>
+    </div>
+
     <h2 class="text-sm font-bold text-gray-700" id="sectionTitle">ទំនិញគ្រប់មុខមាននៅទីនេះ</h2>
     <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     <p id="loadingMsg" class="text-center text-gray-500 text-xs py-8">កំពុងផ្ទុកទំនិញ...</p>
@@ -99,7 +91,6 @@
         <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
         <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
 
-        <!-- Location Image -->
         <div>
           <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)</label>
           <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
@@ -108,7 +99,6 @@
           </div>
         </div>
 
-        <!-- Payment Method -->
         <div class="space-y-1">
           <p class="font-semibold text-gray-700" id="payLabel">វិធីទូទាត់ប្រាក់ *</p>
           <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
@@ -121,7 +111,6 @@
           </label>
         </div>
 
-        <!-- KHQR Display -->
         <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
           <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
           <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
@@ -139,7 +128,6 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
@@ -152,10 +140,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    // Telegram Supergroup
     const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
     const TELEGRAM_CHAT_ID = '-1003962677132';
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
@@ -163,115 +149,52 @@
     async function uploadToImgBB(file) {
       const formData = new FormData();
       formData.append('image', file);
-      const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.data && data.data.url) return data.data.url;
-      throw new Error((data.error && data.error.message) || 'ImgBB upload failed');
+      throw new Error('ImgBB upload failed');
     }
 
     const i18n = {
       km: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "ទំនិញគ្រប់មុខមាននៅទីនេះ",
-        cartLabel: "កន្ត្រក",
-        cartTitle: "កន្ត្រកទំនិញ",
-        totalLabel: "សរុប៖",
-        checkoutBtn: "បញ្ជាទិញ",
-        namePh: "ឈ្មោះ *",
-        phonePh: "លេខទូរស័ព្ទ *",
-        addressPh: "អាសយដ្ឋាន *",
-        loading: "កំពុងផ្ទុកទំនិញ...",
-        empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock: "អស់ស្តុក",
-        stock: "ស្តុក",
-        buy: "+ ទិញ",
-        emptyCart: "គ្មានទំនិញ",
-        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
-        fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
-        addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
-        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!",
-        locLabel: "រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",
-        payLabel: "វិធីទូទាត់ប្រាក់ *",
-        payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",
-        payKhqr: "📱 ទូទាត់តាម KHQR",
-        khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់",
-        searchPh: " ស្វែងរកទំនិញ...",
-        noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក",
-        remove: "លុប"
+        shopTitle: "Jinkelai Shop", sectionTitle: "ទំនិញគ្រប់មុខមាននៅទីនេះ", cartLabel: "កន្ត្រក", cartTitle: "កន្ត្រកទំនិញ",
+        totalLabel: "សរុប៖", checkoutBtn: "បញ្ជាទិញ", namePh: "ឈ្មោះ *", phonePh: "លេខទូរស័ព្ទ *", addressPh: "អាសយដ្ឋាន *",
+        loading: "កំពុងផ្ទុកទំនិញ...", empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ", outOfStock: "អស់ស្តុក", stock: "ស្តុក", buy: "+ ទិញ",
+        emptyCart: "គ្មានទំនិញ", orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!", fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
+        addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!", networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!", locLabel: "រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",
+        payLabel: "វិធីទូទាត់ប្រាក់ *", payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)", payKhqr: "📱 ទូទាត់តាម KHQR", khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់",
+        searchPh: "🔍 ស្វែងរកទំនិញ...", noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក", remove: "លុប", allCategories: "ទាំងអស់"
       },
       en: {
-        shopTitle: "Jinkelai Shop",
-        sectionTitle: "All products available here",
-        cartLabel: "Cart",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total:",
-        checkoutBtn: "Checkout",
-        namePh: "Name *",
-        phonePh: "Phone *",
-        addressPh: "Address *",
-        loading: "Loading products...",
-        empty: "No products available yet",
-        outOfStock: "Out of stock",
-        stock: "Stock",
-        buy: "+ Buy",
-        emptyCart: "Cart is empty",
-        orderSuccess: "🎉 Order placed successfully!",
-        fillInfo: "Please fill name, phone and address!",
-        addFirst: "Please add items to cart first!",
-        networkError: "Network or Firebase error!",
-        locLabel: "Delivery location photo (optional)",
-        payLabel: "Payment method *",
-        payCod: "💵 Cash on Delivery (COD)",
-        payKhqr: "📱 Pay via KHQR",
-        khqrTitle: "Scan KHQR to pay",
-        searchPh: " Search products...",
-        noResult: "No products match your search",
-        remove: "Remove"
+        shopTitle: "Jinkelai Shop", sectionTitle: "All products available here", cartLabel: "Cart", cartTitle: "Shopping Cart",
+        totalLabel: "Total:", checkoutBtn: "Checkout", namePh: "Name *", phonePh: "Phone *", addressPh: "Address *",
+        loading: "Loading products...", empty: "No products available yet", outOfStock: "Out of stock", stock: "Stock", buy: "+ Buy",
+        emptyCart: "Cart is empty", orderSuccess: "🎉 Order placed successfully!", fillInfo: "Please fill name, phone and address!",
+        addFirst: "Please add items to cart first!", networkError: "Network or Firebase error!", locLabel: "Delivery location photo (optional)",
+        payLabel: "Payment method *", payCod: "💵 Cash on Delivery (COD)", payKhqr: "📱 Pay via KHQR", khqrTitle: "Scan KHQR to pay",
+        searchPh: "🔍 Search products...", noResult: "No products match your search", remove: "Remove", allCategories: "All"
       },
       zh: {
-        shopTitle: "金克莱超市",
-        sectionTitle: "这里有所有商品",
-        cartLabel: "购物车",
-        cartTitle: "购物车",
-        totalLabel: "合计：",
-        checkoutBtn: "下单",
-        namePh: "姓名 *",
-        phonePh: "电话 *",
-        addressPh: "地址 *",
-        loading: "正在加载商品...",
-        empty: "暂无商品",
-        outOfStock: "缺货",
-        stock: "库存",
-        buy: "+ 购买",
-        emptyCart: "购物车为空",
-        orderSuccess: "🎉 下单成功！",
-        fillInfo: "请填写姓名、电话和地址！",
-        addFirst: "请先添加商品到购物车！",
-        networkError: "网络或Firebase错误！",
-        locLabel: "送货地点照片（可选）",
-        payLabel: "支付方式 *",
-        payCod: "💵 货到付款 (COD)",
-        payKhqr: "📱 KHQR支付",
-        khqrTitle: "扫描KHQR支付",
-        searchPh: " 搜索商品...",
-        noResult: "没有匹配的商品",
-        remove: "删除"
+        shopTitle: "金克莱超市", sectionTitle: "这里有所有商品", cartLabel: "购物车", cartTitle: "购物车",
+        totalLabel: "合计：", checkoutBtn: "下单", namePh: "姓名 *", phonePh: "电话 *", addressPh: "地址 *",
+        loading: "正在加载商品...", empty: "暂无商品", outOfStock: "缺货", stock: "库存", buy: "+ 购买",
+        emptyCart: "购物车为空", orderSuccess: "🎉 下单成功！", fillInfo: "请填写姓名、电话和地址！",
+        addFirst: "请先添加商品到购物车！", networkError: "网络或Firebase错误！", locLabel: "送货地点照片（可选）",
+        payLabel: "支付方式 *", payCod: "💵 货到付款 (COD)", payKhqr: "📱 KHQR支付", khqrTitle: "扫描KHQR支付",
+        searchPh: "🔍 搜索商品...", noResult: "没有匹配的商品", remove: "删除", allCategories: "全部"
       }
     };
 
     let currentLang = localStorage.getItem('jinkelai_lang') || 'km';
     let products = [];
+    let categories = [];
     let cart = [];
     let selectedLocFile = null;
     let khqrData = { image: '', account: '' };
     let searchQuery = '';
+    let selectedCategory = 'all';
 
-    function t(key) {
-      return i18n[currentLang][key] || i18n.km[key] || key;
-    }
+    function t(key) { return i18n[currentLang][key] || i18n.km[key] || key; }
 
     function getProductName(p) {
       if (currentLang === 'zh' && p.name_zh) return p.name_zh;
@@ -283,6 +206,7 @@
       currentLang = lang;
       localStorage.setItem('jinkelai_lang', lang);
       applyLang();
+      renderCategories();
       renderProducts();
       updateCart();
     };
@@ -320,9 +244,7 @@
           if (khqrData.image) document.getElementById('khqrImg').src = khqrData.image;
           if (khqrData.account) document.getElementById('khqrAccountText').innerText = khqrData.account;
         }
-      } catch (e) {
-        console.error('Load KHQR', e);
-      }
+      } catch (e) { console.error('Load KHQR', e); }
     }
 
     document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
@@ -351,6 +273,12 @@
       renderProducts();
     };
 
+    // Realtime listeners
+    onSnapshot(collection(db, 'categories'), (snapshot) => {
+      categories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCategories();
+    });
+
     onSnapshot(collection(db, 'products'), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       const msg = document.getElementById('loadingMsg');
@@ -361,10 +289,32 @@
         msg.style.display = 'none';
       }
       renderProducts();
-    }, (error) => {
-      console.error(error);
-      document.getElementById('loadingMsg').innerText = 'Firebase Error / Rules';
     });
+
+    function renderCategories() {
+      const catBox = document.getElementById('categoryContainer');
+      catBox.innerHTML = '';
+
+      const allBtn = document.createElement('button');
+      allBtn.className = `cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white text-gray-700 border-gray-300 ${selectedCategory === 'all' ? 'active' : ''}`;
+      allBtn.innerText = t('allCategories');
+      allBtn.onclick = () => selectCategory('all');
+      catBox.appendChild(allBtn);
+
+      categories.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = `cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white text-gray-700 border-gray-300 ${selectedCategory === c.id ? 'active' : ''}`;
+        btn.innerText = c.name || '—';
+        btn.onclick = () => selectCategory(c.id);
+        catBox.appendChild(btn);
+      });
+    }
+
+    function selectCategory(id) {
+      selectedCategory = id;
+      renderCategories();
+      renderProducts();
+    }
 
     function renderProducts() {
       const grid = document.getElementById('productGrid');
@@ -372,6 +322,10 @@
       grid.innerHTML = '';
 
       let list = products.filter(p => p.active !== false);
+
+      if (selectedCategory !== 'all') {
+        list = list.filter(p => p.categoryId === selectedCategory);
+      }
 
       if (searchQuery) {
         list = list.filter(p => {
@@ -384,7 +338,7 @@
         });
       }
 
-      if (list.length === 0 && products.length > 0 && searchQuery) {
+      if (list.length === 0 && products.length > 0) {
         noResult.classList.remove('hidden');
       } else {
         noResult.classList.add('hidden');
@@ -394,19 +348,26 @@
       list.forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
         const name = getProductName(p);
+        const saleTypeBadge = p.saleType === 'wholesale' 
+          ? '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded">លក់ដុំ</span>'
+          : '<span class="bg-blue-100 text-blue-800 text-[9px] font-bold px-1.5 py-0.5 rounded">លក់រាយ</span>';
+
         const div = document.createElement('div');
-        div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between';
+        div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between relative shadow-sm hover:shadow transition';
         div.innerHTML = `
-          <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover rounded-lg mb-1 bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
-          <h3 class="font-bold text-xs leading-tight">${name}</h3>
-          ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
-          <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
+          <div class="relative">
+            <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover rounded-lg mb-1.5 bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+            <div class="absolute top-1 left-1 flex gap-1">${saleTypeBadge}</div>
+          </div>
+          <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
+          ${p.barcode ? `<p class="text-[9px] text-gray-400 mt-0.5">Barcode: ${p.barcode}</p>` : ''}
+          <p class="text-[10px] text-gray-500 mt-1">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
           <div class="mt-2 flex justify-between items-center">
             <div>
               <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
-              ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}
+              ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400 block">$${Number(p.price).toFixed(2)}</span>` : ''}
             </div>
-            <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
+            <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
           </div>`;
         frag.appendChild(div);
       });
@@ -469,9 +430,9 @@
               </div>
               <div class="flex items-center justify-between mt-2">
                 <div class="flex items-center gap-1.5">
-                  <button onclick="window.changeQty('${i.id}', -1)" class="qty-btn bg-gray-200 hover:bg-gray-300 text-gray-700">−</button>
+                  <button onclick="window.changeQty('${i.id}', -1)" class="qty-btn bg-gray-200 text-gray-700">−</button>
                   <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
-                  <button onclick="window.changeQty('${i.id}', 1)" class="qty-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-800">+</button>
+                  <button onclick="window.changeQty('${i.id}', 1)" class="qty-btn bg-emerald-100 text-emerald-800">+</button>
                 </div>
                 <b class="text-emerald-700">$${(i.price * i.qty).toFixed(2)}</b>
               </div>
@@ -520,11 +481,7 @@
       try {
         let locationImageUrl = '';
         if (selectedLocFile) {
-          try {
-            locationImageUrl = await uploadToImgBB(selectedLocFile);
-          } catch (upErr) {
-            console.error('Location upload failed:', upErr);
-          }
+          try { locationImageUrl = await uploadToImgBB(selectedLocFile); } catch (upErr) {}
         }
 
         await addDoc(collection(db, 'orders'), {
@@ -545,19 +502,13 @@
           }
         }
 
-        let telegramOk = false;
         try {
-          const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
           });
-          const data = await res.json();
-          telegramOk = data.ok === true;
-          if (!telegramOk) console.error('Telegram error:', data);
-        } catch (tgErr) {
-          console.error('Telegram network error:', tgErr);
-        }
+        } catch (tgErr) {}
 
         cart = [];
         updateCart();
@@ -568,16 +519,8 @@
         document.getElementById('locImageFile').value = '';
         document.getElementById('locPreview').classList.add('hidden');
         selectedLocFile = null;
-        document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
-        document.getElementById('khqrBox').classList.add('hidden');
-
-        if (telegramOk) {
-          alert(t('orderSuccess'));
-        } else {
-          alert(t('orderSuccess') + '\n\n⚠️ ការបញ្ជាទិញបានរក្សាទុកហើយ ប៉ុន្តែ Telegram មិនទាន់ចូល Group។\nសូមធ្វើឱ្យ Bot ជា Administrator ក្នុង Group!');
-        }
+        alert(t('orderSuccess'));
       } catch (e) {
-        console.error(e);
         alert(t('networkError') + '\n' + (e.message || e));
       } finally {
         btn.disabled = false;
