@@ -447,6 +447,19 @@
       });
     }
 
+    function getStatusLabel(status) {
+      const map = {
+        'confirmed': { text: '✅ ទូទាត់ជោគជ័យ', cls: 'bg-emerald-100 text-emerald-800' },
+        'pending_payment': { text: '⏳ រង់ចាំការទូទាត់', cls: 'bg-amber-100 text-amber-800' },
+        'paid': { text: '✅ បានបង់ប្រាក់', cls: 'bg-emerald-100 text-emerald-800' },
+        'processing': { text: '🚚 កំពុងដឹក', cls: 'bg-blue-100 text-blue-800' },
+        'delivered': { text: '📦 ដឹករួច', cls: 'bg-gray-200 text-gray-700' },
+        'cancelled': { text: '❌ បោះបង់', cls: 'bg-red-100 text-red-700' },
+        'new': { text: '🆕 ថ្មី', cls: 'bg-amber-100 text-amber-800' }
+      };
+      return map[status] || { text: status || '—', cls: 'bg-gray-200 text-gray-600' };
+    }
+
     function renderOrders() {
       const container = document.getElementById('ordersList');
       container.innerHTML = orders.length ? '' : '<p class="text-center text-gray-400 py-4">មិនទាន់មានការបញ្ជាទិញ</p>';
@@ -454,24 +467,43 @@
         const itemsText = (o.items || []).map(i => i.name + ' x' + i.qty).join(', ');
         const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : '—';
         const payMethod = o.paymentMethod === 'khqr' ? '📱 KHQR' : (o.paymentMethod === 'cod' ? '💵 ដឹកជញ្ជូន (COD)' : '—');
+        const st = getStatusLabel(o.status);
+        const tgBadge = o.telegramSent === true
+          ? '<span class="text-[9px] text-emerald-600">Telegram ✓</span>'
+          : (o.telegramSent === false ? '<span class="text-[9px] text-red-500">Telegram ✗</span>' : '');
+
         container.innerHTML += `
           <div class="p-3 border rounded-xl bg-gray-50">
             <div class="flex justify-between items-start gap-2">
-              <div>
+              <div class="flex-1 min-w-0">
                 <p class="font-bold text-gray-800">${o.customer?.name || '—'} · ${o.customer?.phone || ''}</p>
                 <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
                 <p class="text-[11px] mt-1">${itemsText}</p>
-                <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
+                <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod} ${tgBadge}</p>
                 ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline">📍 មើលរូបទីតាំង</a>' : ''}
               </div>
-              <div class="text-right">
+              <div class="text-right space-y-1">
                 <p class="font-bold text-emerald-700">$${Number(o.total || 0).toFixed(2)}</p>
-                <span class="text-[10px] px-1.5 py-0.5 rounded ${o.status === 'new' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200'}">${o.status || 'new'}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded ${st.cls}">${st.text}</span>
+                <div class="flex flex-wrap gap-1 justify-end mt-1">
+                  <button onclick="window.updateOrderStatus('${o.id}','confirmed')" class="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">✅ បញ្ជាក់</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','processing')" class="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-bold">🚚 ដឹក</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','cancelled')" class="text-[9px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded font-bold">❌</button>
+                </div>
               </div>
             </div>
           </div>`;
       });
     }
+
+    window.updateOrderStatus = async function(id, newStatus) {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
+      try {
+        await updateDoc(doc(db, 'orders', id), { status: newStatus });
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    };
 
     window.saveProduct = async function() {
       if (!auth.currentUser) return alert('សូម Login មុន!');

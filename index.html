@@ -232,7 +232,8 @@
         stock: "ស្តុក",
         buy: "+ ទិញ",
         emptyCart: "គ្មានទំនិញ",
-        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
+        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!\nទូទាត់ជោគជ័យ!",
+        orderPending: "⏳ ការបញ្ជាទិញបានរក្សាទុក\nស្ថានភាព៖ រង់ចាំការទូទាត់ / រង់ចាំការបញ្ជាក់",
         fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
         addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
         networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!",
@@ -265,7 +266,8 @@
         stock: "Stock",
         buy: "+ Buy",
         emptyCart: "Cart is empty",
-        orderSuccess: "🎉 Order placed successfully!",
+        orderSuccess: "🎉 Order placed successfully!\nPayment confirmed!",
+        orderPending: "⏳ Order saved\nStatus: Waiting for payment confirmation",
         fillInfo: "Please fill name, phone and address!",
         addFirst: "Please add items to cart first!",
         networkError: "Network or Firebase error!",
@@ -298,7 +300,8 @@
         stock: "库存",
         buy: "+ 购买",
         emptyCart: "购物车为空",
-        orderSuccess: "🎉 下单成功！",
+        orderSuccess: "🎉 下单成功！\n支付确认成功！",
+        orderPending: "⏳ 订单已保存\n状态：等待付款确认",
         fillInfo: "请填写姓名、电话和地址！",
         addFirst: "请先添加商品到购物车！",
         networkError: "网络或Firebase错误！",
@@ -649,24 +652,7 @@
           }
         }
 
-        await addDoc(collection(db, 'orders'), {
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-          total: parseFloat(total),
-          customer: { name, phone, address },
-          paymentMethod: payMethod,
-          locationImage: locationImageUrl || null,
-          status: 'new',
-          createdAt: serverTimestamp()
-        });
-
-        for (const i of cart) {
-          const p = products.find(x => x.id === i.id);
-          if (p) {
-            const newStock = Math.max(0, (p.stock || 0) - i.qty);
-            await updateDoc(doc(db, 'products', i.id), { stock: newStock });
-          }
-        }
-
+        // ផ្ញើ Telegram មុន ដើម្បីកំណត់ status
         let telegramOk = false;
         try {
           const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -679,6 +665,32 @@
           if (!telegramOk) console.error('Telegram error:', data);
         } catch (tgErr) {
           console.error('Telegram network error:', tgErr);
+        }
+
+        // កំណត់ status តាមលទ្ធផល Telegram
+        // telegramOk = true  → confirmed (ទូទាត់ជោគជ័យ + បញ្ជាទិញជោគជ័យ)
+        // telegramOk = false → pending_payment (រង់ចាំការទូទាត់)
+        const orderStatus = telegramOk ? 'confirmed' : 'pending_payment';
+
+        await addDoc(collection(db, 'orders'), {
+          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          total: parseFloat(total),
+          customer: { name, phone, address },
+          paymentMethod: payMethod,
+          locationImage: locationImageUrl || null,
+          status: orderStatus,
+          telegramSent: telegramOk,
+          createdAt: serverTimestamp()
+        });
+
+        // កាត់ stock តែពេល confirmed ប៉ុណ្ណោះ (ឬកាត់ទាំងអស់ — ជ្រើសតាមតម្រូវការ)
+        // បច្ចុប្បន្នកាត់ទាំងអស់ ដើម្បីមិនឱ្យលក់លើស
+        for (const i of cart) {
+          const p = products.find(x => x.id === i.id);
+          if (p) {
+            const newStock = Math.max(0, (p.stock || 0) - i.qty);
+            await updateDoc(doc(db, 'products', i.id), { stock: newStock });
+          }
         }
 
         cart = [];
@@ -696,7 +708,7 @@
         if (telegramOk) {
           alert(t('orderSuccess'));
         } else {
-          alert(t('orderSuccess') + '\n\n⚠️ ការបញ្ជាទិញបានរក្សាទុកហើយ ប៉ុន្តែ Telegram មិនទាន់ចូល Group។\nសូមធ្វើឱ្យ Bot ជា Administrator ក្នុង Group!');
+          alert(t('orderPending') + '\n\n⚠️ Telegram មិនទាន់ទទួលសារ។\nសូមពិនិត្យ Bot ជា Administrator ក្នុង Group!');
         }
       } catch (e) {
         console.error(e);
