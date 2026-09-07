@@ -49,12 +49,31 @@
         </div>
       </div>
 
+      <!-- KHQR Settings -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700">📱 កំណត់ KHQR (សម្រាប់ទូទាត់)</h3>
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="font-semibold text-gray-600">រូបភាព KHQR (Upload)</label>
+            <input type="file" id="khqrImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+            <div id="khqrPreview" class="mt-2 hidden">
+              <img id="khqrPreviewImg" class="w-32 h-32 object-contain rounded-lg border bg-white">
+            </div>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">លេខគណនី / ឈ្មោះគណនី (ស្រេចចិត្ត)</label>
+            <input type="text" id="khqrAccount" placeholder="ឧ. ABA / Wing / លេខគណនី" class="w-full p-2 border rounded-xl mt-1">
+          </div>
+          <button onclick="saveKhqrSettings()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl">រក្សាទុក KHQR</button>
+          <p id="khqrStatus" class="text-center text-[11px] text-gray-500"></p>
+        </div>
+      </div>
+
       <!-- Add / Edit Product -->
       <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
         <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
         
         <div class="space-y-2 text-xs">
-          <!-- 3 Languages -->
           <div>
             <label class="font-semibold text-gray-600">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
             <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្ពៃបៃតង" class="w-full p-2 border rounded-xl mt-1">
@@ -113,6 +132,7 @@
             <div id="imagePreview" class="mt-2 hidden">
               <img id="previewImg" class="w-24 h-24 object-cover rounded-lg border">
             </div>
+            <p class="text-[10px] text-amber-600 mt-1">⚠️ ប្រសិនបើ Upload មិនបាន → ចូល Firebase Console → Storage → Rules ហើយដាក់ allow write: if true;</p>
           </div>
 
           <input type="hidden" id="editId" value="">
@@ -144,7 +164,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
@@ -167,8 +187,9 @@
     let products = [];
     let orders = [];
     let selectedFile = null;
+    let selectedKhqrFile = null;
 
-    // Image preview
+    // Image preview for product
     document.getElementById('pImageFile')?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -181,6 +202,78 @@
         reader.readAsDataURL(file);
       }
     });
+
+    // KHQR image preview
+    document.getElementById('khqrImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedKhqrFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('khqrPreviewImg').src = ev.target.result;
+          document.getElementById('khqrPreview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Load existing KHQR settings
+    async function loadKhqrSettings() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'khqr'));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.image) {
+            document.getElementById('khqrPreviewImg').src = data.image;
+            document.getElementById('khqrPreview').classList.remove('hidden');
+          }
+          if (data.account) {
+            document.getElementById('khqrAccount').value = data.account;
+          }
+          document.getElementById('khqrStatus').innerText = '✅ មាន KHQR រួចហើយ';
+        }
+      } catch (e) {
+        console.error('Load KHQR error', e);
+      }
+    }
+
+    window.saveKhqrSettings = async function() {
+      const account = document.getElementById('khqrAccount').value.trim();
+      const statusEl = document.getElementById('khqrStatus');
+      statusEl.innerText = 'កំពុងរក្សាទុក...';
+
+      try {
+        let imageUrl = '';
+        if (selectedKhqrFile) {
+          const safeName = selectedKhqrFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storageRef = ref(storage, 'settings/khqr_' + Date.now() + '_' + safeName);
+          await uploadBytes(storageRef, selectedKhqrFile);
+          imageUrl = await getDownloadURL(storageRef);
+        } else {
+          const snap = await getDoc(doc(db, 'settings', 'khqr'));
+          if (snap.exists() && snap.data().image) {
+            imageUrl = snap.data().image;
+          }
+        }
+
+        await setDoc(doc(db, 'settings', 'khqr'), {
+          image: imageUrl,
+          account: account,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        statusEl.innerText = '🎉 រក្សាទុក KHQR ជោគជ័យ!';
+        selectedKhqrFile = null;
+        document.getElementById('khqrImageFile').value = '';
+        if (imageUrl) {
+          document.getElementById('khqrPreviewImg').src = imageUrl;
+          document.getElementById('khqrPreview').classList.remove('hidden');
+        }
+      } catch (e) {
+        console.error(e);
+        statusEl.innerText = '❌ បរាជ័យ: ' + e.message + ' (ពិនិត្យ Storage Rules)';
+      }
+    };
 
     // ===== Barcode Scanner =====
     let html5QrCode = null;
@@ -199,9 +292,7 @@
           stopBarcodeScan();
           alert("✅ ស្កែនបាន៖ " + decodedText);
         },
-        (errorMessage) => {
-          // ignore continuous scan errors
-        }
+        (errorMessage) => {}
       ).catch((err) => {
         alert("មិនអាចបើកកាមេរ៉ា៖ " + err);
         stopBarcodeScan();
@@ -247,6 +338,7 @@
         document.getElementById('adminDashboard').classList.remove('hidden');
         renderAdminList();
         renderOrders();
+        loadKhqrSettings();
       } else {
         alert("Email ឬ Password មិនត្រឹមត្រូវ!");
       }
@@ -310,6 +402,7 @@
       orders.slice(0, 30).forEach(o => {
         const itemsText = (o.items || []).map(i => `${i.name} x${i.qty}`).join(', ');
         const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : '—';
+        const payMethod = o.paymentMethod === 'khqr' ? '📱 KHQR' : (o.paymentMethod === 'cod' ? '💵 ដឹកជញ្ជូន (COD)' : '—');
         container.innerHTML += `
           <div class="p-3 border rounded-xl bg-gray-50">
             <div class="flex justify-between items-start gap-2">
@@ -317,7 +410,8 @@
                 <p class="font-bold text-gray-800">${o.customer?.name || '—'} · ${o.customer?.phone || ''}</p>
                 <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
                 <p class="text-[11px] mt-1">${itemsText}</p>
-                <p class="text-[10px] text-gray-400 mt-1">${dateStr}</p>
+                <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
+                ${o.locationImage ? `<a href="${o.locationImage}" target="_blank" class="text-[10px] text-blue-600 underline">📍 មើលរូបទីតាំង</a>` : ''}
               </div>
               <div class="text-right">
                 <p class="font-bold text-emerald-700">$${Number(o.total || 0).toFixed(2)}</p>
@@ -352,16 +446,16 @@
       try {
         let imageUrl = '';
 
-        // Upload image if selected
         if (selectedFile) {
           try {
             const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             const storageRef = ref(storage, 'products/' + Date.now() + '_' + safeName);
-            await uploadBytes(storageRef, selectedFile);
-            imageUrl = await getDownloadURL(storageRef);
+            const snapshot = await uploadBytes(storageRef, selectedFile);
+            imageUrl = await getDownloadURL(snapshot.ref);
+            console.log('Upload success:', imageUrl);
           } catch (uploadErr) {
             console.error('Upload error:', uploadErr);
-            alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nនឹងរក្សាទុកដោយគ្មានរូប។\nសូមពិនិត្យ Firebase Storage Rules!");
+            alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nមូលហេតុទូទៅ:\n1. Firebase Storage Rules មិនអនុញ្ញាត write\n2. មិនមាន Storage bucket\n\nសូមចូល Firebase Console > Storage > Rules ហើយដាក់:\n\nrules_version = '2';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if true;\n    }\n  }\n}");
           }
         }
 
