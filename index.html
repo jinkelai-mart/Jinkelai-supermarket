@@ -9,19 +9,35 @@
   <style>
     .lang-btn.active { background: #047857; color: white; }
     #cartBadge {
-      position: absolute; top: -6px; right: -6px; background: #ef4444; color: white;
-      font-size: 10px; font-weight: bold; min-width: 18px; height: 18px;
-      border-radius: 9999px; display: flex; align-items: center; justify-content: center;
-      padding: 0 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     #cartBadge.hidden { display: none; }
-    .qty-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; font-size: 14px; }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1;
+    }
     #searchInput::placeholder { color: #a7f3d0; }
-    
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .cat-pill { transition: all 0.2s ease; }
-    .cat-pill.active { background-color: #047857; color: #ffffff; font-weight: bold; border-color: #047857; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
@@ -48,24 +64,19 @@
         <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">中文</button>
       </div>
 
-      <!-- Search Box -->
+      <!-- Search Box (inside green header) -->
       <div class="relative mt-2.5">
         <input type="text" id="searchInput"
           class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25"
-          placeholder="🔍 ស្វែងរកទំនិញ..." oninput="filterProducts()">
+          placeholder="🔍 ស្វែងរកទំនិញ..."
+          oninput="filterProducts()">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200 text-sm pointer-events-none">🔍</span>
       </div>
     </div>
   </header>
 
   <!-- STORE VIEW -->
-  <main class="max-w-4xl mx-auto w-full px-4 py-3 flex-1 space-y-3">
-    
-    <!-- Category Horizontal Scroll Bar (ឋិតនៅខាងក្រោមប្រអប់ស្វែងរក) -->
-    <div class="overflow-x-auto no-scrollbar py-1">
-      <div id="categoryContainer" class="flex gap-2 whitespace-nowrap"></div>
-    </div>
-
+  <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-3">
     <h2 class="text-sm font-bold text-gray-700" id="sectionTitle">ទំនិញគ្រប់មុខមាននៅទីនេះ</h2>
     <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
     <p id="loadingMsg" class="text-center text-gray-500 text-xs py-8">កំពុងផ្ទុកទំនិញ...</p>
@@ -77,6 +88,7 @@
     <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm flex items-center gap-2" id="cartTitle">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
           <span id="cartTitleText">កន្ត្រកទំនិញ</span>
         </h3>
         <button onclick="closeCart()" class="text-gray-500 font-bold p-1">✕</button>
@@ -87,6 +99,16 @@
         <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
         <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
 
+        <!-- Location Image -->
+        <div>
+          <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)</label>
+          <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+          <div id="locPreview" class="mt-1 hidden">
+            <img id="locPreviewImg" class="w-20 h-20 object-cover rounded-lg border">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
         <div class="space-y-1">
           <p class="font-semibold text-gray-700" id="payLabel">វិធីទូទាត់ប្រាក់ *</p>
           <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
@@ -99,6 +121,13 @@
           </label>
         </div>
 
+        <!-- KHQR Display -->
+        <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
+          <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
+          <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
+          <p id="khqrAccountText" class="text-[10px] text-gray-600"></p>
+        </div>
+
         <div class="flex justify-between font-bold text-sm pt-1">
           <span id="totalLabel">សរុប៖</span><span id="cartTotalPrice" class="text-emerald-700">$0.00</span>
         </div>
@@ -109,7 +138,8 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBMeERdMiNIhctpNGReM8nHIVHfweQfaDE",
@@ -117,38 +147,144 @@
       projectId: "jinkelai-supermarket-e4786",
       storageBucket: "jinkelai-supermarket-e4786.firebasestorage.app",
       messagingSenderId: "345735387486",
-      appId: "1:345735387486:web:44fc724756c3b77a7617cf"
+      appId: "1:345735387486:web:44fc724756c3b77a7617cf",
+      measurementId: "G-P0G4RNKKMG"
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
+    // Telegram Supergroup
+    const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
+    const TELEGRAM_CHAT_ID = '-1003962677132';
+    const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
+
+    async function uploadToImgBB(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success && data.data && data.data.url) return data.data.url;
+      throw new Error((data.error && data.error.message) || 'ImgBB upload failed');
+    }
+
     const i18n = {
-      km: { shopTitle: "Jinkelai Shop", sectionTitle: "ទំនិញគ្រប់មុខមាននៅទីនេះ", cartLabel: "កន្ត្រក", cartTitle: "កន្ត្រកទំនិញ", totalLabel: "សរុប៖", checkoutBtn: "បញ្ជាទិញ", namePh: "ឈ្មោះ *", phonePh: "លេខទូរស័ព្ទ *", addressPh: "អាសយដ្ឋាន *", loading: "កំពុងផ្ទុកទំនិញ...", empty: "គ្មានទំនិញ", outOfStock: "អស់ស្តុក", stock: "ស្តុក", buy: "+ ទិញ", emptyCart: "គ្មានទំនិញ", searchPh: "🔍 ស្វែងរកទំនិញ...", noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក", allCategories: "ទាំងអស់" },
-      en: { shopTitle: "Jinkelai Shop", sectionTitle: "All products available here", cartLabel: "Cart", cartTitle: "Shopping Cart", totalLabel: "Total:", checkoutBtn: "Checkout", namePh: "Name *", phonePh: "Phone *", addressPh: "Address *", loading: "Loading...", empty: "No products", outOfStock: "Out of stock", stock: "Stock", buy: "+ Buy", emptyCart: "Cart is empty", searchPh: "🔍 Search...", noResult: "No match found", allCategories: "All" },
-      zh: { shopTitle: "金克莱超市", sectionTitle: "所有商品", cartLabel: "购物车", cartTitle: "购物车", totalLabel: "合计：", checkoutBtn: "下单", namePh: "姓名 *", phonePh: "电话 *", addressPh: "地址 *", loading: "加载中...", empty: "暂无商品", outOfStock: "缺货", stock: "库存", buy: "+ 购买", emptyCart: "购物车为空", searchPh: "🔍 搜索...", noResult: "未找到商品", allCategories: "全部" }
+      km: {
+        shopTitle: "Jinkelai Shop",
+        sectionTitle: "ទំនិញគ្រប់មុខមាននៅទីនេះ",
+        cartLabel: "កន្ត្រក",
+        cartTitle: "កន្ត្រកទំនិញ",
+        totalLabel: "សរុប៖",
+        checkoutBtn: "បញ្ជាទិញ",
+        namePh: "ឈ្មោះ *",
+        phonePh: "លេខទូរស័ព្ទ *",
+        addressPh: "អាសយដ្ឋាន *",
+        loading: "កំពុងផ្ទុកទំនិញ...",
+        empty: "គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
+        outOfStock: "អស់ស្តុក",
+        stock: "ស្តុក",
+        buy: "+ ទិញ",
+        emptyCart: "គ្មានទំនិញ",
+        orderSuccess: "🎉 ការបញ្ជាទិញជោគជ័យ!",
+        fillInfo: "សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",
+        addFirst: "សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
+        networkError: "មានបញ្ហាបណ្តាញ ឬ Firebase!",
+        locLabel: "រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",
+        payLabel: "វិធីទូទាត់ប្រាក់ *",
+        payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",
+        payKhqr: "📱 ទូទាត់តាម KHQR",
+        khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់",
+        searchPh: "🔍 ស្វែងរកទំនិញ...",
+        noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក",
+        remove: "លុប"
+      },
+      en: {
+        shopTitle: "Jinkelai Shop",
+        sectionTitle: "All products available here",
+        cartLabel: "Cart",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total:",
+        checkoutBtn: "Checkout",
+        namePh: "Name *",
+        phonePh: "Phone *",
+        addressPh: "Address *",
+        loading: "Loading products...",
+        empty: "No products available yet",
+        outOfStock: "Out of stock",
+        stock: "Stock",
+        buy: "+ Buy",
+        emptyCart: "Cart is empty",
+        orderSuccess: "🎉 Order placed successfully!",
+        fillInfo: "Please fill name, phone and address!",
+        addFirst: "Please add items to cart first!",
+        networkError: "Network or Firebase error!",
+        locLabel: "Delivery location photo (optional)",
+        payLabel: "Payment method *",
+        payCod: "💵 Cash on Delivery (COD)",
+        payKhqr: "📱 Pay via KHQR",
+        khqrTitle: "Scan KHQR to pay",
+        searchPh: "🔍 Search products...",
+        noResult: "No products match your search",
+        remove: "Remove"
+      },
+      zh: {
+        shopTitle: "金克莱超市",
+        sectionTitle: "这里有所有商品",
+        cartLabel: "购物车",
+        cartTitle: "购物车",
+        totalLabel: "合计：",
+        checkoutBtn: "下单",
+        namePh: "姓名 *",
+        phonePh: "电话 *",
+        addressPh: "地址 *",
+        loading: "正在加载商品...",
+        empty: "暂无商品",
+        outOfStock: "缺货",
+        stock: "库存",
+        buy: "+ 购买",
+        emptyCart: "购物车为空",
+        orderSuccess: "🎉 下单成功！",
+        fillInfo: "请填写姓名、电话和地址！",
+        addFirst: "请先添加商品到购物车！",
+        networkError: "网络或Firebase错误！",
+        locLabel: "送货地点照片（可选）",
+        payLabel: "支付方式 *",
+        payCod: "💵 货到付款 (COD)",
+        payKhqr: "📱 KHQR支付",
+        khqrTitle: "扫描KHQR支付",
+        searchPh: "🔍 搜索商品...",
+        noResult: "没有匹配的商品",
+        remove: "删除"
+      }
     };
 
     let currentLang = localStorage.getItem('jinkelai_lang') || 'km';
     let products = [];
     let cart = [];
+    let selectedLocFile = null;
+    let khqrData = { image: '', account: '' };
     let searchQuery = '';
-    let selectedCategory = 'all';
 
-    function t(key) { return i18n[currentLang][key] || i18n.km[key] || key; }
+    function t(key) {
+      return i18n[currentLang][key] || i18n.km[key] || key;
+    }
 
     function getProductName(p) {
       if (currentLang === 'zh' && p.name_zh) return p.name_zh;
       if (currentLang === 'en' && p.name_en) return p.name_en;
-      return p.name_km || p.name || '—';
+      return p.name_km || p.name_en || p.name_zh || p.name || '—';
     }
 
     window.setLang = function(lang) {
       currentLang = lang;
       localStorage.setItem('jinkelai_lang', lang);
       applyLang();
-      renderCategories();
       renderProducts();
+      updateCart();
     };
 
     function applyLang() {
@@ -158,12 +294,57 @@
       document.getElementById('cartTitleText').innerText = t('cartTitle');
       document.getElementById('totalLabel').innerText = t('totalLabel');
       document.getElementById('checkoutBtn').innerText = t('checkoutBtn');
+      document.getElementById('custName').placeholder = t('namePh');
+      document.getElementById('custPhone').placeholder = t('phonePh');
+      document.getElementById('custAddress').placeholder = t('addressPh');
+      document.getElementById('loadingMsg').innerText = products.length === 0 ? t('empty') : t('loading');
+      document.getElementById('locLabel').innerText = t('locLabel');
+      document.getElementById('payLabel').innerText = t('payLabel');
+      document.getElementById('payCod').innerText = t('payCod');
+      document.getElementById('payKhqr').innerText = t('payKhqr');
+      document.getElementById('khqrTitle').innerText = t('khqrTitle');
       document.getElementById('searchInput').placeholder = t('searchPh');
+      document.getElementById('noResultMsg').innerText = t('noResult');
+
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
         if (btn) btn.classList.toggle('active', l === currentLang);
       });
     }
+
+    async function loadKhqr() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'khqr'));
+        if (snap.exists()) {
+          khqrData = snap.data();
+          if (khqrData.image) document.getElementById('khqrImg').src = khqrData.image;
+          if (khqrData.account) document.getElementById('khqrAccountText').innerText = khqrData.account;
+        }
+      } catch (e) {
+        console.error('Load KHQR', e);
+      }
+    }
+
+    document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const box = document.getElementById('khqrBox');
+        if (radio.value === 'khqr' && radio.checked) box.classList.remove('hidden');
+        else box.classList.add('hidden');
+      });
+    });
+
+    document.getElementById('locImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedLocFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('locPreviewImg').src = ev.target.result;
+          document.getElementById('locPreview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     window.filterProducts = function() {
       searchQuery = (document.getElementById('searchInput').value || '').trim().toLowerCase();
@@ -172,38 +353,18 @@
 
     onSnapshot(collection(db, 'products'), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      document.getElementById('loadingMsg').style.display = products.length === 0 ? 'block' : 'none';
-      renderCategories();
+      const msg = document.getElementById('loadingMsg');
+      if (products.length === 0) {
+        msg.style.display = 'block';
+        msg.innerText = t('empty');
+      } else {
+        msg.style.display = 'none';
+      }
       renderProducts();
+    }, (error) => {
+      console.error(error);
+      document.getElementById('loadingMsg').innerText = 'Firebase Error / Rules';
     });
-
-    function renderCategories() {
-      const catBox = document.getElementById('categoryContainer');
-      catBox.innerHTML = '';
-
-      // ប្រមូលឈ្មោះ Category ទាំងអស់ដែលមានស្រាប់ក្នុង products
-      const categoryNames = [...new Set(products.map(p => p.categoryName || 'ទូទៅ'))].filter(Boolean);
-
-      const allBtn = document.createElement('button');
-      allBtn.className = `cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white text-gray-700 border-gray-300 ${selectedCategory === 'all' ? 'active' : ''}`;
-      allBtn.innerText = t('allCategories');
-      allBtn.onclick = () => selectCategory('all');
-      catBox.appendChild(allBtn);
-
-      categoryNames.forEach(cName => {
-        const btn = document.createElement('button');
-        btn.className = `cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white text-gray-700 border-gray-300 ${selectedCategory === cName ? 'active' : ''}`;
-        btn.innerText = cName;
-        btn.onclick = () => selectCategory(cName);
-        catBox.appendChild(btn);
-      });
-    }
-
-    function selectCategory(cName) {
-      selectedCategory = cName;
-      renderCategories();
-      renderProducts();
-    }
 
     function renderProducts() {
       const grid = document.getElementById('productGrid');
@@ -212,46 +373,220 @@
 
       let list = products.filter(p => p.active !== false);
 
-      if (selectedCategory !== 'all') {
-        list = list.filter(p => (p.categoryName || 'ទូទៅ') === selectedCategory);
-      }
-
       if (searchQuery) {
         list = list.filter(p => {
           const nameKm = (p.name_km || p.name || '').toLowerCase();
           const nameEn = (p.name_en || '').toLowerCase();
           const nameZh = (p.name_zh || '').toLowerCase();
-          return nameKm.includes(searchQuery) || nameEn.includes(searchQuery) || nameZh.includes(searchQuery);
+          const barcode = (p.barcode || '').toLowerCase();
+          return nameKm.includes(searchQuery) || nameEn.includes(searchQuery) ||
+                 nameZh.includes(searchQuery) || barcode.includes(searchQuery);
         });
       }
 
-      noResult.classList.toggle('hidden', list.length > 0 || products.length === 0);
+      if (list.length === 0 && products.length > 0 && searchQuery) {
+        noResult.classList.remove('hidden');
+      } else {
+        noResult.classList.add('hidden');
+      }
 
+      const frag = document.createDocumentFragment();
       list.forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
         const name = getProductName(p);
-        const saleTypeBadge = p.saleType === 'wholesale' 
-          ? '<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded">លក់ដុំ</span>'
-          : '<span class="bg-blue-100 text-blue-800 text-[9px] font-bold px-1.5 py-0.5 rounded">លក់រាយ</span>';
-
         const div = document.createElement('div');
-        div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between relative shadow-sm';
+        div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between';
         div.innerHTML = `
-          <div class="relative">
-            <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-full h-28 object-cover rounded-lg mb-1.5 bg-gray-100">
-            <div class="absolute top-1 left-1">${saleTypeBadge}</div>
-          </div>
-          <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
-          <p class="text-[10px] text-gray-500 mt-1">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
+          <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover rounded-lg mb-1 bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+          <h3 class="font-bold text-xs leading-tight">${name}</h3>
+          ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
+          <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
           <div class="mt-2 flex justify-between items-center">
-            <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
-            <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold">${t('buy')}</button>
+            <div>
+              <span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>
+              ${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}
+            </div>
+            <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2 py-1 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
           </div>`;
-        grid.appendChild(div);
+        frag.appendChild(div);
       });
+      grid.appendChild(frag);
     }
 
+    window.addToCart = function(id) {
+      const p = products.find(x => x.id === id);
+      if (!p || p.stock <= 0) return alert(t('outOfStock'));
+      const item = cart.find(x => x.id === id);
+      const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
+      const name = getProductName(p);
+      if (item) {
+        if (item.qty >= p.stock) return alert(t('outOfStock'));
+        item.qty++;
+      } else {
+        cart.push({ id: p.id, name, price: finalPrice, qty: 1 });
+      }
+      updateCart();
+    };
+
+    window.changeQty = function(id, delta) {
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+      const p = products.find(x => x.id === id);
+      const max = p ? (p.stock || 99) : 99;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(x => x.id !== id);
+      } else if (item.qty > max) {
+        item.qty = max;
+        alert(t('outOfStock'));
+      }
+      updateCart();
+    };
+
+    window.removeFromCart = function(id) {
+      cart = cart.filter(x => x.id !== id);
+      updateCart();
+    };
+
+    function updateCart() {
+      const container = document.getElementById('cartItemsContainer');
+      let total = 0, count = 0;
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-4">${t('emptyCart')}</p>`;
+      } else {
+        container.innerHTML = '';
+        cart.forEach(i => {
+          total += i.price * i.qty;
+          count += i.qty;
+          container.innerHTML += `
+            <div class="border rounded-xl p-2.5 bg-gray-50">
+              <div class="flex justify-between items-start gap-2">
+                <div class="flex-1 min-w-0">
+                  <b class="text-xs leading-tight block truncate">${i.name}</b>
+                  <span class="text-[11px] text-gray-500">$${i.price.toFixed(2)}</span>
+                </div>
+                <button onclick="window.removeFromCart('${i.id}')" class="text-red-500 text-[11px] font-bold px-1.5 py-0.5 hover:bg-red-50 rounded">${t('remove')}</button>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-1.5">
+                  <button onclick="window.changeQty('${i.id}', -1)" class="qty-btn bg-gray-200 hover:bg-gray-300 text-gray-700">−</button>
+                  <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
+                  <button onclick="window.changeQty('${i.id}', 1)" class="qty-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-800">+</button>
+                </div>
+                <b class="text-emerald-700">$${(i.price * i.qty).toFixed(2)}</b>
+              </div>
+            </div>`;
+        });
+      }
+      const badge = document.getElementById('cartBadge');
+      if (count > 0) {
+        badge.innerText = count > 99 ? '99+' : count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      document.getElementById('cartTotalPrice').innerText = `$${total.toFixed(2)}`;
+    }
+
+    window.openCart = function() {
+      document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none');
+      const selected = document.querySelector('input[name="payMethod"]:checked');
+      if (selected && selected.value === 'khqr') {
+        document.getElementById('khqrBox').classList.remove('hidden');
+      }
+    };
+    window.closeCart = function() {
+      document.getElementById('cartModal').classList.add('opacity-0', 'pointer-events-none');
+    };
+
+    window.checkoutOrder = async function() {
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+      const payMethod = document.querySelector('input[name="payMethod"]:checked')?.value || 'cod';
+      const btn = document.getElementById('checkoutBtn');
+
+      if (!cart.length) return alert(t('addFirst'));
+      if (!name || !phone || !address) return alert(t('fillInfo'));
+
+      btn.disabled = true;
+      btn.innerText = 'កំពុងដំណើរការ...';
+
+      let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
+      let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
+      const payText = payMethod === 'khqr' ? '📱 KHQR' : '💵 COD (ដឹកជញ្ជូន)';
+      let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n💳 Payment: ${payText}\n👤 ${name}\n📞 ${phone}\n📍 ${address}`;
+
+      try {
+        let locationImageUrl = '';
+        if (selectedLocFile) {
+          try {
+            locationImageUrl = await uploadToImgBB(selectedLocFile);
+          } catch (upErr) {
+            console.error('Location upload failed:', upErr);
+          }
+        }
+
+        await addDoc(collection(db, 'orders'), {
+          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          total: parseFloat(total),
+          customer: { name, phone, address },
+          paymentMethod: payMethod,
+          locationImage: locationImageUrl || null,
+          status: 'new',
+          createdAt: serverTimestamp()
+        });
+
+        for (const i of cart) {
+          const p = products.find(x => x.id === i.id);
+          if (p) {
+            const newStock = Math.max(0, (p.stock || 0) - i.qty);
+            await updateDoc(doc(db, 'products', i.id), { stock: newStock });
+          }
+        }
+
+        let telegramOk = false;
+        try {
+          const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+          });
+          const data = await res.json();
+          telegramOk = data.ok === true;
+          if (!telegramOk) console.error('Telegram error:', data);
+        } catch (tgErr) {
+          console.error('Telegram network error:', tgErr);
+        }
+
+        cart = [];
+        updateCart();
+        closeCart();
+        document.getElementById('custName').value = '';
+        document.getElementById('custPhone').value = '';
+        document.getElementById('custAddress').value = '';
+        document.getElementById('locImageFile').value = '';
+        document.getElementById('locPreview').classList.add('hidden');
+        selectedLocFile = null;
+        document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
+        document.getElementById('khqrBox').classList.add('hidden');
+
+        if (telegramOk) {
+          alert(t('orderSuccess'));
+        } else {
+          alert(t('orderSuccess') + '\n\n⚠️ ការបញ្ជាទិញបានរក្សាទុកហើយ ប៉ុន្តែ Telegram មិនទាន់ចូល Group។\nសូមធ្វើឱ្យ Bot ជា Administrator ក្នុង Group!');
+        }
+      } catch (e) {
+        console.error(e);
+        alert(t('networkError') + '\n' + (e.message || e));
+      } finally {
+        btn.disabled = false;
+        btn.innerText = t('checkoutBtn');
+      }
+    };
+
     applyLang();
+    loadKhqr();
   </script>
 </body>
 </html>
