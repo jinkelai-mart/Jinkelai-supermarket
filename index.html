@@ -38,6 +38,37 @@
       line-height: 1;
     }
     #searchInput::placeholder { color: #a7f3d0; }
+    .cat-btn {
+      white-space: nowrap;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #e5e7eb;
+      color: #374151;
+      transition: all 0.15s;
+    }
+    .cat-btn.active {
+      background: #047857;
+      color: white;
+    }
+    .type-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .type-retail { background: #dbeafe; color: #1d4ed8; }
+    .type-wholesale { background: #fef3c7; color: #b45309; }
+    .cat-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .cat-scroll::-webkit-scrollbar { display: none; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-['Kantumruy_Pro']">
@@ -64,16 +95,32 @@
         <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-3 py-1 rounded-full text-xs font-bold bg-white/20">中文</button>
       </div>
 
-      <!-- Search Box (inside green header) -->
+      <!-- Search Box (single icon) -->
       <div class="relative mt-2.5">
         <input type="text" id="searchInput"
           class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25"
-          placeholder="🔍 ស្វែងរកទំនិញ..."
+          placeholder="ស្វែងរកទំនិញ..."
           oninput="filterProducts()">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200 text-sm pointer-events-none">🔍</span>
       </div>
     </div>
   </header>
+
+  <!-- Category + Type Filter Bar -->
+  <div class="bg-white border-b sticky top-[138px] z-20 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-2.5 space-y-2">
+      <!-- Categories -->
+      <div id="categoryBar" class="cat-scroll">
+        <button class="cat-btn active" data-cat="all" onclick="setCategory('all')">ទាំងអស់</button>
+      </div>
+      <!-- Sale Type -->
+      <div class="flex gap-2">
+        <button class="cat-btn active" data-type="all" onclick="setSaleType('all')" id="type-all">ទាំងអស់</button>
+        <button class="cat-btn" data-type="retail" onclick="setSaleType('retail')" id="type-retail">លក់រាយ</button>
+        <button class="cat-btn" data-type="wholesale" onclick="setSaleType('wholesale')" id="type-wholesale">លក់ដុំ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- STORE VIEW -->
   <main class="max-w-4xl mx-auto w-full px-4 py-4 flex-1 space-y-3">
@@ -99,7 +146,6 @@
         <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
         <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
 
-        <!-- Location Image -->
         <div>
           <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)</label>
           <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
@@ -108,7 +154,6 @@
           </div>
         </div>
 
-        <!-- Payment Method -->
         <div class="space-y-1">
           <p class="font-semibold text-gray-700" id="payLabel">វិធីទូទាត់ប្រាក់ *</p>
           <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
@@ -121,7 +166,6 @@
           </label>
         </div>
 
-        <!-- KHQR Display -->
         <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
           <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
           <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
@@ -155,7 +199,6 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    // Telegram Supergroup
     const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
     const TELEGRAM_CHAT_ID = '-1003962677132';
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
@@ -198,9 +241,13 @@
         payCod: "💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",
         payKhqr: "📱 ទូទាត់តាម KHQR",
         khqrTitle: "ស្កែន KHQR ដើម្បីទូទាត់",
-        searchPh: "🔍 ស្វែងរកទំនិញ...",
+        searchPh: "ស្វែងរកទំនិញ...",
         noResult: "គ្មានទំនិញត្រូវនឹងការស្វែងរក",
-        remove: "លុប"
+        remove: "លុប",
+        all: "ទាំងអស់",
+        retail: "លក់រាយ",
+        wholesale: "លក់ដុំ",
+        catAll: "ទាំងអស់"
       },
       en: {
         shopTitle: "Jinkelai Shop",
@@ -227,9 +274,13 @@
         payCod: "💵 Cash on Delivery (COD)",
         payKhqr: "📱 Pay via KHQR",
         khqrTitle: "Scan KHQR to pay",
-        searchPh: "🔍 Search products...",
+        searchPh: "Search products...",
         noResult: "No products match your search",
-        remove: "Remove"
+        remove: "Remove",
+        all: "All",
+        retail: "Retail",
+        wholesale: "Wholesale",
+        catAll: "All"
       },
       zh: {
         shopTitle: "金克莱超市",
@@ -256,9 +307,13 @@
         payCod: "💵 货到付款 (COD)",
         payKhqr: "📱 KHQR支付",
         khqrTitle: "扫描KHQR支付",
-        searchPh: "🔍 搜索商品...",
+        searchPh: "搜索商品...",
         noResult: "没有匹配的商品",
-        remove: "删除"
+        remove: "删除",
+        all: "全部",
+        retail: "零售",
+        wholesale: "批发",
+        catAll: "全部"
       }
     };
 
@@ -268,6 +323,8 @@
     let selectedLocFile = null;
     let khqrData = { image: '', account: '' };
     let searchQuery = '';
+    let currentCategory = 'all';
+    let currentSaleType = 'all';
 
     function t(key) {
       return i18n[currentLang][key] || i18n.km[key] || key;
@@ -279,10 +336,16 @@
       return p.name_km || p.name_en || p.name_zh || p.name || '—';
     }
 
+    function getCategoryLabel(cat) {
+      if (!cat || cat === 'all') return t('catAll');
+      return cat;
+    }
+
     window.setLang = function(lang) {
       currentLang = lang;
       localStorage.setItem('jinkelai_lang', lang);
       applyLang();
+      renderCategoryBar();
       renderProducts();
       updateCart();
     };
@@ -305,6 +368,10 @@
       document.getElementById('khqrTitle').innerText = t('khqrTitle');
       document.getElementById('searchInput').placeholder = t('searchPh');
       document.getElementById('noResultMsg').innerText = t('noResult');
+
+      document.getElementById('type-all').innerText = t('all');
+      document.getElementById('type-retail').innerText = t('retail');
+      document.getElementById('type-wholesale').innerText = t('wholesale');
 
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
@@ -351,6 +418,35 @@
       renderProducts();
     };
 
+    window.setCategory = function(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('#categoryBar .cat-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cat === cat);
+      });
+      renderProducts();
+    };
+
+    window.setSaleType = function(type) {
+      currentSaleType = type;
+      document.querySelectorAll('[data-type]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+      });
+      renderProducts();
+    };
+
+    function renderCategoryBar() {
+      const bar = document.getElementById('categoryBar');
+      const cats = new Set();
+      products.forEach(p => {
+        if (p.category && p.category.trim()) cats.add(p.category.trim());
+      });
+      const sorted = Array.from(cats).sort();
+      bar.innerHTML = `<button class="cat-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategory('all')">${t('catAll')}</button>`;
+      sorted.forEach(c => {
+        bar.innerHTML += `<button class="cat-btn ${currentCategory === c ? 'active' : ''}" data-cat="${c}" onclick="setCategory('${c}')">${c}</button>`;
+      });
+    }
+
     onSnapshot(collection(db, 'products'), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       const msg = document.getElementById('loadingMsg');
@@ -360,6 +456,7 @@
       } else {
         msg.style.display = 'none';
       }
+      renderCategoryBar();
       renderProducts();
     }, (error) => {
       console.error(error);
@@ -373,18 +470,34 @@
 
       let list = products.filter(p => p.active !== false);
 
+      // Category filter
+      if (currentCategory !== 'all') {
+        list = list.filter(p => (p.category || '').trim() === currentCategory);
+      }
+
+      // Sale type filter
+      if (currentSaleType !== 'all') {
+        list = list.filter(p => {
+          const t = (p.saleType || 'retail').toLowerCase();
+          return t === currentSaleType;
+        });
+      }
+
+      // Search
       if (searchQuery) {
         list = list.filter(p => {
           const nameKm = (p.name_km || p.name || '').toLowerCase();
           const nameEn = (p.name_en || '').toLowerCase();
           const nameZh = (p.name_zh || '').toLowerCase();
           const barcode = (p.barcode || '').toLowerCase();
+          const cat = (p.category || '').toLowerCase();
           return nameKm.includes(searchQuery) || nameEn.includes(searchQuery) ||
-                 nameZh.includes(searchQuery) || barcode.includes(searchQuery);
+                 nameZh.includes(searchQuery) || barcode.includes(searchQuery) ||
+                 cat.includes(searchQuery);
         });
       }
 
-      if (list.length === 0 && products.length > 0 && searchQuery) {
+      if (list.length === 0 && products.length > 0) {
         noResult.classList.remove('hidden');
       } else {
         noResult.classList.add('hidden');
@@ -394,10 +507,19 @@
       list.forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
         const name = getProductName(p);
+        const saleType = (p.saleType || 'retail').toLowerCase();
+        const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
+        const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
+        const catLabel = p.category ? `<span class="text-[9px] text-gray-400">${p.category}</span>` : '';
+
         const div = document.createElement('div');
         div.className = 'bg-white p-2.5 rounded-xl border flex flex-col justify-between';
         div.innerHTML = `
           <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover rounded-lg mb-1 bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+          <div class="flex items-center gap-1 mb-0.5 flex-wrap">
+            <span class="type-badge ${typeClass}">${typeLabel}</span>
+            ${catLabel}
+          </div>
           <h3 class="font-bold text-xs leading-tight">${name}</h3>
           ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
           <p class="text-[10px] text-gray-500">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>

@@ -83,6 +83,36 @@
             <label class="font-semibold text-gray-600">中文名称 (Chinese)</label>
             <input type="text" id="pNameZh" placeholder="例如：青菜" class="w-full p-2 border rounded-xl mt-1">
           </div>
+
+          <!-- Category + Sale Type -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-semibold text-gray-600">ប្រភេទទំនិញ *</label>
+              <select id="pCategory" class="w-full p-2 border rounded-xl mt-1">
+                <option value="">-- ជ្រើសប្រភេទ --</option>
+                <option value="ភេសជ្ជៈ">ភេសជ្ជៈ</option>
+                <option value="បៀរ">បៀរ</option>
+                <option value="ស្រា">ស្រា</option>
+                <option value="បន្លែ">បន្លែ</option>
+                <option value="ផ្លែឈើ">ផ្លែឈើ</option>
+                <option value="សាច់">សាច់</option>
+                <option value="ត្រី">ត្រី</option>
+                <option value="អាហារស្ងួត">អាហារស្ងួត</option>
+                <option value="គ្រឿងទេស">គ្រឿងទេស</option>
+                <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់</option>
+                <option value="ផ្សេងៗ">ផ្សេងៗ</option>
+              </select>
+              <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទផ្ទាល់..." class="w-full p-2 border rounded-xl mt-1 text-[11px]">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600">ប្រភេទលក់ *</label>
+              <select id="pSaleType" class="w-full p-2 border rounded-xl mt-1">
+                <option value="retail">លក់រាយ (Retail)</option>
+                <option value="wholesale">លក់ដុំ (Wholesale)</option>
+              </select>
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="font-semibold text-gray-600">តម្លៃ ($) *</label>
@@ -308,7 +338,6 @@
       if (!document.getElementById('adminDashboard').classList.contains('hidden')) renderOrders();
     });
 
-    // Firebase Auth state
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById('loginSection').classList.add('hidden');
@@ -337,7 +366,6 @@
       errEl.classList.add('hidden');
       try {
         await signInWithEmailAndPassword(auth, e, p);
-        // onAuthStateChanged will handle UI
       } catch (err) {
         console.error(err);
         let msg = 'Email ឬ Password មិនត្រឹមត្រូវ!';
@@ -388,6 +416,9 @@
         const nameKm = p.name_km || p.name || '—';
         const nameEn = p.name_en || '';
         const nameZh = p.name_zh || '';
+        const saleType = (p.saleType || 'retail') === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ';
+        const saleColor = (p.saleType || 'retail') === 'wholesale' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
+        const cat = p.category || '—';
         container.innerHTML += `
           <div class="flex flex-col sm:flex-row items-start justify-between p-3 border rounded-xl gap-2 ${p.active ? 'bg-white' : 'bg-gray-100 opacity-60'}">
             <div class="flex items-start gap-3 w-full">
@@ -396,6 +427,10 @@
                 <h4 class="font-bold text-gray-800 text-sm">${nameKm}</h4>
                 ${nameEn ? '<p class="text-[11px] text-gray-500">' + nameEn + '</p>' : ''}
                 ${nameZh ? '<p class="text-[11px] text-gray-500">' + nameZh + '</p>' : ''}
+                <div class="flex flex-wrap gap-1 mt-1">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded ${saleColor}">${saleType}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${cat}</span>
+                </div>
                 <div class="text-[11px] text-gray-500 mt-1">
                   $${finalPrice} ${p.discount > 0 ? '(-' + p.discount + '%)' : ''} · 
                   ស្តុក: <b class="${p.stock <= 0 ? 'text-red-500' : ''}">${p.stock <= 0 ? 'អស់' : p.stock}</b>
@@ -450,8 +485,14 @@
       const barcode = document.getElementById('pBarcode').value.trim();
       const editId = document.getElementById('editId').value;
 
+      // Category: prefer custom if filled, else select
+      let category = document.getElementById('pCategoryCustom').value.trim();
+      if (!category) category = document.getElementById('pCategory').value.trim();
+      const saleType = document.getElementById('pSaleType').value || 'retail';
+
       if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
       if (isNaN(price) || price < 0) return alert("សូមបញ្ចូលតម្លៃឱ្យត្រឹមត្រូវ!");
+      if (!category) return alert("សូមជ្រើស ឬវាយប្រភេទទំនិញ!");
 
       const btn = document.getElementById('saveBtn');
       const oldText = btn.innerText;
@@ -470,7 +511,12 @@
           }
         }
 
-        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, active: true };
+        const data = {
+          name_km, name_en, name_zh,
+          price, discount, stock, barcode,
+          category, saleType,
+          active: true
+        };
 
         if (editId) {
           if (imageUrl) data.image = imageUrl;
@@ -503,6 +549,20 @@
       document.getElementById('pDiscount').value = p.discount || 0;
       document.getElementById('pStock').value = p.stock || 0;
       document.getElementById('pBarcode').value = p.barcode || '';
+      document.getElementById('pSaleType').value = p.saleType || 'retail';
+
+      // Category
+      const catSelect = document.getElementById('pCategory');
+      const catCustom = document.getElementById('pCategoryCustom');
+      const existingCats = Array.from(catSelect.options).map(o => o.value);
+      if (p.category && existingCats.includes(p.category)) {
+        catSelect.value = p.category;
+        catCustom.value = '';
+      } else {
+        catSelect.value = '';
+        catCustom.value = p.category || '';
+      }
+
       document.getElementById('formTitle').innerText = '✏️ កែប្រែទំនិញ';
       document.getElementById('saveBtn').innerText = 'រក្សាទុកការកែប្រែ';
       document.getElementById('cancelBtn').classList.remove('hidden');
@@ -526,6 +586,9 @@
       document.getElementById('pDiscount').value = '';
       document.getElementById('pStock').value = '';
       document.getElementById('pBarcode').value = '';
+      document.getElementById('pCategory').value = '';
+      document.getElementById('pCategoryCustom').value = '';
+      document.getElementById('pSaleType').value = 'retail';
       document.getElementById('pImageFile').value = '';
       document.getElementById('imagePreview').classList.add('hidden');
       selectedFile = null;
