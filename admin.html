@@ -13,7 +13,7 @@
   <div id="loginSection" class="fixed inset-0 bg-emerald-900/90 z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
       <div class="text-center">
-        <span class="text-4xl">🛍️🛒</span>
+        <span class="text-4xl">🛍️</span>
         <h2 class="text-lg font-bold text-gray-800 mt-2">Jinkelai Admin</h2>
         <p class="text-[11px] text-gray-500 mt-1">Firebase Authentication</p>
       </div>
@@ -40,16 +40,6 @@
 
     <main class="max-w-4xl w-full mx-auto p-4 space-y-5 flex-1">
 
-      <!-- Category Management Box -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">🏷️ បន្ថែម និងគ្រប់គ្រងប្រភេទទំនិញ (Categories)</h3>
-        <div class="flex gap-2 text-xs">
-          <input type="text" id="catNameInput" placeholder="ឧ. គ្រឿងទេស, សម្ភារៈផ្ទះបាយ, ភេសជ្ជៈ..." class="flex-1 p-2 border rounded-xl">
-          <button onclick="addCategory()" class="bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl">បន្ថែម</button>
-        </div>
-        <div id="categoryList" class="flex flex-wrap gap-2 pt-1 text-xs"></div>
-      </div>
-
       <!-- Add/Edit Product Box -->
       <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
         <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
@@ -57,10 +47,8 @@
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label class="font-semibold text-gray-600">ជ្រើសរើសប្រភេទទំនិញ *</label>
-              <select id="pCategory" class="w-full p-2 border rounded-xl mt-1 bg-white">
-                <option value="">-- ជ្រើសរើសប្រភេទ --</option>
-              </select>
+              <label class="font-semibold text-gray-600">ប្រភេទទំនិញ (បញ្ចូលដោយដៃ) *</label>
+              <input type="text" id="pCategoryText" placeholder="ឧ. ភេសជ្ជៈ, គ្រឿងទេស, សម្ភារៈ..." class="w-full p-2 border rounded-xl mt-1">
             </div>
             <div>
               <label class="font-semibold text-gray-600">ប្រភេទការលក់ *</label>
@@ -73,7 +61,7 @@
 
           <div>
             <label class="font-semibold text-gray-600">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
-            <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្ពៃបៃតង" class="w-full p-2 border rounded-xl mt-1">
+            <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្រាបៀរអានឆ័រ" class="w-full p-2 border rounded-xl mt-1">
           </div>
           <div>
             <label class="font-semibold text-gray-600">Name in English</label>
@@ -147,7 +135,6 @@
     const db = getFirestore(app);
 
     let products = [];
-    let categories = [];
     let selectedFile = null;
 
     async function uploadToImgBB(file) {
@@ -161,11 +148,6 @@
 
     document.getElementById('pImageFile')?.addEventListener('change', (e) => {
       if (e.target.files[0]) selectedFile = e.target.files[0];
-    });
-
-    onSnapshot(collection(db, 'categories'), (snapshot) => {
-      categories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderCategoryUI();
     });
 
     onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -191,53 +173,17 @@
 
     window.doLogout = async function() { await signOut(auth); };
 
-    window.addCategory = async function() {
-      const name = document.getElementById('catNameInput').value.trim();
-      if (!name) return alert('សូមបញ្ចូលឈ្មោះ Category!');
-      await addDoc(collection(db, 'categories'), { name, createdAt: serverTimestamp() });
-      document.getElementById('catNameInput').value = '';
-    };
-
-    window.deleteCategory = async function(id) {
-      if (confirm('តើចង់លុប Category នេះមែនទេ?')) {
-        await deleteDoc(doc(db, 'categories', id));
-      }
-    };
-
-    function renderCategoryUI() {
-      const list = document.getElementById('categoryList');
-      const select = document.getElementById('pCategory');
-      const currentSelected = select.value;
-
-      list.innerHTML = '';
-      select.innerHTML = '<option value="">-- ជ្រើសរើសប្រភេទ --</option>';
-
-      categories.forEach(c => {
-        list.innerHTML += `
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg border text-xs">
-            ${c.name}
-            <button onclick="deleteCategory('${c.id}')" class="text-red-500 font-bold ml-1">✕</button>
-          </span>`;
-        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-      });
-
-      if (currentSelected) select.value = currentSelected;
-    }
-
     function renderAdminList() {
       const container = document.getElementById('adminProductList');
       container.innerHTML = products.length ? '' : '<p class="text-center text-gray-400 py-4">គ្មានទំនិញ</p>';
       products.forEach((p) => {
-        const cat = categories.find(c => c.id === p.categoryId);
-        const catName = cat ? cat.name : 'ទូទៅ';
-        
         container.innerHTML += `
           <div class="flex items-center justify-between p-2.5 border rounded-xl bg-white">
             <div class="flex items-center gap-3">
               <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-12 h-12 object-cover rounded-lg border">
               <div>
                 <h4 class="font-bold text-gray-800">${p.name_km || p.name || '—'}</h4>
-                <p class="text-[10px] text-emerald-700">ប្រភេទ: ${catName} | តម្លៃ: $${p.price} | ស្តុក: ${p.stock}</p>
+                <p class="text-[10px] text-emerald-700">ប្រភេទ: ${p.categoryName || 'ទូទៅ'} | តម្លៃ: $${p.price} | ស្តុក: ${p.stock}</p>
               </div>
             </div>
             <div class="flex gap-1">
@@ -249,7 +195,7 @@
     }
 
     window.saveProduct = async function() {
-      let categoryId = document.getElementById('pCategory').value;
+      const categoryName = document.getElementById('pCategoryText').value.trim() || 'ទូទៅ';
       const saleType = document.getElementById('pSaleType').value;
       const name_km = document.getElementById('pNameKm').value.trim();
       const price = parseFloat(document.getElementById('pPrice').value);
@@ -260,11 +206,6 @@
       if (!name_km) return alert("សូមបំពេញឈ្មោះទំនិញ!");
       if (isNaN(price)) return alert("សូមបញ្ចូលតម្លៃទំនិញ!");
 
-      // ប្រសិនបើមិនទាន់ជ្រើសរើស Category វានឹងរើស Category ដំបូងស្វ័យប្រវត្តិ
-      if (!categoryId && categories.length > 0) {
-        categoryId = categories[0].id;
-      }
-
       saveBtn.disabled = true;
       saveBtn.innerText = 'កំពុងរក្សាទុក...';
 
@@ -273,7 +214,7 @@
         if (selectedFile) imageUrl = await uploadToImgBB(selectedFile);
 
         const data = {
-          categoryId: categoryId || 'general',
+          categoryName,
           saleType, name_km,
           name_en: document.getElementById('pNameEn').value.trim(),
           name_zh: document.getElementById('pNameZh').value.trim(),
@@ -306,7 +247,7 @@
       const p = products.find(x => x.id === id);
       if (!p) return;
       document.getElementById('editId').value = id;
-      document.getElementById('pCategory').value = p.categoryId || '';
+      document.getElementById('pCategoryText').value = p.categoryName || '';
       document.getElementById('pSaleType').value = p.saleType || 'retail';
       document.getElementById('pNameKm').value = p.name_km || p.name || '';
       document.getElementById('pNameEn').value = p.name_en || '';
@@ -321,6 +262,7 @@
 
     window.cancelEdit = function() {
       document.getElementById('editId').value = '';
+      document.getElementById('pCategoryText').value = '';
       document.getElementById('pNameKm').value = '';
       document.getElementById('pNameEn').value = '';
       document.getElementById('pNameZh').value = '';
