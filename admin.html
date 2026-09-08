@@ -33,41 +33,38 @@
   </div>
 
   <div id="adminDashboard" class="hidden flex-1 flex flex-col">
-    <header class="bg-emerald-800 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-30">
-      <h1 class="font-bold text-base">⚙️ Admin Dashboard</h1>
-      <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-xs rounded-lg font-bold">ចាកចេញ</button>
+    <header class="bg-emerald-800 text-white p-4 shadow-md sticky top-0 z-30">
+      <div class="flex justify-between items-center">
+        <h1 class="font-bold text-base">⚙️ Admin Dashboard</h1>
+        <div class="flex items-center gap-2">
+          <button onclick="scrollToOrders()" class="relative bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
+            🧾 Order
+            <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
+          </button>
+          <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-xs rounded-lg font-bold">ចាកចេញ</button>
+        </div>
+      </div>
     </header>
 
     <main class="max-w-4xl w-full mx-auto p-4 space-y-5 flex-1">
 
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
-          <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
+      <!-- ========== ORDERS FIRST (most important) ========== -->
+      <div id="ordersSection" class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <h3 class="font-bold text-sm text-gray-800">🧾 ការបញ្ជាទិញ</h3>
+          <div class="flex gap-1.5 flex-wrap">
+            <button onclick="setOrderFilter('pending')" id="f-pending" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white">⏳ រង់ចាំ</button>
+            <button onclick="setOrderFilter('confirmed')" id="f-confirmed" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">✅ បញ្ជាក់</button>
+            <button onclick="setOrderFilter('all')" id="f-all" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">ទាំងអស់</button>
+          </div>
         </div>
-        <p id="passStatus" class="text-center text-[11px] text-gray-500"></p>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">📱 កំណត់ KHQR (សម្រាប់ទូទាត់)</h3>
-        <div class="space-y-2 text-xs">
-          <div>
-            <label class="font-semibold text-gray-600">រូបភាព KHQR (ថត/ជ្រើសរូប)</label>
-            <input type="file" id="khqrImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-            <div id="khqrPreview" class="mt-2 hidden">
-              <img id="khqrPreviewImg" class="w-32 h-32 object-contain rounded-lg border bg-white">
-            </div>
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">លេខគណនី / ឈ្មោះគណនី (ស្រេចចិត្ត)</label>
-            <input type="text" id="khqrAccount" placeholder="ឧ. ABA / Wing / លេខគណនី" class="w-full p-2 border rounded-xl mt-1">
-          </div>
-          <button onclick="saveKhqrSettings()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl">រក្សាទុក KHQR</button>
-          <p id="khqrStatus" class="text-center text-[11px] text-gray-500"></p>
+        <p id="orderFilterInfo" class="text-[11px] text-amber-700 font-semibold"></p>
+        <div id="ordersList" class="space-y-2 text-xs max-h-[60vh] overflow-y-auto">
+          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
         </div>
       </div>
 
+      <!-- ========== PRODUCTS ========== -->
       <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
         <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
         <div class="space-y-2 text-xs">
@@ -173,11 +170,34 @@
         </div>
       </div>
 
+      <!-- KHQR Settings -->
       <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">🧾 ការបញ្ជាទិញថ្មីៗ</h3>
-        <div id="ordersList" class="space-y-2 text-xs">
-          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
+        <h3 class="font-bold text-xs text-gray-700">📱 កំណត់ KHQR (សម្រាប់ទូទាត់)</h3>
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="font-semibold text-gray-600">រូបភាព KHQR (ថត/ជ្រើសរូប)</label>
+            <input type="file" id="khqrImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+            <div id="khqrPreview" class="mt-2 hidden">
+              <img id="khqrPreviewImg" class="w-32 h-32 object-contain rounded-lg border bg-white">
+            </div>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">លេខគណនី / ឈ្មោះគណនី (ស្រេចចិត្ត)</label>
+            <input type="text" id="khqrAccount" placeholder="ឧ. ABA / Wing / លេខគណនី" class="w-full p-2 border rounded-xl mt-1">
+          </div>
+          <button onclick="saveKhqrSettings()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl">រក្សាទុក KHQR</button>
+          <p id="khqrStatus" class="text-center text-[11px] text-gray-500"></p>
         </div>
+      </div>
+
+      <!-- Password -->
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-bold text-xs text-gray-700">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
+          <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
+        </div>
+        <p id="passStatus" class="text-center text-[11px] text-gray-500"></p>
       </div>
 
     </main>
@@ -210,6 +230,132 @@
     let orders = [];
     let selectedFile = null;
     let selectedKhqrFile = null;
+    let orderFilter = 'pending'; // pending | confirmed | all
+    let lastOrderCount = 0;
+    let knownOrderIds = new Set();
+
+    // Notification sound (beep)
+    function playNotifySound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.35;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.stop(ctx.currentTime + 0.4);
+        setTimeout(() => {
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.frequency.value = 1175;
+          gain2.gain.value = 0.35;
+          osc2.start();
+          gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+          osc2.stop(ctx.currentTime + 0.4);
+        }, 250);
+      } catch (e) {}
+    }
+
+    // Voice announcement (និយាយជាសំឡេង)
+    function speakNewOrder(order) {
+      try {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const name = order.customer?.name || 'អតិថិជន';
+        const total = Number(order.total || 0).toFixed(2);
+        const pay = order.paymentMethod === 'khqr' ? 'ខេអេចគ្យូអា' : 'ស៊ីអូឌី';
+        const text = `មានការបញ្ជាទិញថ្មី! ពី ${name} ចំនួន ${total} ដុល្លារ បង់តាម ${pay}`;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'km-KH';
+        u.rate = 0.9;
+        u.pitch = 1;
+        // Fallback to English if Khmer voice not available
+        const voices = window.speechSynthesis.getVoices();
+        const kmVoice = voices.find(v => v.lang.startsWith('km'));
+        if (kmVoice) u.voice = kmVoice;
+        else {
+          u.lang = 'en-US';
+          u.text = `New order from ${name}, total ${total} dollars, payment ${order.paymentMethod || 'COD'}`;
+        }
+        window.speechSynthesis.speak(u);
+      } catch (e) {
+        console.error('Speech error', e);
+      }
+    }
+
+    // Browser notification
+    function showBrowserNotify(order) {
+      try {
+        if (!('Notification' in window)) return;
+        const title = '🛍️ ការបញ្ជាទិញថ្មី!';
+        const body = `${order.customer?.name || '—'} · $${Number(order.total || 0).toFixed(2)} · ${order.paymentMethod === 'khqr' ? 'KHQR' : 'COD'}`;
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body, icon: 'logo.png', tag: 'new-order' });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(p => {
+            if (p === 'granted') new Notification(title, { body, icon: 'logo.png', tag: 'new-order' });
+          });
+        }
+      } catch (e) {}
+    }
+
+    // Toast popup
+    function showOrderToast(order) {
+      let toast = document.getElementById('orderToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'orderToast';
+        toast.className = 'fixed top-16 left-1/2 -translate-x-1/2 z-[300] bg-emerald-700 text-white px-4 py-3 rounded-2xl shadow-2xl text-sm font-bold max-w-sm w-[90%] text-center transition-all duration-300 opacity-0 pointer-events-none';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `🛍️ ការបញ្ជាទិញថ្មី!<br><span class="font-normal text-xs">${order.customer?.name || '—'} · $${Number(order.total || 0).toFixed(2)}</span>`;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 6000);
+    }
+
+    function notifyNewOrders(brandNew) {
+      brandNew.forEach((o, i) => {
+        setTimeout(() => {
+          playNotifySound();
+          speakNewOrder(o);
+          showBrowserNotify(o);
+          showOrderToast(o);
+        }, i * 1500);
+      });
+      // Flash page title
+      const orig = document.title;
+      document.title = '🔔 Order ថ្មី! — Admin';
+      setTimeout(() => { document.title = orig; }, 5000);
+      // Auto scroll to orders
+      setTimeout(() => {
+        document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
+        setOrderFilter('pending');
+      }, 300);
+    }
+
+    window.scrollToOrders = function() {
+      document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.setOrderFilter = function(f) {
+      orderFilter = f;
+      ['pending', 'confirmed', 'all'].forEach(x => {
+        const btn = document.getElementById('f-' + x);
+        if (!btn) return;
+        if (x === f) {
+          btn.className = 'order-filter px-2.5 py-1 rounded-full text-[11px] font-bold ' +
+            (x === 'pending' ? 'bg-amber-500 text-white' : x === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-white');
+        } else {
+          btn.className = 'order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600';
+        }
+      });
+      renderOrders();
+    };
 
     async function uploadToImgBB(file) {
       const formData = new FormData();
@@ -334,9 +480,33 @@
     });
 
     onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
-      orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const newOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Detect brand-new orders for notification + voice
+      if (knownOrderIds.size > 0) {
+        const brandNew = newOrders.filter(o => !knownOrderIds.has(o.id));
+        if (brandNew.length > 0) {
+          notifyNewOrders(brandNew);
+        }
+      }
+      newOrders.forEach(o => knownOrderIds.add(o.id));
+      orders = newOrders;
+      updatePendingBadge();
       if (!document.getElementById('adminDashboard').classList.contains('hidden')) renderOrders();
     });
+
+    function updatePendingBadge() {
+      const pending = orders.filter(o =>
+        o.status === 'pending_payment' || o.status === 'new' || !o.status
+      ).length;
+      const badge = document.getElementById('pendingBadge');
+      if (!badge) return;
+      if (pending > 0) {
+        badge.innerText = pending > 99 ? '99+' : pending;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -345,6 +515,12 @@
         renderAdminList();
         renderOrders();
         loadKhqrSettings();
+        // Request browser notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+        // Preload speech voices
+        if (window.speechSynthesis) window.speechSynthesis.getVoices();
       } else {
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('adminDashboard').classList.add('hidden');
@@ -449,46 +625,69 @@
 
     function getStatusLabel(status) {
       const map = {
-        'confirmed': { text: '✅ ទូទាត់ជោគជ័យ', cls: 'bg-emerald-100 text-emerald-800' },
+        'confirmed': { text: '✅ បានបញ្ជាក់', cls: 'bg-emerald-100 text-emerald-800' },
         'pending_payment': { text: '⏳ រង់ចាំការទូទាត់', cls: 'bg-amber-100 text-amber-800' },
         'paid': { text: '✅ បានបង់ប្រាក់', cls: 'bg-emerald-100 text-emerald-800' },
         'processing': { text: '🚚 កំពុងដឹក', cls: 'bg-blue-100 text-blue-800' },
         'delivered': { text: '📦 ដឹករួច', cls: 'bg-gray-200 text-gray-700' },
         'cancelled': { text: '❌ បោះបង់', cls: 'bg-red-100 text-red-700' },
-        'new': { text: '🆕 ថ្មី', cls: 'bg-amber-100 text-amber-800' }
+        'new': { text: '⏳ រង់ចាំ', cls: 'bg-amber-100 text-amber-800' }
       };
-      return map[status] || { text: status || '—', cls: 'bg-gray-200 text-gray-600' };
+      return map[status] || { text: '⏳ រង់ចាំ', cls: 'bg-amber-100 text-amber-800' };
+    }
+
+    function isPending(o) {
+      return o.status === 'pending_payment' || o.status === 'new' || !o.status;
     }
 
     function renderOrders() {
       const container = document.getElementById('ordersList');
-      container.innerHTML = orders.length ? '' : '<p class="text-center text-gray-400 py-4">មិនទាន់មានការបញ្ជាទិញ</p>';
-      orders.slice(0, 30).forEach(o => {
+      const info = document.getElementById('orderFilterInfo');
+      let list = orders;
+
+      if (orderFilter === 'pending') {
+        list = orders.filter(isPending);
+        info.innerText = list.length ? `មាន ${list.length} ការបញ្ជាទិញរង់ចាំបញ្ជាក់` : '✅ គ្មានការបញ្ជាទិញរង់ចាំ';
+      } else if (orderFilter === 'confirmed') {
+        list = orders.filter(o => o.status === 'confirmed' || o.status === 'paid' || o.status === 'processing' || o.status === 'delivered');
+        info.innerText = `បង្ហាញ ${list.length} ការបញ្ជាទិញដែលបានបញ្ជាក់`;
+      } else {
+        list = orders;
+        info.innerText = `ទាំងអស់ ${list.length} ការបញ្ជាទិញ`;
+      }
+
+      if (!list.length) {
+        container.innerHTML = '<p class="text-center text-gray-400 py-6">មិនមានការបញ្ជាទិញក្នុងតម្រងនេះ</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      list.slice(0, 50).forEach(o => {
         const itemsText = (o.items || []).map(i => i.name + ' x' + i.qty).join(', ');
         const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : '—';
-        const payMethod = o.paymentMethod === 'khqr' ? '📱 KHQR' : (o.paymentMethod === 'cod' ? '💵 ដឹកជញ្ជូន (COD)' : '—');
+        const payMethod = o.paymentMethod === 'khqr' ? '📱 KHQR' : (o.paymentMethod === 'cod' ? '💵 COD' : '—');
         const st = getStatusLabel(o.status);
-        const tgBadge = o.telegramSent === true
-          ? '<span class="text-[9px] text-emerald-600">Telegram ✓</span>'
-          : (o.telegramSent === false ? '<span class="text-[9px] text-red-500">Telegram ✗</span>' : '');
+        const pending = isPending(o);
+        const borderCls = pending ? 'border-amber-400 border-2 bg-amber-50' : 'border bg-gray-50';
 
         container.innerHTML += `
-          <div class="p-3 border rounded-xl bg-gray-50">
+          <div class="p-3 rounded-xl ${borderCls}">
             <div class="flex justify-between items-start gap-2">
               <div class="flex-1 min-w-0">
-                <p class="font-bold text-gray-800">${o.customer?.name || '—'} · ${o.customer?.phone || ''}</p>
+                <p class="font-bold text-gray-800 text-sm">${o.customer?.name || '—'} · <a href="tel:${o.customer?.phone || ''}" class="text-blue-600">${o.customer?.phone || ''}</a></p>
                 <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
-                <p class="text-[11px] mt-1">${itemsText}</p>
-                <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod} ${tgBadge}</p>
+                <p class="text-[11px] mt-1 font-medium">${itemsText}</p>
+                <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
                 ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline">📍 មើលរូបទីតាំង</a>' : ''}
               </div>
-              <div class="text-right space-y-1">
-                <p class="font-bold text-emerald-700">$${Number(o.total || 0).toFixed(2)}</p>
-                <span class="text-[10px] px-1.5 py-0.5 rounded ${st.cls}">${st.text}</span>
-                <div class="flex flex-wrap gap-1 justify-end mt-1">
-                  <button onclick="window.updateOrderStatus('${o.id}','confirmed')" class="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">✅ បញ្ជាក់</button>
-                  <button onclick="window.updateOrderStatus('${o.id}','processing')" class="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-bold">🚚 ដឹក</button>
-                  <button onclick="window.updateOrderStatus('${o.id}','cancelled')" class="text-[9px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded font-bold">❌</button>
+              <div class="text-right space-y-1.5 shrink-0">
+                <p class="font-bold text-emerald-700 text-sm">$${Number(o.total || 0).toFixed(2)}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${st.cls}">${st.text}</span>
+                <div class="flex flex-col gap-1 mt-1">
+                  ${pending ? `<button onclick="window.updateOrderStatus('${o.id}','confirmed')" class="text-[11px] px-2 py-1.5 bg-emerald-600 text-white rounded-lg font-bold shadow">✅ បញ្ជាក់បង់ប្រាក់</button>` : ''}
+                  <button onclick="window.updateOrderStatus('${o.id}','processing')" class="text-[10px] px-2 py-1 bg-blue-100 text-blue-800 rounded font-bold">🚚 កំពុងដឹក</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','delivered')" class="text-[10px] px-2 py-1 bg-gray-200 text-gray-700 rounded font-bold">📦 ដឹករួច</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','cancelled')" class="text-[10px] px-2 py-1 bg-red-100 text-red-700 rounded font-bold">❌ បោះបង់</button>
                 </div>
               </div>
             </div>
@@ -499,7 +698,7 @@
     window.updateOrderStatus = async function(id, newStatus) {
       if (!auth.currentUser) return alert('សូម Login មុន!');
       try {
-        await updateDoc(doc(db, 'orders', id), { status: newStatus });
+        await updateDoc(doc(db, 'orders', id), { status: newStatus, updatedAt: serverTimestamp() });
       } catch (e) {
         alert('Error: ' + e.message);
       }
