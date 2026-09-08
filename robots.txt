@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /jinkelai-panel-x7k9m.html
+Disallow: /admin.html
