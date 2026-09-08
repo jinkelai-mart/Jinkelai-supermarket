@@ -678,7 +678,8 @@
                 <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
                 <p class="text-[11px] mt-1 font-medium">${itemsText}</p>
                 <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
-                ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline">📍 មើលរូបទីតាំង</a>' : ''}
+                ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline block">📷 រូបទីតាំង</a>' : ''}
+                ${o.location && o.location.lat ? '<a href="https://maps.google.com/?q=' + o.location.lat + ',' + o.location.lng + '" target="_blank" class="text-[10px] text-blue-600 underline block">🗺 បើក Map</a>' : ''}
               </div>
               <div class="text-right space-y-1.5 shrink-0">
                 <p class="font-bold text-emerald-700 text-sm">$${Number(o.total || 0).toFixed(2)}</p>
