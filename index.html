@@ -337,52 +337,69 @@
   </div>
 
   <!-- CART MODAL -->
-  <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex justify-end opacity-0 pointer-events-none transition-all duration-200">
-    <div class="w-full max-w-md bg-gray-100 h-full flex flex-col shadow-xl">
-      <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0 z-10">
+  <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex items-end sm:items-stretch sm:justify-end opacity-0 pointer-events-none transition-all duration-200">
+    <div class="w-full sm:max-w-md bg-gray-100 h-[95vh] sm:h-full flex flex-col shadow-xl rounded-t-2xl sm:rounded-none overflow-hidden">
+      <!-- Header -->
+      <div class="bg-white px-4 py-3 flex justify-between items-center border-b flex-shrink-0">
         <h3 class="font-bold text-sm flex items-center gap-2">
           <span id="cartTitleText">កន្ត្រកទំនិញ</span>
           <span id="cartCountLabel" class="text-gray-400 font-normal text-xs"></span>
         </h3>
         <button onclick="closeCart()" class="text-gray-500 font-bold text-lg leading-none px-2">✕</button>
       </div>
-      <div id="cartItemsContainer" class="flex-1 overflow-y-auto py-2 px-2 space-y-2 text-xs"></div>
-      <div class="border-t bg-white p-3 space-y-2 text-xs shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-        <input type="text" id="custName" class="w-full p-2 border rounded-xl" placeholder="ឈ្មោះ *">
-        <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
-        <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
-        <div class="space-y-1.5">
-          <label class="font-semibold text-gray-600 text-[11px]">📍 ទីតាំងដឹកជញ្ជូន</label>
-          <button type="button" onclick="useMyLocation()" class="w-full py-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold rounded-xl">📡 ប្រើទីតាំងបច្ចុប្បន្ន (GPS)</button>
-          <div id="mapPicker" class="hidden border"></div>
-          <p id="mapCoords" class="text-[10px] text-gray-400 hidden"></p>
-          <input type="hidden" id="custLat" value=""><input type="hidden" id="custLng" value="">
+
+      <!-- Scrollable body: items + form -->
+      <div class="flex-1 overflow-y-auto overscroll-contain" style="-webkit-overflow-scrolling: touch;">
+        <div id="cartItemsContainer" class="py-2 px-2 space-y-2 text-xs"></div>
+
+        <div class="mx-2 mb-3 bg-white rounded-xl border border-gray-100 p-3 space-y-2.5 text-xs">
+          <p class="font-bold text-gray-800 text-sm">📦 ព័ត៌មានដឹកជញ្ជូន</p>
+          <input type="text" id="custName" class="w-full p-2.5 border rounded-xl" placeholder="ឈ្មោះ *">
+          <input type="text" id="custPhone" class="w-full p-2.5 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
+          <input type="text" id="custAddress" class="w-full p-2.5 border rounded-xl" placeholder="អាសយដ្ឋាន *">
+
+          <div class="space-y-1.5">
+            <label class="font-semibold text-gray-600 text-[11px]">📍 ទីតាំងដឹកជញ្ជូន</label>
+            <button type="button" onclick="useMyLocation()" class="w-full py-2.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold rounded-xl">📡 ប្រើទីតាំងបច្ចុប្បន្ន (GPS)</button>
+            <div id="mapPicker" class="hidden border rounded-xl overflow-hidden" style="height:160px;"></div>
+            <p id="mapCoords" class="text-[10px] text-gray-400 hidden"></p>
+            <input type="hidden" id="custLat" value=""><input type="hidden" id="custLng" value="">
+          </div>
+
+          <div>
+            <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំង (ស្រេចចិត្ត)</label>
+            <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
+            <div id="locPreview" class="mt-1 hidden"><img id="locPreviewImg" class="w-20 h-20 object-cover rounded-lg border"></div>
+          </div>
         </div>
-        <div>
-          <label class="font-semibold text-gray-600 text-[11px]" id="locLabel">រូបភាពទីតាំង (ស្រេចចិត្ត)</label>
-          <input type="file" id="locImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-          <div id="locPreview" class="mt-1 hidden"><img id="locPreviewImg" class="w-20 h-20 object-cover rounded-lg border"></div>
-        </div>
-        <div class="space-y-1">
+
+        <div class="mx-2 mb-24 bg-white rounded-xl border border-gray-100 p-3 space-y-2 text-xs">
           <p class="font-semibold text-gray-700" id="payLabel">វិធីទូទាត់ប្រាក់ *</p>
-          <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
+          <label class="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer">
             <input type="radio" name="payMethod" value="cod" checked class="accent-emerald-700">
             <span id="payCod">💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)</span>
           </label>
-          <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer hover:bg-gray-50">
+          <label class="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer">
             <input type="radio" name="payMethod" value="khqr" class="accent-emerald-700">
             <span id="payKhqr">📱 ទូទាត់តាម KHQR</span>
           </label>
+          <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
+            <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
+            <img id="khqrImg" class="mx-auto w-36 h-36 object-contain bg-white rounded-lg border" alt="KHQR">
+            <p id="khqrAccountText" class="text-[10px] text-gray-600"></p>
+          </div>
         </div>
-        <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
-          <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
-          <img id="khqrImg" class="mx-auto w-40 h-40 object-contain bg-white rounded-lg border" alt="KHQR">
-          <p id="khqrAccountText" class="text-[10px] text-gray-600"></p>
+      </div>
+
+      <!-- Sticky footer -->
+      <div class="flex-shrink-0 bg-white border-t px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] text-gray-500" id="totalLabel">សរុប៖</p>
+            <p id="cartTotalPrice" class="text-lg font-bold text-orange-600">$0.00</p>
+          </div>
+          <button onclick="checkoutOrder()" class="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm shadow" id="checkoutBtn">បញ្ជាទិញ</button>
         </div>
-        <div class="flex justify-between font-bold text-sm pt-1">
-          <span id="totalLabel">សរុប៖</span><span id="cartTotalPrice" class="text-emerald-700">$0.00</span>
-        </div>
-        <button onclick="checkoutOrder()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl" id="checkoutBtn">បញ្ជាទិញ</button>
       </div>
     </div>
   </div>
@@ -1124,11 +1141,12 @@
         document.getElementById('custLat').value = lat; document.getElementById('custLng').value = lng;
         document.getElementById('mapCoords').innerText = `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         document.getElementById('mapCoords').classList.remove('hidden');
-        const mapEl = document.getElementById('mapPicker'); mapEl.classList.remove('hidden');
+        const mapEl = document.getElementById('mapPicker'); mapEl.classList.remove('hidden'); mapEl.style.height='160px';
         if (mapInstance) mapInstance.remove();
         mapInstance = L.map('mapPicker').setView([lat, lng], 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
         L.marker([lat, lng]).addTo(mapInstance);
+        setTimeout(() => { try { mapInstance.invalidateSize(); } catch(e){} }, 200);
       }, () => alert('Cannot get location'));
     };
 
