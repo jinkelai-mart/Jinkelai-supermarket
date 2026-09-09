@@ -302,18 +302,52 @@
     </div>
   </div>
 
+
+  <!-- PRODUCT DETAIL MODAL -->
+  <div id="productDetailModal" class="fixed inset-0 z-[105] bg-black/50 flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-all duration-200">
+    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="relative">
+        <img id="pdImage" src="" class="w-full h-56 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/400'">
+        <button onclick="closeProductDetail()" class="absolute top-3 right-3 w-8 h-8 bg-black/40 text-white rounded-full font-bold">✕</button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="flex flex-wrap gap-1.5" id="pdBadges"></div>
+        <h2 id="pdName" class="font-bold text-base text-gray-900 leading-snug"></h2>
+        <p id="pdNameAlt" class="text-xs text-gray-500 hidden"></p>
+        <div class="flex items-end gap-2">
+          <span id="pdPrice" class="text-xl font-bold text-emerald-700"></span>
+          <span id="pdOldPrice" class="text-sm text-gray-400 line-through hidden"></span>
+          <span id="pdDiscount" class="text-[11px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold hidden"></span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs bg-gray-50 rounded-xl p-3">
+          <div><span class="text-gray-400" id="pdStockLabel">ស្តុក</span><br><b id="pdStock" class="text-gray-800"></b></div>
+          <div><span class="text-gray-400">Barcode</span><br><b id="pdBarcode" class="text-gray-800 break-all"></b></div>
+          <div class="col-span-2"><span class="text-gray-400" id="pdCatLabel">ប្រភេទ</span><br><b id="pdCategory" class="text-gray-800"></b></div>
+        </div>
+        <div class="flex items-center gap-3 pt-1">
+          <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-2 py-1">
+            <button type="button" onclick="pdChangeQty(-1)" class="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">−</button>
+            <span id="pdQty" class="w-8 text-center font-bold">1</span>
+            <button type="button" onclick="pdChangeQty(1)" class="w-8 h-8 rounded-lg bg-white border font-bold text-emerald-700">+</button>
+          </div>
+          <button onclick="addFromDetail()" id="pdAddBtn" class="flex-1 py-3 bg-emerald-700 text-white font-bold rounded-xl text-sm">+ ទិញ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- CART MODAL -->
   <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex justify-end opacity-0 pointer-events-none transition-all duration-200">
-    <div class="w-full max-w-xs bg-white h-full flex flex-col p-4 shadow-xl overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
+    <div class="w-full max-w-md bg-gray-100 h-full flex flex-col shadow-xl">
+      <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0 z-10">
         <h3 class="font-bold text-sm flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" class="w-5 h-5"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
           <span id="cartTitleText">កន្ត្រកទំនិញ</span>
+          <span id="cartCountLabel" class="text-gray-400 font-normal text-xs"></span>
         </h3>
-        <button onclick="closeCart()" class="text-gray-500 font-bold p-1">✕</button>
+        <button onclick="closeCart()" class="text-gray-500 font-bold text-lg leading-none px-2">✕</button>
       </div>
-      <div id="cartItemsContainer" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs"></div>
-      <div class="border-t pt-2 space-y-2 text-xs">
+      <div id="cartItemsContainer" class="flex-1 overflow-y-auto py-2 px-2 space-y-2 text-xs"></div>
+      <div class="border-t bg-white p-3 space-y-2 text-xs shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <input type="text" id="custName" class="w-full p-2 border rounded-xl" placeholder="ឈ្មោះ *">
         <input type="text" id="custPhone" class="w-full p-2 border rounded-xl" placeholder="លេខទូរស័ព្ទ *">
         <input type="text" id="custAddress" class="w-full p-2 border rounded-xl" placeholder="អាសយដ្ឋាន *">
@@ -926,13 +960,83 @@
             <p class="text-[10px] text-gray-500 mt-0.5">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
             <div class="mt-auto pt-2 flex justify-between items-center">
               <div><span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}</div>
-              <button onclick="window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
+              <button onclick="event.stopPropagation(); window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
             </div>
           </div>`;
+        div.style.cursor = 'pointer';
+        div.onclick = () => openProductDetail(p.id);
         frag.appendChild(div);
       });
       grid.appendChild(frag);
     }
+
+
+    let pdCurrentId = null;
+    let pdQty = 1;
+
+    window.openProductDetail = function(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      pdCurrentId = id;
+      pdQty = 1;
+      document.getElementById('pdQty').innerText = '1';
+      document.getElementById('pdImage').src = p.image || 'https://via.placeholder.com/400';
+      document.getElementById('pdName').innerText = getProductName(p);
+      const alt = [p.name_km, p.name_en, p.name_zh].filter(Boolean).filter(n => n !== getProductName(p));
+      const altEl = document.getElementById('pdNameAlt');
+      if (alt.length) { altEl.innerText = alt.join(' · '); altEl.classList.remove('hidden'); }
+      else altEl.classList.add('hidden');
+      const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
+      document.getElementById('pdPrice').innerText = '$' + Number(finalPrice).toFixed(2);
+      const oldP = document.getElementById('pdOldPrice');
+      const disc = document.getElementById('pdDiscount');
+      if (p.discount > 0) {
+        oldP.innerText = '$' + Number(p.price).toFixed(2); oldP.classList.remove('hidden');
+        disc.innerText = '-' + p.discount + '%'; disc.classList.remove('hidden');
+      } else { oldP.classList.add('hidden'); disc.classList.add('hidden'); }
+      const stockEl = document.getElementById('pdStock');
+      stockEl.innerText = p.stock <= 0 ? t('outOfStock') : String(p.stock);
+      stockEl.className = p.stock <= 0 ? 'text-red-500' : 'text-emerald-700';
+      document.getElementById('pdBarcode').innerText = p.barcode || '—';
+      document.getElementById('pdCategory').innerText = productCatLabel(p) || '—';
+      const saleType = (p.saleType || 'retail').toLowerCase();
+      const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
+      const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
+      document.getElementById('pdBadges').innerHTML = '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>';
+      const btn = document.getElementById('pdAddBtn');
+      btn.disabled = p.stock <= 0;
+      btn.innerText = p.stock <= 0 ? t('outOfStock') : t('buy');
+      btn.className = 'flex-1 py-3 font-bold rounded-xl text-sm ' + (p.stock <= 0 ? 'bg-gray-300 text-gray-500' : 'bg-emerald-700 text-white');
+      document.getElementById('productDetailModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+    window.closeProductDetail = function() {
+      document.getElementById('productDetailModal').classList.add('opacity-0', 'pointer-events-none');
+      pdCurrentId = null;
+    };
+    window.pdChangeQty = function(delta) {
+      const p = products.find(x => x.id === pdCurrentId);
+      const max = p ? (p.stock || 99) : 99;
+      pdQty = Math.max(1, Math.min(max, pdQty + delta));
+      document.getElementById('pdQty').innerText = String(pdQty);
+    };
+    window.addFromDetail = function() {
+      if (!pdCurrentId) return;
+      const p = products.find(x => x.id === pdCurrentId);
+      if (!p || p.stock <= 0) return alert(t('outOfStock'));
+      for (let i = 0; i < pdQty; i++) {
+        const item = cart.find(x => x.id === pdCurrentId);
+        const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
+        const name = getProductName(p);
+        if (item) {
+          if (item.qty >= p.stock) { alert(t('outOfStock')); break; }
+          item.qty++;
+        } else {
+          cart.push({ id: p.id, name, price: finalPrice, qty: 1, barcode: p.barcode || '', image: p.image || '' });
+        }
+      }
+      updateCart();
+      closeProductDetail();
+    };
 
     window.addToCart = function(id) {
       const p = products.find(x => x.id === id);
@@ -942,7 +1046,7 @@
       const name = getProductName(p);
       const barcode = p.barcode || '';
       if (item) { if (item.qty >= p.stock) return alert(t('outOfStock')); item.qty++; }
-      else { cart.push({ id: p.id, name, price: finalPrice, qty: 1, barcode }); }
+      else { cart.push({ id: p.id, name, price: finalPrice, qty: 1, barcode, image: p.image || '' }); }
       updateCart();
     };
     window.changeQty = function(id, delta) {
@@ -963,23 +1067,33 @@
         container.innerHTML = '';
         cart.forEach(i => {
           total += i.price * i.qty; count += i.qty;
+          const img = i.image || 'https://via.placeholder.com/80';
           container.innerHTML += `
-            <div class="border rounded-xl p-2.5 bg-gray-50">
-              <div class="flex justify-between items-start gap-2">
-                <div class="flex-1 min-w-0"><b class="text-xs leading-tight block truncate">${i.name}</b><span class="text-[11px] text-gray-500">$${i.price.toFixed(2)}</span></div>
-                <button onclick="window.removeFromCart('${i.id}')" class="text-red-500 text-[11px] font-bold px-1.5 py-0.5 hover:bg-red-50 rounded">${t('remove')}</button>
-              </div>
-              <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center gap-1.5">
-                  <button onclick="window.changeQty('${i.id}', -1)" class="qty-btn bg-gray-200 hover:bg-gray-300 text-gray-700">−</button>
-                  <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
-                  <button onclick="window.changeQty('${i.id}', 1)" class="qty-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-800">+</button>
+            <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+              <div class="flex gap-3">
+                <img src="${img}" class="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0" onerror="this.src='https://via.placeholder.com/80'">
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between gap-2">
+                    <b class="text-xs leading-snug text-gray-800 line-clamp-2">${i.name}</b>
+                    <button onclick="window.removeFromCart('${i.id}')" class="text-gray-300 hover:text-red-500 text-sm flex-shrink-0">✕</button>
+                  </div>
+                  ${i.barcode ? '<p class="text-[10px] text-gray-400 mt-0.5">🔖 ' + i.barcode + '</p>' : ''}
+                  <div class="flex items-center justify-between mt-2">
+                    <span class="font-bold text-sm text-orange-600">$${i.price.toFixed(2)}</span>
+                    <div class="flex items-center gap-1.5 bg-gray-50 rounded-lg px-1 py-0.5">
+                      <button onclick="window.changeQty('${i.id}', -1)" class="w-7 h-7 rounded-md bg-white border text-gray-600 font-bold text-sm leading-none">−</button>
+                      <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
+                      <button onclick="window.changeQty('${i.id}', 1)" class="w-7 h-7 rounded-md bg-white border text-emerald-700 font-bold text-sm leading-none">+</button>
+                    </div>
+                  </div>
+                  <p class="text-right text-[11px] text-gray-500 mt-1">${t('totalLabel')} <b class="text-gray-800">$${(i.price * i.qty).toFixed(2)}</b></p>
                 </div>
-                <b class="text-emerald-700">$${(i.price * i.qty).toFixed(2)}</b>
               </div>
             </div>`;
         });
       }
+      const countLabel = document.getElementById('cartCountLabel');
+      if (countLabel) countLabel.innerText = count ? '(' + count + ')' : '';
       const badge = document.getElementById('cartBadge');
       if (count > 0) { badge.innerText = count > 99 ? '99+' : count; badge.classList.remove('hidden'); }
       else badge.classList.add('hidden');
