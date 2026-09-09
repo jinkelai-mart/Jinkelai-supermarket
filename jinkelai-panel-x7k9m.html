@@ -2,205 +2,263 @@
 <html lang="km">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>Admin - Jinkelai</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body { font-family: 'Kantumruy Pro', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    .tab-btn { transition: all 0.15s; }
+    .tab-btn.active { background: #047857; color: white; }
+    .tab-btn:not(.active) { background: #f3f4f6; color: #4b5563; }
+    .section-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .order-filter.active { background: #047857; color: white; }
+    .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 700; }
+    .input-field { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 13px; outline: none; transition: border 0.15s; }
+    .input-field:focus { border-color: #047857; box-shadow: 0 0 0 3px rgba(4,120,87,0.1); }
+    .btn-primary { background: #047857; color: white; font-weight: 700; border-radius: 12px; padding: 10px 16px; transition: background 0.15s; }
+    .btn-primary:hover { background: #065f46; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .hidden-section { display: none; }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen font-['Kantumruy_Pro'] flex flex-col">
+<body class="bg-gray-100 text-gray-800 min-h-screen">
 
-  <div id="loginSection" class="fixed inset-0 bg-emerald-900/90 z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
+  <!-- LOGIN -->
+  <div id="loginSection" class="fixed inset-0 bg-emerald-900/95 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-5">
       <div class="text-center">
-        <span class="text-4xl">🛍️🛒</span>
-        <h2 class="text-lg font-bold text-gray-800 mt-2">Jinkelai Admin</h2>
+        <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center text-3xl mb-3">🛍️</div>
+        <h2 class="text-lg font-bold text-gray-800">Jinkelai Admin</h2>
         <p class="text-[11px] text-gray-500 mt-1">Firebase Authentication</p>
       </div>
-      <div class="space-y-3 text-xs">
+      <div class="space-y-3 text-sm">
         <div>
-          <label class="block font-semibold mb-1">Email</label>
-          <input type="email" id="loginEmail" placeholder="Email" value="nhoemvuthy25@gmail.com" class="w-full p-2.5 border rounded-xl" autocomplete="username">
+          <label class="block font-semibold text-gray-600 text-xs mb-1">Email</label>
+          <input type="email" id="loginEmail" placeholder="Email" value="nhoemvuthy25@gmail.com" class="input-field" autocomplete="username">
         </div>
         <div>
-          <label class="block font-semibold mb-1">Password</label>
-          <input type="password" id="loginPass" placeholder="Password" class="w-full p-2.5 border rounded-xl" autocomplete="current-password">
+          <label class="block font-semibold text-gray-600 text-xs mb-1">Password</label>
+          <input type="password" id="loginPass" placeholder="Password" class="input-field" autocomplete="current-password">
         </div>
-        <button onclick="doLogin()" id="loginBtn" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl">ចូលប្រព័ន្ធ / Login</button>
-        <p id="loginError" class="text-center text-red-500 text-[11px] hidden"></p>
+        <button onclick="doLogin()" id="loginBtn" class="btn-primary w-full py-3">ចូលប្រព័ន្ធ / Login</button>
+        <p id="loginError" class="text-center text-red-500 text-xs hidden"></p>
       </div>
     </div>
   </div>
 
-  <div id="adminDashboard" class="hidden flex-1 flex flex-col">
-    <header class="bg-emerald-800 text-white p-4 shadow-md sticky top-0 z-30">
-      <div class="flex justify-between items-center">
-        <h1 class="font-bold text-base">⚙️ Admin Dashboard</h1>
-        <div class="flex items-center gap-2">
-          <button onclick="scrollToOrders()" class="relative bg-white/20 px-3 py-1.5 rounded-full text-xs font-bold">
-            🧾 Order
-            <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
-          </button>
-          <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-xs rounded-lg font-bold">ចាកចេញ</button>
+  <!-- DASHBOARD -->
+  <div id="adminDashboard" class="hidden min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-emerald-800 text-white sticky top-0 z-30 shadow-md">
+      <div class="max-w-4xl mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">⚙️</span>
+            <h1 class="font-bold text-base">Admin Dashboard</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchTab('orders')" class="relative bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full text-xs font-bold transition">
+              🧾 Order
+              <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
+            </button>
+            <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 text-xs rounded-lg font-bold transition">ចាកចេញ</button>
+          </div>
         </div>
       </div>
     </header>
 
-    <main class="max-w-4xl w-full mx-auto p-4 space-y-5 flex-1">
+    <!-- Tab Navigation -->
+    <div class="bg-white border-b sticky top-[52px] z-20 shadow-sm">
+      <div class="max-w-4xl mx-auto px-4 py-2 flex gap-2 overflow-x-auto">
+        <button onclick="switchTab('orders')" id="tab-orders" class="tab-btn active px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">🧾 ការបញ្ជាទិញ</button>
+        <button onclick="switchTab('products')" id="tab-products" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📦 ទំនិញ</button>
+        <button onclick="switchTab('add')" id="tab-add" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">➕ បន្ថែម</button>
+        <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">⚙️ កំណត់</button>
+      </div>
+    </div>
 
-      <!-- ========== ORDERS FIRST (most important) ========== -->
-      <div id="ordersSection" class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
-        <div class="flex justify-between items-center flex-wrap gap-2">
-          <h3 class="font-bold text-sm text-gray-800">🧾 ការបញ្ជាទិញ</h3>
-          <div class="flex gap-1.5 flex-wrap">
-            <button onclick="setOrderFilter('pending')" id="f-pending" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white">⏳ រង់ចាំ</button>
-            <button onclick="setOrderFilter('confirmed')" id="f-confirmed" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">✅ បញ្ជាក់</button>
-            <button onclick="setOrderFilter('all')" id="f-all" class="order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">ទាំងអស់</button>
+    <main class="max-w-4xl w-full mx-auto p-4 space-y-4 flex-1">
+
+      <!-- ========== ORDERS TAB ========== -->
+      <div id="section-orders" class="fade-in">
+        <div class="section-card p-4 space-y-3">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <h3 class="font-bold text-sm text-gray-800">🧾 ការបញ្ជាទិញ</h3>
+            <div class="flex gap-1.5 flex-wrap">
+              <button onclick="setOrderFilter('pending')" id="f-pending" class="order-filter px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-500 text-white">⏳ រង់ចាំ</button>
+              <button onclick="setOrderFilter('confirmed')" id="f-confirmed" class="order-filter px-3 py-1.5 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">✅ បញ្ជាក់</button>
+              <button onclick="setOrderFilter('all')" id="f-all" class="order-filter px-3 py-1.5 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600">ទាំងអស់</button>
+            </div>
           </div>
-        </div>
-        <p id="orderFilterInfo" class="text-[11px] text-amber-700 font-semibold"></p>
-        <div id="ordersList" class="space-y-2 text-xs max-h-[60vh] overflow-y-auto">
-          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
+          <p id="orderFilterInfo" class="text-[11px] text-amber-700 font-semibold"></p>
+          <div id="ordersList" class="space-y-2.5 text-xs max-h-[70vh] overflow-y-auto">
+            <p class="text-center text-gray-400 py-8">កំពុងផ្ទុក...</p>
+          </div>
         </div>
       </div>
 
-      <!-- ========== PRODUCTS ========== -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
-        <div class="space-y-2 text-xs">
-          <div>
-            <label class="font-semibold text-gray-600">ឈ្មោះភាសាខ្មែរ (Khmer) *</label>
-            <input type="text" id="pNameKm" placeholder="ឧទាហរណ៍៖ ស្ពៃបៃតង" class="w-full p-2 border rounded-xl mt-1">
+      <!-- ========== PRODUCTS LIST TAB ========== -->
+      <div id="section-products" class="hidden-section fade-in">
+        <div class="section-card p-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-sm text-gray-800">📦 បញ្ជីទំនិញ</h3>
+            <button onclick="switchTab('add')" class="btn-primary text-xs px-3 py-1.5">+ បន្ថែម</button>
           </div>
-          <div>
-            <label class="font-semibold text-gray-600">Name in English</label>
-            <input type="text" id="pNameEn" placeholder="e.g. Green Bok Choy" class="w-full p-2 border rounded-xl mt-1">
+          <div id="adminProductList" class="space-y-2.5 text-xs">
+            <p class="text-center text-gray-400 py-8">កំពុងផ្ទុក...</p>
           </div>
-          <div>
-            <label class="font-semibold text-gray-600">中文名称 (Chinese)</label>
-            <input type="text" id="pNameZh" placeholder="例如：青菜" class="w-full p-2 border rounded-xl mt-1">
-          </div>
+        </div>
+      </div>
 
-          <!-- Category + Sale Type -->
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600">ប្រភេទទំនិញ *</label>
-              <select id="pCategory" class="w-full p-2 border rounded-xl mt-1">
-                <option value="">-- ជ្រើសប្រភេទ --</option>
-                <option value="ភេសជ្ជៈ">ភេសជ្ជៈ</option>
-                <option value="បៀរ">បៀរ</option>
-                <option value="ស្រា">ស្រា</option>
-                <option value="បន្លែ">បន្លែ</option>
-                <option value="ផ្លែឈើ">ផ្លែឈើ</option>
-                <option value="សាច់">សាច់</option>
-                <option value="ត្រី">ត្រី</option>
-                <option value="អាហារស្ងួត">អាហារស្ងួត</option>
-                <option value="គ្រឿងទេស">គ្រឿងទេស</option>
-                <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់</option>
-                <option value="ផ្សេងៗ">ផ្សេងៗ</option>
-              </select>
-              <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទផ្ទាល់..." class="w-full p-2 border rounded-xl mt-1 text-[11px]">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600">ប្រភេទលក់ *</label>
-              <select id="pSaleType" class="w-full p-2 border rounded-xl mt-1">
-                <option value="retail">លក់រាយ (Retail)</option>
-                <option value="wholesale">លក់ដុំ (Wholesale)</option>
-              </select>
-            </div>
-          </div>
+      <!-- ========== ADD / EDIT PRODUCT TAB ========== -->
+      <div id="section-add" class="hidden-section fade-in">
+        <div class="section-card p-4 space-y-4">
+          <h3 class="font-bold text-sm text-gray-800" id="formTitle">➕ បន្ថែមទំនិញថ្មី</h3>
 
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600">តម្លៃ ($) *</label>
-              <input type="number" id="pPrice" step="0.01" placeholder="1.80" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600">បញ្ចុះតម្លៃ (%)</label>
-              <input type="number" id="pDiscount" placeholder="0" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600">ស្តុក *</label>
-              <input type="number" id="pStock" placeholder="50" class="w-full p-2 border rounded-xl mt-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600">Barcode</label>
-              <div class="flex gap-1 mt-1">
-                <input type="text" id="pBarcode" placeholder="វាយ ឬស្កែន" class="flex-1 p-2 border rounded-xl">
-                <button type="button" onclick="startBarcodeScan()" class="bg-blue-600 text-white px-3 rounded-xl text-xs font-bold whitespace-nowrap">📷 ស្កែន</button>
+          <div class="space-y-3 text-xs">
+            <!-- Names -->
+            <div class="grid gap-3">
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">ឈ្មោះភាសាខ្មែរ *</label>
+                <input type="text" id="pNameKm" placeholder="ឧ. ស្ពៃបៃតង" class="input-field">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="font-semibold text-gray-600 block mb-1">English</label>
+                  <input type="text" id="pNameEn" placeholder="e.g. Green Bok Choy" class="input-field">
+                </div>
+                <div>
+                  <label class="font-semibold text-gray-600 block mb-1">中文</label>
+                  <input type="text" id="pNameZh" placeholder="例如：青菜" class="input-field">
+                </div>
               </div>
             </div>
-          </div>
 
-          <div id="scannerModal" class="fixed inset-0 z-[200] bg-black/80 hidden flex-col items-center justify-center p-4">
-            <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3">
-              <div class="flex justify-between items-center">
-                <h3 class="font-bold text-sm">📷 ស្កែន Barcode</h3>
-                <button onclick="stopBarcodeScan()" class="text-gray-500 font-bold text-lg">✕</button>
+            <!-- Category + Sale Type -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">ប្រភេទទំនិញ *</label>
+                <select id="pCategory" class="input-field">
+                  <option value="">-- ជ្រើស --</option>
+                  <option value="ភេសជ្ជៈ">ភេសជ្ជៈ</option>
+                  <option value="បៀរ">បៀរ</option>
+                  <option value="ស្រា">ស្រា</option>
+                  <option value="បន្លែ">បន្លែ</option>
+                  <option value="ផ្លែឈើ">ផ្លែឈើ</option>
+                  <option value="សាច់">សាច់</option>
+                  <option value="ត្រី">ត្រី</option>
+                  <option value="អាហារស្ងួត">អាហារស្ងួត</option>
+                  <option value="គ្រឿងទេស">គ្រឿងទេស</option>
+                  <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់</option>
+                  <option value="ផ្សេងៗ">ផ្សេងៗ</option>
+                </select>
+                <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទផ្ទាល់..." class="input-field mt-1.5 text-[11px]">
               </div>
-              <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
-              <p class="text-center text-xs text-gray-500">ដាក់ Barcode នៅកណ្តាលកាមេរ៉ា</p>
-              <button onclick="stopBarcodeScan()" class="w-full py-2 bg-gray-200 rounded-xl font-bold text-xs">បិទ</button>
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">ប្រភេទលក់ *</label>
+                <select id="pSaleType" class="input-field">
+                  <option value="retail">លក់រាយ (Retail)</option>
+                  <option value="wholesale">លក់ដុំ (Wholesale)</option>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label class="font-semibold text-gray-600">រូបភាពទំនិញ (ថត/ជ្រើសរូប)</label>
-            <input type="file" id="pImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-            <div id="imagePreview" class="mt-2 hidden">
-              <img id="previewImg" class="w-24 h-24 object-cover rounded-lg border">
+            <!-- Price + Discount + Stock -->
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">តម្លៃ ($) *</label>
+                <input type="number" id="pPrice" step="0.01" placeholder="1.80" class="input-field">
+              </div>
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">បញ្ចុះ (%)</label>
+                <input type="number" id="pDiscount" placeholder="0" class="input-field">
+              </div>
+              <div>
+                <label class="font-semibold text-gray-600 block mb-1">ស្តុក *</label>
+                <input type="number" id="pStock" placeholder="50" class="input-field">
+              </div>
             </div>
-            <p class="text-[10px] text-emerald-600 mt-1">✅ Upload តាម ImgBB — ថត ឬជ្រើសរូបភ្លាមៗ</p>
-          </div>
 
-          <input type="hidden" id="editId" value="">
-          <div class="flex gap-2">
-            <button onclick="saveProduct()" class="flex-1 bg-emerald-700 text-white font-bold py-2.5 rounded-xl" id="saveBtn">រក្សាទុកទំនិញ</button>
-            <button onclick="cancelEdit()" id="cancelBtn" class="hidden bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl">បោះបង់</button>
+            <!-- Barcode -->
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">Barcode</label>
+              <div class="flex gap-2">
+                <input type="text" id="pBarcode" placeholder="វាយ ឬស្កែន" class="input-field flex-1">
+                <button type="button" onclick="startBarcodeScan()" class="bg-blue-600 text-white px-4 rounded-xl text-xs font-bold whitespace-nowrap">📷 ស្កែន</button>
+              </div>
+            </div>
+
+            <!-- Image -->
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">រូបភាពទំនិញ</label>
+              <input type="file" id="pImageFile" accept="image/*" class="input-field text-xs">
+              <div id="imagePreview" class="mt-2 hidden">
+                <img id="previewImg" class="w-24 h-24 object-cover rounded-xl border">
+              </div>
+              <p class="text-[10px] text-emerald-600 mt-1">✅ Upload តាម ImgBB</p>
+            </div>
+
+            <input type="hidden" id="editId" value="">
+            <div class="flex gap-2 pt-1">
+              <button onclick="saveProduct()" class="btn-primary flex-1 py-3" id="saveBtn">រក្សាទុកទំនិញ</button>
+              <button onclick="cancelEdit()" id="cancelBtn" class="hidden bg-gray-200 text-gray-700 font-bold py-3 px-5 rounded-xl">បោះបង់</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">📦 បញ្ជីទំនិញ (Firebase)</h3>
-        <div id="adminProductList" class="space-y-2 text-xs">
-          <p class="text-center text-gray-400 py-4">កំពុងផ្ទុក...</p>
-        </div>
-      </div>
-
-      <!-- KHQR Settings -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">📱 កំណត់ KHQR (សម្រាប់ទូទាត់)</h3>
-        <div class="space-y-2 text-xs">
-          <div>
-            <label class="font-semibold text-gray-600">រូបភាព KHQR (ថត/ជ្រើសរូប)</label>
-            <input type="file" id="khqrImageFile" accept="image/*" class="w-full p-2 border rounded-xl mt-1 text-xs">
-            <div id="khqrPreview" class="mt-2 hidden">
-              <img id="khqrPreviewImg" class="w-32 h-32 object-contain rounded-lg border bg-white">
+      <!-- ========== SETTINGS TAB ========== -->
+      <div id="section-settings" class="hidden-section fade-in space-y-4">
+        <!-- KHQR -->
+        <div class="section-card p-4 space-y-3">
+          <h3 class="font-bold text-sm text-gray-800">📱 កំណត់ KHQR</h3>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">រូបភាព KHQR</label>
+              <input type="file" id="khqrImageFile" accept="image/*" class="input-field text-xs">
+              <div id="khqrPreview" class="mt-2 hidden">
+                <img id="khqrPreviewImg" class="w-32 h-32 object-contain rounded-xl border bg-white">
+              </div>
             </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">លេខគណនី / ឈ្មោះគណនី</label>
+              <input type="text" id="khqrAccount" placeholder="ឧ. ABA / Wing / លេខគណនី" class="input-field">
+            </div>
+            <button onclick="saveKhqrSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុក KHQR</button>
+            <p id="khqrStatus" class="text-center text-[11px] text-gray-500"></p>
           </div>
-          <div>
-            <label class="font-semibold text-gray-600">លេខគណនី / ឈ្មោះគណនី (ស្រេចចិត្ត)</label>
-            <input type="text" id="khqrAccount" placeholder="ឧ. ABA / Wing / លេខគណនី" class="w-full p-2 border rounded-xl mt-1">
-          </div>
-          <button onclick="saveKhqrSettings()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl">រក្សាទុក KHQR</button>
-          <p id="khqrStatus" class="text-center text-[11px] text-gray-500"></p>
         </div>
-      </div>
 
-      <!-- Password -->
-      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
-        <h3 class="font-bold text-xs text-gray-700">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="p-2 border rounded-xl">
-          <button onclick="changePassword()" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-xl">រក្សាទុក</button>
+        <!-- Password -->
+        <div class="section-card p-4 space-y-3">
+          <h3 class="font-bold text-sm text-gray-800">🔑 ផ្លាស់ប្តូរលេខសម្ងាត់</h3>
+          <div class="space-y-3 text-xs">
+            <input type="password" id="newPass" placeholder="លេខសម្ងាត់ថ្មី" class="input-field">
+            <button onclick="changePassword()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុកលេខសម្ងាត់</button>
+            <p id="passStatus" class="text-center text-[11px] text-gray-500"></p>
+          </div>
         </div>
-        <p id="passStatus" class="text-center text-[11px] text-gray-500"></p>
       </div>
 
     </main>
+  </div>
+
+  <!-- Barcode Scanner Modal -->
+  <div id="scannerModal" class="fixed inset-0 z-[200] bg-black/80 hidden flex-col items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-sm">📷 ស្កែន Barcode</h3>
+        <button onclick="stopBarcodeScan()" class="text-gray-500 font-bold text-lg">✕</button>
+      </div>
+      <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
+      <p class="text-center text-xs text-gray-500">ដាក់ Barcode នៅកណ្តាលកាមេរ៉ា</p>
+      <button onclick="stopBarcodeScan()" class="w-full py-2.5 bg-gray-200 rounded-xl font-bold text-xs">បិទ</button>
+    </div>
   </div>
 
   <script type="module">
@@ -218,7 +276,6 @@
       appId: "1:345735387486:web:44fc724756c3b77a7617cf",
       measurementId: "G-P0G4RNKKMG"
     };
-
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
 
     const app = initializeApp(firebaseConfig);
@@ -230,30 +287,37 @@
     let orders = [];
     let selectedFile = null;
     let selectedKhqrFile = null;
-    let orderFilter = 'pending'; // pending | confirmed | all
+    let orderFilter = 'pending';
     let lastOrderCount = 0;
     let knownOrderIds = new Set();
+    let html5QrCode = null;
 
-    // Notification sound (beep)
+    // ========== UPLOAD ==========
+    async function uploadToImgBB(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success && data.data && data.data.url) return data.data.url;
+      throw new Error((data.error && data.error.message) || 'ImgBB upload failed');
+    }
+
+    // ========== NOTIFICATIONS ==========
     function playNotifySound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.value = 0.35;
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880; gain.gain.value = 0.35;
         osc.start();
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
         osc.stop(ctx.currentTime + 0.4);
         setTimeout(() => {
           const osc2 = ctx.createOscillator();
           const gain2 = ctx.createGain();
-          osc2.connect(gain2);
-          gain2.connect(ctx.destination);
-          osc2.frequency.value = 1175;
-          gain2.gain.value = 0.35;
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.frequency.value = 1175; gain2.gain.value = 0.35;
           osc2.start();
           gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
           osc2.stop(ctx.currentTime + 0.4);
@@ -261,7 +325,6 @@
       } catch (e) {}
     }
 
-    // Voice announcement (និយាយជាសំឡេង)
     function speakNewOrder(order) {
       try {
         if (!window.speechSynthesis) return;
@@ -271,24 +334,15 @@
         const pay = order.paymentMethod === 'khqr' ? 'ខេអេចគ្យូអា' : 'ស៊ីអូឌី';
         const text = `មានការបញ្ជាទិញថ្មី! ពី ${name} ចំនួន ${total} ដុល្លារ បង់តាម ${pay}`;
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'km-KH';
-        u.rate = 0.9;
-        u.pitch = 1;
-        // Fallback to English if Khmer voice not available
+        u.lang = 'km-KH'; u.rate = 0.9;
         const voices = window.speechSynthesis.getVoices();
         const kmVoice = voices.find(v => v.lang.startsWith('km'));
         if (kmVoice) u.voice = kmVoice;
-        else {
-          u.lang = 'en-US';
-          u.text = `New order from ${name}, total ${total} dollars, payment ${order.paymentMethod || 'COD'}`;
-        }
+        else { u.lang = 'en-US'; u.text = `New order from ${name}, total ${total} dollars`; }
         window.speechSynthesis.speak(u);
-      } catch (e) {
-        console.error('Speech error', e);
-      }
+      } catch (e) {}
     }
 
-    // Browser notification
     function showBrowserNotify(order) {
       try {
         if (!('Notification' in window)) return;
@@ -304,7 +358,6 @@
       } catch (e) {}
     }
 
-    // Toast popup
     function showOrderToast(order) {
       let toast = document.getElementById('orderToast');
       if (!toast) {
@@ -327,199 +380,31 @@
           showOrderToast(o);
         }, i * 1500);
       });
-      // Flash page title
       const orig = document.title;
       document.title = '🔔 Order ថ្មី! — Admin';
       setTimeout(() => { document.title = orig; }, 5000);
-      // Auto scroll to orders
-      setTimeout(() => {
-        document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
-        setOrderFilter('pending');
-      }, 300);
+      setTimeout(() => switchTab('orders'), 500);
     }
 
-    window.scrollToOrders = function() {
-      document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    window.setOrderFilter = function(f) {
-      orderFilter = f;
-      ['pending', 'confirmed', 'all'].forEach(x => {
-        const btn = document.getElementById('f-' + x);
-        if (!btn) return;
-        if (x === f) {
-          btn.className = 'order-filter px-2.5 py-1 rounded-full text-[11px] font-bold ' +
-            (x === 'pending' ? 'bg-amber-500 text-white' : x === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-white');
-        } else {
-          btn.className = 'order-filter px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-200 text-gray-600';
-        }
+    // ========== TABS ==========
+    window.switchTab = function(tab) {
+      ['orders', 'products', 'add', 'settings'].forEach(t => {
+        const sec = document.getElementById('section-' + t);
+        const btn = document.getElementById('tab-' + t);
+        if (sec) sec.classList.toggle('hidden-section', t !== tab);
+        if (btn) btn.classList.toggle('active', t === tab);
       });
-      renderOrders();
+      window.scrollTo(0, 0);
     };
 
-    async function uploadToImgBB(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (data.success && data.data && data.data.url) {
-        return data.data.url;
-      }
-      throw new Error((data.error && data.error.message) || 'ImgBB upload failed');
-    }
+    window.scrollToOrders = function() { switchTab('orders'); };
 
-    document.getElementById('pImageFile')?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          document.getElementById('previewImg').src = ev.target.result;
-          document.getElementById('imagePreview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    document.getElementById('khqrImageFile')?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedKhqrFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          document.getElementById('khqrPreviewImg').src = ev.target.result;
-          document.getElementById('khqrPreview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    async function loadKhqrSettings() {
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'khqr'));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.image) {
-            document.getElementById('khqrPreviewImg').src = data.image;
-            document.getElementById('khqrPreview').classList.remove('hidden');
-          }
-          if (data.account) document.getElementById('khqrAccount').value = data.account;
-          document.getElementById('khqrStatus').innerText = '✅ មាន KHQR រួចហើយ';
-        }
-      } catch (e) { console.error(e); }
-    }
-
-    window.saveKhqrSettings = async function() {
-      if (!auth.currentUser) return alert('សូម Login មុន!');
-      const account = document.getElementById('khqrAccount').value.trim();
-      const statusEl = document.getElementById('khqrStatus');
-      statusEl.innerText = 'កំពុងរក្សាទុក...';
-      try {
-        let imageUrl = '';
-        if (selectedKhqrFile) {
-          statusEl.innerText = 'កំពុង Upload រូប...';
-          imageUrl = await uploadToImgBB(selectedKhqrFile);
-        } else {
-          const snap = await getDoc(doc(db, 'settings', 'khqr'));
-          if (snap.exists() && snap.data().image) imageUrl = snap.data().image;
-        }
-        await setDoc(doc(db, 'settings', 'khqr'), {
-          image: imageUrl, account: account, updatedAt: serverTimestamp()
-        }, { merge: true });
-        statusEl.innerText = '🎉 រក្សាទុក KHQR ជោគជ័យ!';
-        selectedKhqrFile = null;
-        document.getElementById('khqrImageFile').value = '';
-        if (imageUrl) {
-          document.getElementById('khqrPreviewImg').src = imageUrl;
-          document.getElementById('khqrPreview').classList.remove('hidden');
-        }
-      } catch (e) {
-        console.error(e);
-        statusEl.innerText = '❌ បរាជ័យ: ' + e.message;
-      }
-    };
-
-    let html5QrCode = null;
-    window.startBarcodeScan = function() {
-      const modal = document.getElementById('scannerModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 150 } },
-        (decodedText) => {
-          document.getElementById('pBarcode').value = decodedText;
-          stopBarcodeScan();
-          alert("✅ ស្កែនបាន៖ " + decodedText);
-        },
-        () => {}
-      ).catch((err) => {
-        alert("មិនអាចបើកកាមេរ៉ា៖ " + err);
-        stopBarcodeScan();
-      });
-    };
-    window.stopBarcodeScan = function() {
-      if (html5QrCode) {
-        html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(() => {});
-      }
-      const modal = document.getElementById('scannerModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    };
-
-    onSnapshot(collection(db, 'products'), (snapshot) => {
-      products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (!document.getElementById('adminDashboard').classList.contains('hidden')) renderAdminList();
-    }, (err) => {
-      console.error(err);
-      document.getElementById('adminProductList').innerHTML = '<p class="text-red-500 text-center">Firestore Error / Rules</p>';
-    });
-
-    onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
-      const newOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Detect brand-new orders for notification + voice
-      if (knownOrderIds.size > 0) {
-        const brandNew = newOrders.filter(o => !knownOrderIds.has(o.id));
-        if (brandNew.length > 0) {
-          notifyNewOrders(brandNew);
-        }
-      }
-      newOrders.forEach(o => knownOrderIds.add(o.id));
-      orders = newOrders;
-      updatePendingBadge();
-      if (!document.getElementById('adminDashboard').classList.contains('hidden')) renderOrders();
-    });
-
-    function updatePendingBadge() {
-      const pending = orders.filter(o =>
-        o.status === 'pending_payment' || o.status === 'new' || !o.status
-      ).length;
-      const badge = document.getElementById('pendingBadge');
-      if (!badge) return;
-      if (pending > 0) {
-        badge.innerText = pending > 99 ? '99+' : pending;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
-
+    // ========== AUTH ==========
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
-        renderAdminList();
-        renderOrders();
-        loadKhqrSettings();
-        // Request browser notification permission
-        if ('Notification' in window && Notification.permission === 'default') {
-          Notification.requestPermission();
-        }
-        // Preload speech voices
+        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
         if (window.speechSynthesis) window.speechSynthesis.getVoices();
       } else {
         document.getElementById('loginSection').classList.remove('hidden');
@@ -532,37 +417,24 @@
       const p = document.getElementById('loginPass').value.trim();
       const errEl = document.getElementById('loginError');
       const btn = document.getElementById('loginBtn');
-      if (!e || !p) {
-        errEl.innerText = 'សូមបញ្ចូល Email និង Password!';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      btn.disabled = true;
-      btn.innerText = 'កំពុងចូល...';
-      errEl.classList.add('hidden');
+      if (!e || !p) { errEl.innerText = 'សូមបញ្ចូល Email និង Password!'; errEl.classList.remove('hidden'); return; }
+      btn.disabled = true; btn.innerText = 'កំពុងចូល...'; errEl.classList.add('hidden');
       try {
         await signInWithEmailAndPassword(auth, e, p);
       } catch (err) {
-        console.error(err);
         let msg = 'Email ឬ Password មិនត្រឹមត្រូវ!';
         if (err.code === 'auth/user-not-found') msg = 'មិនមាន User នេះ!';
         if (err.code === 'auth/wrong-password') msg = 'Password មិនត្រឹមត្រូវ!';
         if (err.code === 'auth/invalid-credential') msg = 'Email ឬ Password មិនត្រឹមត្រូវ!';
         if (err.code === 'auth/too-many-requests') msg = 'ព្យាយាមច្រើនពេក សូមរង់ចាំ!';
-        errEl.innerText = msg;
-        errEl.classList.remove('hidden');
+        errEl.innerText = msg; errEl.classList.remove('hidden');
       } finally {
-        btn.disabled = false;
-        btn.innerText = 'ចូលប្រព័ន្ធ / Login';
+        btn.disabled = false; btn.innerText = 'ចូលប្រព័ន្ធ / Login';
       }
     };
 
     window.doLogout = async function() {
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.error(e);
-      }
+      try { await signOut(auth); } catch (e) { console.error(e); }
     };
 
     window.changePassword = async function() {
@@ -576,7 +448,6 @@
         document.getElementById('newPass').value = '';
         statusEl.innerText = '🎉 ប្តូរលេខសម្ងាត់ជោគជ័យ!';
       } catch (e) {
-        console.error(e);
         statusEl.innerText = '❌ បរាជ័យ: ' + (e.message || e.code);
         if (e.code === 'auth/requires-recent-login') {
           statusEl.innerText = '❌ សូម Logout រួច Login ឡើងវិញ មុនផ្លាស់ប្តូរ Password';
@@ -584,43 +455,22 @@
       }
     };
 
-    function renderAdminList() {
-      const container = document.getElementById('adminProductList');
-      container.innerHTML = products.length ? '' : '<p class="text-center text-gray-400 py-4">គ្មានទំនិញ (បន្ថែមខាងលើ)</p>';
-      products.forEach((p) => {
-        const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
-        const nameKm = p.name_km || p.name || '—';
-        const nameEn = p.name_en || '';
-        const nameZh = p.name_zh || '';
-        const saleType = (p.saleType || 'retail') === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ';
-        const saleColor = (p.saleType || 'retail') === 'wholesale' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
-        const cat = p.category || '—';
-        container.innerHTML += `
-          <div class="flex flex-col sm:flex-row items-start justify-between p-3 border rounded-xl gap-2 ${p.active ? 'bg-white' : 'bg-gray-100 opacity-60'}">
-            <div class="flex items-start gap-3 w-full">
-              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-14 h-14 object-cover rounded-lg border flex-shrink-0" onerror="this.src='https://via.placeholder.com/150'">
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-gray-800 text-sm">${nameKm}</h4>
-                ${nameEn ? '<p class="text-[11px] text-gray-500">' + nameEn + '</p>' : ''}
-                ${nameZh ? '<p class="text-[11px] text-gray-500">' + nameZh + '</p>' : ''}
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <span class="text-[10px] px-1.5 py-0.5 rounded ${saleColor}">${saleType}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${cat}</span>
-                </div>
-                <div class="text-[11px] text-gray-500 mt-1">
-                  $${finalPrice} ${p.discount > 0 ? '(-' + p.discount + '%)' : ''} · 
-                  ស្តុក: <b class="${p.stock <= 0 ? 'text-red-500' : ''}">${p.stock <= 0 ? 'អស់' : p.stock}</b>
-                  ${p.barcode ? ' · <span class="text-blue-600">' + p.barcode + '</span>' : ''}
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
-              <button onclick="window.editProduct('${p.id}')" class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">✏️ កែ</button>
-              <button onclick="window.toggleActive('${p.id}')" class="px-2 py-1 rounded text-[10px] font-bold ${p.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-300 text-gray-600'}">${p.active ? '👁️' : '🙈'}</button>
-              <button onclick="window.deleteProduct('${p.id}')" class="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px] font-bold">🗑️</button>
-            </div>
-          </div>`;
+    // ========== ORDERS ==========
+    window.setOrderFilter = function(f) {
+      orderFilter = f;
+      ['pending', 'confirmed', 'all'].forEach(x => {
+        const btn = document.getElementById('f-' + x);
+        if (btn) {
+          btn.className = 'order-filter px-3 py-1.5 rounded-full text-[11px] font-bold ' +
+            (x === f ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-600');
+          if (x === 'pending' && f === 'pending') btn.className = 'order-filter px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-500 text-white';
+        }
       });
+      renderOrders();
+    };
+
+    function isPending(o) {
+      return o.status === 'pending_payment' || o.status === 'new' || !o.status;
     }
 
     function getStatusLabel(status) {
@@ -636,8 +486,16 @@
       return map[status] || { text: '⏳ រង់ចាំ', cls: 'bg-amber-100 text-amber-800' };
     }
 
-    function isPending(o) {
-      return o.status === 'pending_payment' || o.status === 'new' || !o.status;
+    function updatePendingBadge() {
+      const pending = orders.filter(isPending).length;
+      const badge = document.getElementById('pendingBadge');
+      if (!badge) return;
+      if (pending > 0) {
+        badge.innerText = pending > 99 ? '99+' : pending;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
     }
 
     function renderOrders() {
@@ -649,7 +507,7 @@
         list = orders.filter(isPending);
         info.innerText = list.length ? `មាន ${list.length} ការបញ្ជាទិញរង់ចាំបញ្ជាក់` : '✅ គ្មានការបញ្ជាទិញរង់ចាំ';
       } else if (orderFilter === 'confirmed') {
-        list = orders.filter(o => o.status === 'confirmed' || o.status === 'paid' || o.status === 'processing' || o.status === 'delivered');
+        list = orders.filter(o => ['confirmed','paid','processing','delivered'].includes(o.status));
         info.innerText = `បង្ហាញ ${list.length} ការបញ្ជាទិញដែលបានបញ្ជាក់`;
       } else {
         list = orders;
@@ -657,7 +515,7 @@
       }
 
       if (!list.length) {
-        container.innerHTML = '<p class="text-center text-gray-400 py-6">មិនមានការបញ្ជាទិញក្នុងតម្រងនេះ</p>';
+        container.innerHTML = '<p class="text-center text-gray-400 py-8">មិនមានការបញ្ជាទិញក្នុងតម្រងនេះ</p>';
         return;
       }
 
@@ -671,24 +529,24 @@
         const borderCls = pending ? 'border-amber-400 border-2 bg-amber-50' : 'border bg-gray-50';
 
         container.innerHTML += `
-          <div class="p-3 rounded-xl ${borderCls}">
+          <div class="p-3.5 rounded-xl ${borderCls}">
             <div class="flex justify-between items-start gap-2">
               <div class="flex-1 min-w-0">
                 <p class="font-bold text-gray-800 text-sm">${o.customer?.name || '—'} · <a href="tel:${o.customer?.phone || ''}" class="text-blue-600">${o.customer?.phone || ''}</a></p>
-                <p class="text-[11px] text-gray-500">${o.customer?.address || ''}</p>
-                <p class="text-[11px] mt-1 font-medium">${itemsText}</p>
+                <p class="text-[11px] text-gray-500 mt-0.5">${o.customer?.address || ''}</p>
+                <p class="text-[11px] mt-1.5 font-medium text-gray-700">${itemsText}</p>
                 <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
-                ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline block">📷 រូបទីតាំង</a>' : ''}
+                ${o.locationImage ? '<a href="' + o.locationImage + '" target="_blank" class="text-[10px] text-blue-600 underline block mt-0.5">📷 រូបទីតាំង</a>' : ''}
                 ${o.location && o.location.lat ? '<a href="https://maps.google.com/?q=' + o.location.lat + ',' + o.location.lng + '" target="_blank" class="text-[10px] text-blue-600 underline block">🗺 បើក Map</a>' : ''}
               </div>
               <div class="text-right space-y-1.5 shrink-0">
                 <p class="font-bold text-emerald-700 text-sm">$${Number(o.total || 0).toFixed(2)}</p>
-                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${st.cls}">${st.text}</span>
-                <div class="flex flex-col gap-1 mt-1">
-                  ${pending ? `<button onclick="window.updateOrderStatus('${o.id}','confirmed')" class="text-[11px] px-2 py-1.5 bg-emerald-600 text-white rounded-lg font-bold shadow">✅ បញ្ជាក់បង់ប្រាក់</button>` : ''}
-                  <button onclick="window.updateOrderStatus('${o.id}','processing')" class="text-[10px] px-2 py-1 bg-blue-100 text-blue-800 rounded font-bold">🚚 កំពុងដឹក</button>
-                  <button onclick="window.updateOrderStatus('${o.id}','delivered')" class="text-[10px] px-2 py-1 bg-gray-200 text-gray-700 rounded font-bold">📦 ដឹករួច</button>
-                  <button onclick="window.updateOrderStatus('${o.id}','cancelled')" class="text-[10px] px-2 py-1 bg-red-100 text-red-700 rounded font-bold">❌ បោះបង់</button>
+                <span class="status-badge ${st.cls}">${st.text}</span>
+                <div class="flex flex-col gap-1 mt-1.5">
+                  ${pending ? `<button onclick="window.updateOrderStatus('${o.id}','confirmed')" class="text-[11px] px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg font-bold shadow">✅ បញ្ជាក់បង់ប្រាក់</button>` : ''}
+                  <button onclick="window.updateOrderStatus('${o.id}','processing')" class="text-[10px] px-2 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold">🚚 កំពុងដឹក</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','delivered')" class="text-[10px] px-2 py-1 bg-gray-200 text-gray-700 rounded-lg font-bold">📦 ដឹករួច</button>
+                  <button onclick="window.updateOrderStatus('${o.id}','cancelled')" class="text-[10px] px-2 py-1 bg-red-100 text-red-700 rounded-lg font-bold">❌ បោះបង់</button>
                 </div>
               </div>
             </div>
@@ -705,6 +563,50 @@
       }
     };
 
+    // ========== PRODUCTS ==========
+    function renderAdminList() {
+      const container = document.getElementById('adminProductList');
+      if (!products.length) {
+        container.innerHTML = '<p class="text-center text-gray-400 py-8">គ្មានទំនិញ (បន្ថែមនៅ Tab ➕)</p>';
+        return;
+      }
+      container.innerHTML = '';
+      products.forEach((p) => {
+        const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
+        const nameKm = p.name_km || p.name || '—';
+        const nameEn = p.name_en || '';
+        const nameZh = p.name_zh || '';
+        const saleType = (p.saleType || 'retail') === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ';
+        const saleColor = (p.saleType || 'retail') === 'wholesale' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
+        const cat = p.category || '—';
+        container.innerHTML += `
+          <div class="flex flex-col sm:flex-row items-start justify-between p-3.5 border rounded-xl gap-2 ${p.active !== false ? 'bg-white' : 'bg-gray-100 opacity-60'}">
+            <div class="flex items-start gap-3 w-full">
+              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-14 h-14 object-cover rounded-xl border flex-shrink-0" onerror="this.src='https://via.placeholder.com/150'">
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-gray-800 text-sm">${nameKm}</h4>
+                ${nameEn ? '<p class="text-[11px] text-gray-500">' + nameEn + '</p>' : ''}
+                ${nameZh ? '<p class="text-[11px] text-gray-500">' + nameZh + '</p>' : ''}
+                <div class="flex flex-wrap gap-1 mt-1.5">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-md ${saleColor} font-semibold">${saleType}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-semibold">${cat}</span>
+                </div>
+                <div class="text-[11px] text-gray-500 mt-1">
+                  $${finalPrice} ${p.discount > 0 ? '(-' + p.discount + '%)' : ''} · 
+                  ស្តុក: <b class="${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? 'អស់' : p.stock}</b>
+                  ${p.barcode ? ' · <span class="text-blue-600">' + p.barcode + '</span>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
+              <button onclick="window.editProduct('${p.id}')" class="px-2.5 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">✏️ កែ</button>
+              <button onclick="window.toggleActive('${p.id}')" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold ${p.active !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-300 text-gray-600'}">${p.active !== false ? '👁️' : '🙈'}</button>
+              <button onclick="window.deleteProduct('${p.id}')" class="px-2.5 py-1.5 bg-red-100 text-red-600 rounded-lg text-[10px] font-bold">🗑️</button>
+            </div>
+          </div>`;
+      });
+    }
+
     window.saveProduct = async function() {
       if (!auth.currentUser) return alert('សូម Login មុន!');
       const name_km = document.getElementById('pNameKm').value.trim();
@@ -716,8 +618,6 @@
       if (isNaN(stock) || stock < 0) stock = 0;
       const barcode = document.getElementById('pBarcode').value.trim();
       const editId = document.getElementById('editId').value;
-
-      // Category: prefer custom if filled, else select
       let category = document.getElementById('pCategoryCustom').value.trim();
       if (!category) category = document.getElementById('pCategory').value.trim();
       const saleType = document.getElementById('pSaleType').value || 'retail';
@@ -728,28 +628,19 @@
 
       const btn = document.getElementById('saveBtn');
       const oldText = btn.innerText;
-      btn.innerText = 'កំពុងរក្សាទុក...';
-      btn.disabled = true;
+      btn.innerText = 'កំពុងរក្សាទុក...'; btn.disabled = true;
 
       try {
         let imageUrl = '';
         if (selectedFile) {
           btn.innerText = 'កំពុង Upload រូប...';
-          try {
-            imageUrl = await uploadToImgBB(selectedFile);
-          } catch (uploadErr) {
+          try { imageUrl = await uploadToImgBB(selectedFile); }
+          catch (uploadErr) {
             console.error(uploadErr);
             alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nនឹងរក្សាទុកដោយគ្មានរូប។");
           }
         }
-
-        const data = {
-          name_km, name_en, name_zh,
-          price, discount, stock, barcode,
-          category, saleType,
-          active: true
-        };
-
+        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, category, saleType, active: true };
         if (editId) {
           if (imageUrl) data.image = imageUrl;
           await updateDoc(doc(db, 'products', editId), data);
@@ -761,12 +652,12 @@
           alert("🎉 បន្ថែមទំនិញជោគជ័យ!");
         }
         cancelEdit();
+        switchTab('products');
       } catch (e) {
         console.error(e);
         alert("មានបញ្ហា Firebase: " + (e.code || '') + " " + e.message);
       } finally {
-        btn.innerText = oldText;
-        btn.disabled = false;
+        btn.innerText = oldText; btn.disabled = false;
       }
     };
 
@@ -782,19 +673,14 @@
       document.getElementById('pStock').value = p.stock || 0;
       document.getElementById('pBarcode').value = p.barcode || '';
       document.getElementById('pSaleType').value = p.saleType || 'retail';
-
-      // Category
       const catSelect = document.getElementById('pCategory');
       const catCustom = document.getElementById('pCategoryCustom');
       const existingCats = Array.from(catSelect.options).map(o => o.value);
       if (p.category && existingCats.includes(p.category)) {
-        catSelect.value = p.category;
-        catCustom.value = '';
+        catSelect.value = p.category; catCustom.value = '';
       } else {
-        catSelect.value = '';
-        catCustom.value = p.category || '';
+        catSelect.value = ''; catCustom.value = p.category || '';
       }
-
       document.getElementById('formTitle').innerText = '✏️ កែប្រែទំនិញ';
       document.getElementById('saveBtn').innerText = 'រក្សាទុកការកែប្រែ';
       document.getElementById('cancelBtn').classList.remove('hidden');
@@ -806,7 +692,7 @@
       }
       selectedFile = null;
       document.getElementById('pImageFile').value = '';
-      document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth' });
+      switchTab('add');
     };
 
     window.cancelEdit = function() {
@@ -833,7 +719,7 @@
       if (!auth.currentUser) return alert('សូម Login មុន!');
       const p = products.find(x => x.id === id);
       if (!p) return;
-      try { await updateDoc(doc(db, 'products', id), { active: !p.active }); }
+      try { await updateDoc(doc(db, 'products', id), { active: p.active === false ? true : false }); }
       catch (e) { alert("Error: " + e.message); }
     };
 
@@ -844,6 +730,138 @@
         catch (e) { alert("Error: " + e.message); }
       }
     };
+
+    // ========== KHQR ==========
+    async function loadKhqrSettings() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'khqr'));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.account) document.getElementById('khqrAccount').value = d.account;
+          if (d.image) {
+            document.getElementById('khqrPreviewImg').src = d.image;
+            document.getElementById('khqrPreview').classList.remove('hidden');
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    window.saveKhqrSettings = async function() {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
+      const statusEl = document.getElementById('khqrStatus');
+      statusEl.innerText = 'កំពុងរក្សាទុក...';
+      try {
+        let imageUrl = '';
+        if (selectedKhqrFile) {
+          statusEl.innerText = 'កំពុង Upload រូប...';
+          imageUrl = await uploadToImgBB(selectedKhqrFile);
+        }
+        const data = { account: document.getElementById('khqrAccount').value.trim() };
+        if (imageUrl) data.image = imageUrl;
+        await setDoc(doc(db, 'settings', 'khqr'), data, { merge: true });
+        statusEl.innerText = '🎉 រក្សាទុក KHQR ជោគជ័យ!';
+        selectedKhqrFile = null;
+      } catch (e) {
+        statusEl.innerText = '❌ បរាជ័យ: ' + e.message;
+      }
+    };
+
+    // ========== BARCODE ==========
+    window.startBarcodeScan = function() {
+      document.getElementById('scannerModal').classList.remove('hidden');
+      document.getElementById('scannerModal').classList.add('flex');
+      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decoded) => {
+          document.getElementById('pBarcode').value = decoded;
+          stopBarcodeScan();
+        },
+        () => {}
+      ).catch(err => {
+        alert('មិនអាចបើកកាមេរ៉ា: ' + err);
+        stopBarcodeScan();
+      });
+    };
+
+    window.stopBarcodeScan = function() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          document.getElementById('scannerModal').classList.add('hidden');
+          document.getElementById('scannerModal').classList.remove('flex');
+        }).catch(() => {
+          document.getElementById('scannerModal').classList.add('hidden');
+          document.getElementById('scannerModal').classList.remove('flex');
+        });
+      } else {
+        document.getElementById('scannerModal').classList.add('hidden');
+        document.getElementById('scannerModal').classList.remove('flex');
+      }
+    };
+
+    // ========== FILE PREVIEWS ==========
+    document.getElementById('pImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('previewImg').src = ev.target.result;
+          document.getElementById('imagePreview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('khqrImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedKhqrFile = file;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('khqrPreviewImg').src = ev.target.result;
+          document.getElementById('khqrPreview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // ========== FIRESTORE LISTENERS ==========
+    onSnapshot(query(collection(db, 'products'), orderBy('createdAt', 'desc')), (snapshot) => {
+      products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAdminList();
+    }, (err) => {
+      // fallback without orderBy
+      onSnapshot(collection(db, 'products'), (snapshot) => {
+        products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAdminList();
+      });
+    });
+
+    onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
+      const newOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Detect brand new orders
+      if (knownOrderIds.size > 0) {
+        const brandNew = newOrders.filter(o => !knownOrderIds.has(o.id) && isPending(o));
+        if (brandNew.length > 0) notifyNewOrders(brandNew);
+      }
+      newOrders.forEach(o => knownOrderIds.add(o.id));
+      orders = newOrders;
+      renderOrders();
+      updatePendingBadge();
+    }, (err) => {
+      onSnapshot(collection(db, 'orders'), (snapshot) => {
+        orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderOrders();
+        updatePendingBadge();
+      });
+    });
+
+    // Load KHQR on auth
+    onAuthStateChanged(auth, (user) => {
+      if (user) loadKhqrSettings();
+    });
   </script>
 </body>
 </html>

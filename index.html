@@ -186,9 +186,34 @@
           </button>
         </div>
       </div>
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-4 text-white">
-        <p class="font-bold text-sm">ត្រូវការជំនួយ?</p>
-        <p class="text-xs opacity-90 mt-1">ទាក់ទង Admin តាម Telegram បន្ទាប់ពីបញ្ជាទិញ</p>
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-4 text-white space-y-3">
+        <div>
+          <p class="font-bold text-sm" id="helpTitle">ត្រូវការជំនួយ?</p>
+          <p class="text-xs opacity-90 mt-1" id="helpSub">ទាក់ទង Admin តាមខាងក្រោម</p>
+        </div>
+        <div class="space-y-2">
+          <a href="https://t.me/ABCD12345168" target="_blank" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+            <span class="text-lg">✈️</span>
+            <div>
+              <p class="text-xs font-bold">Telegram</p>
+              <p class="text-[11px] opacity-90">@ABCD12345168</p>
+            </div>
+          </a>
+          <a href="tel:098624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+            <span class="text-lg">📞</span>
+            <div>
+              <p class="text-xs font-bold" id="helpCall">ហៅទូរស័ព្ទ</p>
+              <p class="text-[11px] opacity-90">098 624 824</p>
+            </div>
+          </a>
+          <a href="tel:085624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+            <span class="text-lg">📞</span>
+            <div>
+              <p class="text-xs font-bold" id="helpCall2">ហៅទូរស័ព្ទ</p>
+              <p class="text-[11px] opacity-90">085 624 824</p>
+            </div>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -234,7 +259,7 @@
         </div>
         <button onclick="loginWithGoogle()" class="w-full py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 text-xs">
           <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          ចូលតាម Google
+          <span id="authGoogleText">ចូលតាម Google</span>
         </button>
         <p class="text-center text-[11px] text-gray-500">
           <span id="authSwitchText">មិនទាន់មានគណនី?</span>
@@ -377,9 +402,78 @@
     let selectedLocFile = null, khqrData = {}, mapInstance = null, isRegisterMode = false;
 
     const i18n = {
-      km: { shopTitle:"Jinkelai Shop",sectionTitle:"ទំនិញគ្រប់មុខមាននៅទីនេះ",cartLabel:"កន្ត្រក",cartTitle:"កន្ត្រកទំនិញ",totalLabel:"សរុប៖",checkoutBtn:"បញ្ជាទិញ",namePh:"ឈ្មោះ *",phonePh:"លេខទូរស័ព្ទ *",addressPh:"អាសយដ្ឋាន *",loading:"កំពុងផ្ទុកទំនិញ...",empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",outOfStock:"អស់ស្តុក",stock:"ស្តុក",buy:"+ ទិញ",emptyCart:"គ្មានទំនិញ",orderSuccess:"ការបញ្ជាទិញបានរក្សាទុក!\nស្ថានភាព៖ រង់ចាំការទូទាត់\nAdmin នឹងបញ្ជាក់ពេលទទួលប្រាក់",fillInfo:"សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!",addFirst:"សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",networkError:"មានបញ្ហាបណ្តាញ ឬ Firebase!",locLabel:"រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",payLabel:"វិធីទូទាត់ប្រាក់ *",payCod:"💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)",payKhqr:"📱 ទូទាត់តាម KHQR",khqrTitle:"ស្កែន KHQR ដើម្បីទូទាត់",searchPh:"ស្វែងរកទំនិញ...",noResult:"គ្មានទំនិញត្រូវនឹងការស្វែងរក",remove:"លុប",all:"ទាំងអស់",retail:"លក់រាយ",wholesale:"លក់ដុំ",catAll:"ទាំងអស់",login:"ចូល",logout:"ចាកចេញ",myOrders:"ប្រវត្តិទិញ" },
-      en: { shopTitle:"Jinkelai Shop",sectionTitle:"All products available here",cartLabel:"Cart",cartTitle:"Shopping Cart",totalLabel:"Total:",checkoutBtn:"Checkout",namePh:"Name *",phonePh:"Phone *",addressPh:"Address *",loading:"Loading products...",empty:"No products available yet",outOfStock:"Out of stock",stock:"Stock",buy:"+ Buy",emptyCart:"Cart is empty",orderSuccess:"Order saved!\nStatus: Waiting for payment\nAdmin will confirm after receiving payment",fillInfo:"Please fill name, phone and address!",addFirst:"Please add items to cart first!",networkError:"Network or Firebase error!",locLabel:"Delivery location photo (optional)",payLabel:"Payment method *",payCod:"💵 Cash on Delivery (COD)",payKhqr:"📱 Pay via KHQR",khqrTitle:"Scan KHQR to pay",searchPh:"Search products...",noResult:"No products match your search",remove:"Remove",all:"All",retail:"Retail",wholesale:"Wholesale",catAll:"All",login:"Login",logout:"Logout",myOrders:"My Orders" },
-      zh: { shopTitle:"金克莱超市",sectionTitle:"这里有所有商品",cartLabel:"购物车",cartTitle:"购物车",totalLabel:"合计：",checkoutBtn:"下单",namePh:"姓名 *",phonePh:"电话 *",addressPh:"地址 *",loading:"正在加载商品...",empty:"暂无商品",outOfStock:"缺货",stock:"库存",buy:"+ 购买",emptyCart:"购物车为空",orderSuccess:"订单已保存！\n状态：等待付款\n管理员确认收款后会更新",fillInfo:"请填写姓名、电话和地址！",addFirst:"请先添加商品到购物车！",networkError:"网络或Firebase错误！",locLabel:"配送位置照片（可选）",payLabel:"支付方式 *",payCod:"💵 货到付款 (COD)",payKhqr:"📱 通过KHQR支付",khqrTitle:"扫描KHQR付款",searchPh:"搜索商品...",noResult:"没有匹配的商品",remove:"删除",all:"全部",retail:"零售",wholesale:"批发",catAll:"全部",login:"登录",logout:"退出",myOrders:"我的订单" }
+      km: {
+        shopTitle:"Jinkelai Shop", sectionTitle:"ទំនិញគ្រប់មុខមាននៅទីនេះ",
+        cartLabel:"កន្ត្រក", cartTitle:"កន្ត្រកទំនិញ", totalLabel:"សរុប៖", checkoutBtn:"បញ្ជាទិញ",
+        namePh:"ឈ្មោះ *", phonePh:"លេខទូរស័ព្ទ *", addressPh:"អាសយដ្ឋាន *",
+        loading:"កំពុងផ្ទុកទំនិញ...", empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
+        outOfStock:"អស់ស្តុក", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
+        orderSuccess:"ការបញ្ជាទិញបានរក្សាទុក!\nស្ថានភាព៖ រង់ចាំការទូទាត់\nAdmin នឹងបញ្ជាក់ពេលទទួលប្រាក់",
+        fillInfo:"សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!", addFirst:"សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
+        networkError:"មានបញ្ហាបណ្តាញ ឬ Firebase!",
+        locLabel:"រូបភាពទីតាំងដឹកជញ្ជូន (ស្រេចចិត្ត)",
+        payLabel:"វិធីទូទាត់ប្រាក់ *", payCod:"💵 ទូទាត់ពេលដឹកជញ្ជូន (COD)", payKhqr:"📱 ទូទាត់តាម KHQR",
+        khqrTitle:"ស្កែន KHQR ដើម្បីទូទាត់", searchPh:"ស្វែងរកទំនិញ...", noResult:"គ្មានទំនិញត្រូវនឹងការស្វែងរក",
+        remove:"លុប", all:"ទាំងអស់", retail:"លក់រាយ", wholesale:"លក់ដុំ", catAll:"ទាំងអស់",
+        login:"ចូល", logout:"ចាកចេញ", myOrders:"ប្រវត្តិទិញ",
+        accountTitle:"គណនី", loginRegister:"ចូល / ចុះឈ្មោះ", loginHint:"ចូលដើម្បីមើលប្រវត្តិទិញ",
+        myOrdersTitle:"ការបញ្ជាទិញរបស់ខ្ញុំ", viewAll:"មើលទាំងអស់ >",
+        statusPending:"រង់ចាំ", statusProcessing:"កំពុងដំណើរការ", statusShipping:"កំពុងដឹក", statusDone:"បានដឹករួច",
+        services:"សេវាកម្ម", trackOrder:"តាមដានការបញ្ជាទិញ", trackHint:"វាយលេខទូរស័ព្ទ",
+        orderHistory:"ប្រវត្តិទិញ", historyHint:"មើលការបញ្ជាទិញមុន",
+        helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ",
+        authLogin:"ចូលគណនី", authRegister:"ចុះឈ្មោះ", authNamePh:"ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)", authPhonePh:"លេខទូរស័ព្ទ",
+        authNoAccount:"មិនទាន់មានគណនី?", authHasAccount:"មានគណនីរួច?", authGoogle:"ចូលតាម Google",
+        navHome:"ទំព័រដើម", navAccount:"គណនី"
+      },
+      en: {
+        shopTitle:"Jinkelai Shop", sectionTitle:"All products available here",
+        cartLabel:"Cart", cartTitle:"Shopping Cart", totalLabel:"Total:", checkoutBtn:"Checkout",
+        namePh:"Name *", phonePh:"Phone *", addressPh:"Address *",
+        loading:"Loading products...", empty:"No products available yet",
+        outOfStock:"Out of stock", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
+        orderSuccess:"Order saved!\nStatus: Waiting for payment\nAdmin will confirm after receiving payment",
+        fillInfo:"Please fill name, phone and address!", addFirst:"Please add items to cart first!",
+        networkError:"Network or Firebase error!",
+        locLabel:"Delivery location photo (optional)",
+        payLabel:"Payment method *", payCod:"💵 Cash on Delivery (COD)", payKhqr:"📱 Pay via KHQR",
+        khqrTitle:"Scan KHQR to pay", searchPh:"Search products...", noResult:"No products match your search",
+        remove:"Remove", all:"All", retail:"Retail", wholesale:"Wholesale", catAll:"All",
+        login:"Login", logout:"Logout", myOrders:"My Orders",
+        accountTitle:"Account", loginRegister:"Login / Register", loginHint:"Login to view order history",
+        myOrdersTitle:"My Orders", viewAll:"View all >",
+        statusPending:"Pending", statusProcessing:"Processing", statusShipping:"Shipping", statusDone:"Delivered",
+        services:"Services", trackOrder:"Track Order", trackHint:"Enter phone number",
+        orderHistory:"Order History", historyHint:"View past orders",
+        helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call",
+        authLogin:"Login", authRegister:"Register", authNamePh:"Name (for register)", authPhonePh:"Phone",
+        authNoAccount:"No account yet?", authHasAccount:"Already have account?", authGoogle:"Login with Google",
+        navHome:"Home", navAccount:"Account"
+      },
+      zh: {
+        shopTitle:"金克莱超市", sectionTitle:"这里有所有商品",
+        cartLabel:"购物车", cartTitle:"购物车", totalLabel:"合计：", checkoutBtn:"下单",
+        namePh:"姓名 *", phonePh:"电话 *", addressPh:"地址 *",
+        loading:"正在加载商品...", empty:"暂无商品",
+        outOfStock:"缺货", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
+        orderSuccess:"订单已保存！\n状态：等待付款\n管理员确认收款后会更新",
+        fillInfo:"请填写姓名、电话和地址！", addFirst:"请先添加商品到购物车！",
+        networkError:"网络或Firebase错误！",
+        locLabel:"配送位置照片（可选）",
+        payLabel:"支付方式 *", payCod:"💵 货到付款 (COD)", payKhqr:"📱 通过KHQR支付",
+        khqrTitle:"扫描KHQR付款", searchPh:"搜索商品...", noResult:"没有匹配的商品",
+        remove:"删除", all:"全部", retail:"零售", wholesale:"批发", catAll:"全部",
+        login:"登录", logout:"退出", myOrders:"我的订单",
+        accountTitle:"账户", loginRegister:"登录 / 注册", loginHint:"登录后查看订单历史",
+        myOrdersTitle:"我的订单", viewAll:"查看全部 >",
+        statusPending:"待处理", statusProcessing:"处理中", statusShipping:"配送中", statusDone:"已送达",
+        services:"服务", trackOrder:"追踪订单", trackHint:"输入电话号码",
+        orderHistory:"订单历史", historyHint:"查看过往订单",
+        helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话",
+        authLogin:"登录", authRegister:"注册", authNamePh:"姓名（注册用）", authPhonePh:"电话",
+        authNoAccount:"还没有账号？", authHasAccount:"已有账号？", authGoogle:"通过 Google 登录",
+        navHome:"首页", navAccount:"账户"
+      }
     };
 
     function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || i18n.km[key] || key; }
@@ -425,10 +519,36 @@
       document.getElementById('type-all').innerText = t('all');
       document.getElementById('type-retail').innerText = t('retail');
       document.getElementById('type-wholesale').innerText = t('wholesale');
+      // Auth modal
+      document.getElementById('authTitle').innerText = isRegisterMode ? t('authRegister') : t('authLogin');
+      document.getElementById('authSubmitBtn').innerText = isRegisterMode ? t('authRegister') : t('login');
+      document.getElementById('authName').placeholder = t('authNamePh');
+      document.getElementById('authPhone').placeholder = t('authPhonePh');
+      document.getElementById('authSwitchText').innerText = isRegisterMode ? t('authHasAccount') : t('authNoAccount');
+      document.getElementById('authSwitchBtn').innerText = isRegisterMode ? t('login') : t('authRegister');
+      const gTxt = document.getElementById('authGoogleText');
+      if (gTxt) gTxt.innerText = t('authGoogle');
+      // Account page
+      const accTitle = document.querySelector('#page-account h1');
+      if (accTitle) accTitle.innerText = t('accountTitle');
+      const helpTitle = document.getElementById('helpTitle');
+      if (helpTitle) helpTitle.innerText = t('helpTitle');
+      const helpSub = document.getElementById('helpSub');
+      if (helpSub) helpSub.innerText = t('helpSub');
+      const helpCall = document.getElementById('helpCall');
+      if (helpCall) helpCall.innerText = t('callPhone');
+      const helpCall2 = document.getElementById('helpCall2');
+      if (helpCall2) helpCall2.innerText = t('callPhone');
+      // Bottom nav
+      const navHome = document.querySelector('.nav-item[data-page="home"] span');
+      if (navHome) navHome.innerText = t('navHome');
+      const navAcc = document.querySelector('.nav-item[data-page="account"] span');
+      if (navAcc) navAcc.innerText = t('navAccount');
       ['km','en','zh'].forEach(l => {
         const btn = document.getElementById('btn-' + l);
         if (btn) btn.classList.toggle('active', l === currentLang);
       });
+      updateAccountUI();
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -455,8 +575,8 @@
         btnEl.innerText = t('logout');
         btnEl.onclick = () => doLogout();
       } else {
-        nameEl.innerText = currentLang === 'zh' ? '登录 / 注册' : (currentLang === 'en' ? 'Login / Register' : 'ចូល / ចុះឈ្មោះ');
-        subEl.innerText = currentLang === 'zh' ? '登录后查看订单历史' : (currentLang === 'en' ? 'Login to view order history' : 'ចូលដើម្បីមើលប្រវត្តិទិញ');
+        nameEl.innerText = t('loginRegister');
+        subEl.innerText = t('loginHint');
         btnEl.innerText = t('login');
         btnEl.onclick = () => openAuthOrOrders();
       }
@@ -478,10 +598,10 @@
       isRegisterMode = !isRegisterMode;
       document.getElementById('authName').classList.toggle('hidden', !isRegisterMode);
       document.getElementById('authPhone').classList.toggle('hidden', !isRegisterMode);
-      document.getElementById('authTitle').innerText = isRegisterMode ? (currentLang === 'zh' ? '注册' : (currentLang === 'en' ? 'Register' : 'ចុះឈ្មោះ')) : (currentLang === 'zh' ? '登录' : (currentLang === 'en' ? 'Login' : 'ចូលគណនី'));
-      document.getElementById('authSubmitBtn').innerText = isRegisterMode ? (currentLang === 'zh' ? '注册' : (currentLang === 'en' ? 'Register' : 'ចុះឈ្មោះ')) : t('login');
-      document.getElementById('authSwitchText').innerText = isRegisterMode ? (currentLang === 'zh' ? '已有账号？' : (currentLang === 'en' ? 'Already have account?' : 'មានគណនីរួច?')) : (currentLang === 'zh' ? '还没有账号？' : (currentLang === 'en' ? 'No account yet?' : 'មិនទាន់មានគណនី?'));
-      document.getElementById('authSwitchBtn').innerText = isRegisterMode ? t('login') : (currentLang === 'zh' ? '注册' : (currentLang === 'en' ? 'Register' : 'ចុះឈ្មោះ'));
+      document.getElementById('authTitle').innerText = isRegisterMode ? t('authRegister') : t('authLogin');
+      document.getElementById('authSubmitBtn').innerText = isRegisterMode ? t('authRegister') : t('login');
+      document.getElementById('authSwitchText').innerText = isRegisterMode ? t('authHasAccount') : t('authNoAccount');
+      document.getElementById('authSwitchBtn').innerText = isRegisterMode ? t('login') : t('authRegister');
     };
 
     window.doAuth = async function() {
