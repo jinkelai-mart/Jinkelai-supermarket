@@ -878,8 +878,9 @@
       const item = cart.find(x => x.id === id);
       const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)) : p.price;
       const name = getProductName(p);
+      const barcode = p.barcode || '';
       if (item) { if (item.qty >= p.stock) return alert(t('outOfStock')); item.qty++; }
-      else { cart.push({ id: p.id, name, price: finalPrice, qty: 1 }); }
+      else { cart.push({ id: p.id, name, price: finalPrice, qty: 1, barcode }); }
       updateCart();
     };
     window.changeQty = function(id, delta) {
@@ -965,7 +966,10 @@
       if (!name || !phone || !address) return alert(t('fillInfo'));
       btn.disabled = true; btn.innerText = 'កំពុងដំណើរការ...';
 
-      let textItems = cart.map(i => `${i.name} (${i.qty}x)`).join('\n');
+      let textItems = cart.map(i => {
+        const bc = i.barcode ? ` | 🔖 ${i.barcode}` : '';
+        return `• ${i.name} (${i.qty}x)${bc}`;
+      }).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
       const payText = payMethod === 'khqr' ? '📱 KHQR' : '💵 COD';
       const lat = document.getElementById('custLat').value; const lng = document.getElementById('custLng').value;
@@ -976,7 +980,7 @@
         let locationImageUrl = '';
         if (selectedLocFile) { try { locationImageUrl = await uploadToImgBB(selectedLocFile); } catch (upErr) { console.error('Location upload failed:', upErr); } }
         const orderData = {
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '' })),
           total: parseFloat(total), customer: { name, phone, address }, paymentMethod: payMethod,
           locationImage: locationImageUrl || null,
           location: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,

@@ -528,7 +528,7 @@
 
       container.innerHTML = '';
       list.slice(0, 50).forEach(o => {
-        const itemsText = (o.items || []).map(i => i.name + ' x' + i.qty).join(', ');
+        const itemsText = (o.items || []).map(i => i.name + ' x' + i.qty + (i.barcode ? ' [' + i.barcode + ']' : '')).join(', ');
         const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('km-KH') : '—';
         const payMethod = o.paymentMethod === 'khqr' ? '📱 KHQR' : (o.paymentMethod === 'cod' ? '💵 COD' : '—');
         const st = getStatusLabel(o.status);
