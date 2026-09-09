@@ -639,6 +639,16 @@
       if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
       if (isNaN(price) || price < 0) return alert("សូមបញ្ចូលតម្លៃឱ្យត្រឹមត្រូវ!");
       if (!category) return alert("សូមបំពេញប្រភេទទំនិញយ៉ាងហោចណាស់ 1 ភាសា!");
+      if (barcode) {
+        const dup = products.find(p => (p.barcode || '').trim() === barcode && p.id !== editId);
+        if (dup) {
+          const nm = dup.name_km || dup.name || barcode;
+          if (confirm('⚠️ Barcode នេះមានរួច: ' + nm + '\n\nបើកកែទំនិញដែលមានស្រាប់?')) {
+            editProduct(dup.id);
+          }
+          return;
+        }
+      }
 
       const btn = document.getElementById('saveBtn');
       const oldText = btn.innerText;
@@ -779,17 +789,75 @@
     };
 
     // ========== BARCODE ==========
+    let scanLock = false;
+    let lastScanCode = '';
+    let lastScanAt = 0;
+
+    function findProductByBarcode(code) {
+      const c = (code || '').trim();
+      if (!c) return null;
+      return products.find(p => (p.barcode || '').trim() === c) || null;
+    }
+
+    function handleBarcodeDetected(code) {
+      const now = Date.now();
+      // debounce: ignore rapid repeats of same/different noise
+      if (scanLock) return;
+      if (code === lastScanCode && now - lastScanAt < 1500) return;
+      scanLock = true;
+      lastScanCode = code;
+      lastScanAt = now;
+
+      const existing = findProductByBarcode(code);
+      const editId = document.getElementById('editId').value;
+
+      stopBarcodeScan();
+
+      setTimeout(() => {
+        if (existing && existing.id !== editId) {
+          const name = existing.name_km || existing.name || existing.name_en || code;
+          if (confirm('⚠️ Barcode នេះមានរួចហើយ!\n\nទំនិញ: ' + name + '\nBarcode: ' + code + '\n\nចង់បើកកែទំនិញនេះទេ?')) {
+            editProduct(existing.id);
+          } else {
+            document.getElementById('pBarcode').value = code;
+          }
+        } else {
+          document.getElementById('pBarcode').value = code;
+        }
+        scanLock = false;
+      }, 250);
+    }
+
     window.startBarcodeScan = function() {
+      scanLock = false;
+      lastScanCode = '';
       document.getElementById('scannerModal').classList.remove('hidden');
       document.getElementById('scannerModal').classList.add('flex');
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+      const config = {
+        fps: 20,
+        qrbox: { width: 280, height: 120 },
+        aspectRatio: 1.777,
+        disableFlip: false
+      };
+      // formats if supported
+      try {
+        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+          config.formatsToSupport = [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ];
+        }
+      } catch (e) {}
       html5QrCode.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 150 } },
-        (decoded) => {
-          document.getElementById('pBarcode').value = decoded;
-          stopBarcodeScan();
-        },
+        config,
+        (decoded) => { handleBarcodeDetected(String(decoded).trim()); },
         () => {}
       ).catch(err => {
         alert('មិនអាចបើកកាមេរ៉ា: ' + err);
@@ -811,6 +879,20 @@
         document.getElementById('scannerModal').classList.remove('flex');
       }
     };
+
+    // Manual barcode input: check duplicate on blur
+    document.getElementById('pBarcode')?.addEventListener('change', () => {
+      const code = document.getElementById('pBarcode').value.trim();
+      if (!code) return;
+      const existing = findProductByBarcode(code);
+      const editId = document.getElementById('editId').value;
+      if (existing && existing.id !== editId) {
+        const name = existing.name_km || existing.name || existing.name_en || code;
+        if (confirm('⚠️ Barcode នេះមានរួចហើយ!\n\nទំនិញ: ' + name + '\n\nចង់បើកកែទំនិញនេះទេ?')) {
+          editProduct(existing.id);
+        }
+      }
+    });
 
     // ========== FILE PREVIEWS ==========
     document.getElementById('pImageFile')?.addEventListener('change', (e) => {

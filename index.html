@@ -154,7 +154,7 @@
     </header>
     <div class="max-w-4xl mx-auto px-4 py-4 space-y-5">
       <div class="bg-white rounded-2xl p-4 border shadow-sm flex items-center gap-3">
-        <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-2xl">👤</div>
+        <div class="w-14 h-14 rounded-full bg-emerald-100 overflow-hidden flex items-center justify-center border-2 border-emerald-200"><img src="avatar-rose.jpg" alt="avatar" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='👤'"></div>
         <div class="flex-1 min-w-0">
           <p class="font-bold text-gray-800" id="accountName">ចូល / ចុះឈ្មោះ</p>
           <p class="text-xs text-gray-500 mt-0.5" id="accountSub">ចូលដើម្បីមើលប្រវត្តិទិញ និងតាមដានការបញ្ជាទិញ</p>
@@ -1171,30 +1171,22 @@
       let msg = `🛍️ New Order / ការបញ្ជាទិញថ្មី!\n\n${textItems}\n\n💰 Total: $${total}\n💳 Payment: ${payText}\n👤 ${name}\n📞 ${phone}\n📍 ${address}${mapLink}`;
 
       try {
-        let locationImageUrl = '';
-        if (selectedLocFile) { try { locationImageUrl = await uploadToImgBB(selectedLocFile); } catch (upErr) { console.error('Location upload failed:', upErr); } }
+        const cartSnapshot = cart.map(i => ({ ...i }));
+        const locFile = selectedLocFile;
+
+        // 1) Save order immediately (no waiting for image/telegram)
         const orderData = {
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '' })),
+          items: cartSnapshot.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '' })),
           total: parseFloat(total), customer: { name, phone, address }, paymentMethod: payMethod,
-          locationImage: locationImageUrl || null,
+          locationImage: null,
           location: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
           status: 'pending_payment', telegramSent: false, createdAt: serverTimestamp()
         };
         if (currentUser) orderData.userId = currentUser.uid;
         const orderRef = await addDoc(collection(db, 'orders'), orderData);
         const orderId = orderRef.id;
-        try {
-          const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
-          });
-          const data = await res.json();
-          if (data.ok === true) await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
-        } catch (tgErr) { console.error('Telegram network error:', tgErr); }
-        for (const i of cart) {
-          const p = products.find(x => x.id === i.id);
-          if (p) { const newStock = Math.max(0, (p.stock || 0) - i.qty); await updateDoc(doc(db, 'products', i.id), { stock: newStock }); }
-        }
+
+        // 2) Clear UI fast
         cart = []; updateCart(); closeCart();
         document.getElementById('custName').value = currentUser?.displayName || '';
         document.getElementById('custPhone').value = ''; document.getElementById('custAddress').value = '';
@@ -1202,12 +1194,51 @@
         selectedLocFile = null;
         document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
         document.getElementById('khqrBox').classList.add('hidden');
+        btn.disabled = false; btn.innerText = t('checkoutBtn');
         showResultModal(true, t('orderSuccess'), orderId);
+
+        // 3) Background: image + telegram + stock (parallel, non-blocking)
+        (async () => {
+          try {
+            let locationImageUrl = '';
+            if (locFile) {
+              try { locationImageUrl = await uploadToImgBB(locFile); } catch (upErr) { console.error('Location upload failed:', upErr); }
+            }
+            const bgTasks = [];
+            if (locationImageUrl) {
+              bgTasks.push(updateDoc(doc(db, 'orders', orderId), { locationImage: locationImageUrl }));
+            }
+            bgTasks.push((async () => {
+              try {
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+                });
+                const data = await res.json();
+                if (data.ok === true) await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
+              } catch (tgErr) { console.error('Telegram network error:', tgErr); }
+            })());
+            // stock updates in parallel
+            for (const i of cartSnapshot) {
+              bgTasks.push((async () => {
+                try {
+                  const p = products.find(x => x.id === i.id);
+                  if (p) {
+                    const newStock = Math.max(0, (p.stock || 0) - i.qty);
+                    await updateDoc(doc(db, 'products', i.id), { stock: newStock });
+                  }
+                } catch (se) { console.error('stock', se); }
+              })());
+            }
+            await Promise.allSettled(bgTasks);
+          } catch (bg) { console.error('bg tasks', bg); }
+        })();
       } catch (e) {
         console.error(e);
         showResultModal(false, t('networkError') + '\n' + (e.message || e));
-      } finally {
         btn.disabled = false; btn.innerText = t('checkoutBtn');
+      } finally {
+        if (btn.disabled) { btn.disabled = false; btn.innerText = t('checkoutBtn'); }
       }
     };
 
