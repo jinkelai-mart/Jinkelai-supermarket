@@ -106,20 +106,20 @@
 
     <div class="max-w-4xl mx-auto px-4 pt-3">
       <div class="promo-scroll">
-        <div class="promo-card" style="background: linear-gradient(135deg,#047857,#10b981);">
-          <div class="absolute top-3 right-3 text-3xl opacity-30">🥬</div>
-          <h3>ទំនិញស្រស់ៗ<br>រាល់ថ្ងៃ</h3>
-          <p>បន្លែ ផ្លែឈើ សាច់ ត្រី</p>
+        <div class="promo-card" style="background: linear-gradient(135deg,#dc2626,#ef4444);">
+          <div class="absolute top-3 right-3 text-3xl opacity-30">🇨🇳</div>
+          <h3 id="promoCnTitle">ទំនិញចិន</h3>
+          <p id="promoCnSub">ផលិតផលនាំចូលពីចិន</p>
         </div>
-        <div class="promo-card" style="background: linear-gradient(135deg,#b45309,#f59e0b);">
-          <div class="absolute top-3 right-3 text-3xl opacity-30">📦</div>
-          <h3>លក់ដុំ<br>តម្លៃពិសេស</h3>
-          <p>សម្រាប់អាជីវកម្ម & ហាង</p>
+        <div class="promo-card" style="background: linear-gradient(135deg,#047857,#10b981);">
+          <div class="absolute top-3 right-3 text-3xl opacity-30">🇰🇭</div>
+          <h3 id="promoKhTitle">ទំនិញខ្មែរ</h3>
+          <p id="promoKhSub">ផលិតផលក្នុងស្រុក</p>
         </div>
         <div class="promo-card" style="background: linear-gradient(135deg,#1d4ed8,#3b82f6);">
           <div class="absolute top-3 right-3 text-3xl opacity-30">🚚</div>
-          <h3>ដឹកជញ្ជូន<br>រហ័ស</h3>
-          <p>COD និង KHQR ទូទាត់ងាយ</p>
+          <h3 id="promoShipTitle">ដឹកជញ្ជូនរហ័ស</h3>
+          <p id="promoShipSub">COD និង KHQR</p>
         </div>
       </div>
     </div>
@@ -424,7 +424,7 @@
         helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ",
         authLogin:"ចូលគណនី", authRegister:"ចុះឈ្មោះ", authNamePh:"ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)", authPhonePh:"លេខទូរស័ព្ទ",
         authNoAccount:"មិនទាន់មានគណនី?", authHasAccount:"មានគណនីរួច?", authGoogle:"ចូលតាម Google",
-        navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ"
+        navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ", promoCnTitle:"ទំនិញចិន", promoCnSub:"ផលិតផលនាំចូលពីចិន", promoKhTitle:"ទំនិញខ្មែរ", promoKhSub:"ផលិតផលក្នុងស្រុក", promoShipTitle:"ដឹកជញ្ជូនរហ័ស", promoShipSub:"COD និង KHQR"
       },
       en: {
         shopTitle:"Jinkelai Shop", sectionTitle:"All products available here",
@@ -448,7 +448,7 @@
         helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call",
         authLogin:"Login", authRegister:"Register", authNamePh:"Name (for register)", authPhonePh:"Phone",
         authNoAccount:"No account yet?", authHasAccount:"Already have account?", authGoogle:"Login with Google",
-        navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering"
+        navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering", promoCnTitle:"Chinese Products", promoCnSub:"Imported from China", promoKhTitle:"Khmer Products", promoKhSub:"Local products", promoShipTitle:"Fast Delivery", promoShipSub:"COD & KHQR"
       },
       zh: {
         shopTitle:"金克莱超市", sectionTitle:"这里有所有商品",
@@ -472,9 +472,47 @@
         helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话",
         authLogin:"登录", authRegister:"注册", authNamePh:"姓名（注册用）", authPhonePh:"电话",
         authNoAccount:"还没有账号？", authHasAccount:"已有账号？", authGoogle:"通过 Google 登录",
-        navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码"
+        navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码", promoCnTitle:"中国商品", promoCnSub:"中国进口产品", promoKhTitle:"高棉商品", promoKhSub:"本地产品", promoShipTitle:"快速配送", promoShipSub:"货到付款 & KHQR"
       }
     };
+
+
+    // Category display names by language (key = stored value in Firestore)
+    const CAT_I18N = {
+      'ភេសជ្ជៈ': { km: 'ភេសជ្ជៈ', en: 'Drinks', zh: '饮料' },
+      'បៀរ': { km: 'បៀរ', en: 'Beer', zh: '啤酒' },
+      'ស្រា': { km: 'ស្រា', en: 'Wine', zh: '酒类' },
+      'បន្លែ': { km: 'បន្លែ', en: 'Vegetables', zh: '蔬菜' },
+      'ផ្លែឈើ': { km: 'ផ្លែឈើ', en: 'Fruit', zh: '水果' },
+      'សាច់': { km: 'សាច់', en: 'Meat', zh: '肉类' },
+      'ត្រី': { km: 'ត្រី', en: 'Fish', zh: '鱼类' },
+      'អាហារស្ងួត': { km: 'អាហារស្ងួត', en: 'Dry food', zh: '干货' },
+      'គ្រឿងទេស': { km: 'គ្រឿងទេស', en: 'Spices', zh: '香料' },
+      'ទំនិញប្រើប្រាស់': { km: 'ទំនិញប្រើប្រាស់', en: 'Consumer goods', zh: '日用品' },
+      'ផ្សេងៗ': { km: 'ផ្សេងៗ', en: 'Miscellaneous', zh: '其他' },
+      'ទំនិញចិន': { km: 'ទំនិញចិន', en: 'Chinese products', zh: '中国商品' },
+      'ទំនិញខ្មែរ': { km: 'ទំនិញខ្មែរ', en: 'Khmer products', zh: '高棉商品' },
+      // English keys (if admin saved in English)
+      'Drinks': { km: 'ភេសជ្ជៈ', en: 'Drinks', zh: '饮料' },
+      'Beer': { km: 'បៀរ', en: 'Beer', zh: '啤酒' },
+      'Wine': { km: 'ស្រា', en: 'Wine', zh: '酒类' },
+      'Vegetables': { km: 'បន្លែ', en: 'Vegetables', zh: '蔬菜' },
+      'Fruit': { km: 'ផ្លែឈើ', en: 'Fruit', zh: '水果' },
+      'Meat': { km: 'សាច់', en: 'Meat', zh: '肉类' },
+      'Fish': { km: 'ត្រី', en: 'Fish', zh: '鱼类' },
+      'Dry food': { km: 'អាហារស្ងួត', en: 'Dry food', zh: '干货' },
+      'Spices': { km: 'គ្រឿងទេស', en: 'Spices', zh: '香料' },
+      'Consumer goods': { km: 'ទំនិញប្រើប្រាស់', en: 'Consumer goods', zh: '日用品' },
+      'Miscellaneous': { km: 'ផ្សេងៗ', en: 'Miscellaneous', zh: '其他' },
+      'Chinese products': { km: 'ទំនិញចិន', en: 'Chinese products', zh: '中国商品' },
+      'Khmer products': { km: 'ទំនិញខ្មែរ', en: 'Khmer products', zh: '高棉商品' }
+    };
+    function catLabel(cat) {
+      if (!cat) return '';
+      const m = CAT_I18N[cat];
+      if (m) return m[currentLang] || m.km || cat;
+      return cat; // custom category kept as-is
+    }
 
     function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || i18n.km[key] || key; }
     function getProductName(p) {
@@ -565,6 +603,13 @@
       if (amb) amb.innerText = '📦 ' + t('myOrders');
       setTxt('trackHintText', 'trackHintLong');
       setTxt('trackSearchBtn', 'searchBtn');
+      setTxt('promoCnTitle', 'promoCnTitle');
+      setTxt('promoCnSub', 'promoCnSub');
+      setTxt('promoKhTitle', 'promoKhTitle');
+      setTxt('promoKhSub', 'promoKhSub');
+      setTxt('promoShipTitle', 'promoShipTitle');
+      setTxt('promoShipSub', 'promoShipSub');
+      renderCategoryBar();
       const trackPhone = document.getElementById('trackPhone');
       if (trackPhone) trackPhone.placeholder = t('phonePh');
       // Bottom nav
@@ -748,7 +793,12 @@
       products.forEach(p => { if (p.category && p.category.trim()) cats.add(p.category.trim()); });
       const sorted = Array.from(cats).sort();
       bar.innerHTML = `<button class="cat-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategory('all')">${t('catAll')}</button>`;
-      sorted.forEach(c => { bar.innerHTML += `<button class="cat-btn ${currentCategory === c ? 'active' : ''}" data-cat="${c}" onclick="setCategory('${c}')">${c}</button>`; });
+      sorted.forEach(c => {
+        const label = catLabel(c);
+        // escape for attribute
+        const safe = c.replace(/'/g, "\'");
+        bar.innerHTML += `<button class="cat-btn ${currentCategory === c ? 'active' : ''}" data-cat="${c}" onclick="setCategory('${safe}')">${label}</button>`;
+      });
     }
 
     onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -786,13 +836,13 @@
         const saleType = (p.saleType || 'retail').toLowerCase();
         const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
         const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
-        const catLabel = p.category ? `<span class="text-[9px] text-gray-400">${p.category}</span>` : '';
+        const catLbl = p.category ? `<span class="text-[9px] text-gray-400">${catLabel(p.category)}</span>` : '';
         const div = document.createElement('div');
         div.className = 'product-card flex flex-col';
         div.innerHTML = `
           <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
           <div class="p-2.5 flex flex-col flex-1">
-            <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLabel}</div>
+            <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLbl}</div>
             <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
             ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
             <p class="text-[10px] text-gray-500 mt-0.5">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>

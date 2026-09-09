@@ -144,20 +144,24 @@
               <div>
                 <label class="font-semibold text-gray-600 block mb-1">ប្រភេទទំនិញ *</label>
                 <select id="pCategory" class="input-field">
-                  <option value="">-- ជ្រើស --</option>
-                  <option value="ភេសជ្ជៈ">ភេសជ្ជៈ</option>
-                  <option value="បៀរ">បៀរ</option>
-                  <option value="ស្រា">ស្រា</option>
-                  <option value="បន្លែ">បន្លែ</option>
-                  <option value="ផ្លែឈើ">ផ្លែឈើ</option>
-                  <option value="សាច់">សាច់</option>
-                  <option value="ត្រី">ត្រី</option>
-                  <option value="អាហារស្ងួត">អាហារស្ងួត</option>
-                  <option value="គ្រឿងទេស">គ្រឿងទេស</option>
-                  <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់</option>
-                  <option value="ផ្សេងៗ">ផ្សេងៗ</option>
+                  <option value="">-- ជ្រើសប្រភេទ --</option>
+                  <option value="ទំនិញចិន">ទំនិញចិន / 中国商品</option>
+                  <option value="ទំនិញខ្មែរ">ទំនិញខ្មែរ / 高棉商品</option>
+                  <option value="ភេសជ្ជៈ">ភេសជ្ជៈ / Drinks</option>
+                  <option value="បៀរ">បៀរ / Beer</option>
+                  <option value="ស្រា">ស្រា / Wine</option>
+                  <option value="បន្លែ">បន្លែ / Vegetables</option>
+                  <option value="ផ្លែឈើ">ផ្លែឈើ / Fruit</option>
+                  <option value="សាច់">សាច់ / Meat</option>
+                  <option value="ត្រី">ត្រី / Fish</option>
+                  <option value="អាហារស្ងួត">អាហារស្ងួត / Dry food</option>
+                  <option value="គ្រឿងទេស">គ្រឿងទេស / Spices</option>
+                  <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់ / Consumer</option>
+                  <option value="ផ្សេងៗ">ផ្សេងៗ / Other</option>
                 </select>
-                <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទផ្ទាល់..." class="input-field mt-1.5 text-[11px]">
+                <div id="pCategoryDynamic"></div>
+                <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទថ្មី..." class="input-field mt-1.5 text-[11px]">
+                <p class="text-[10px] text-gray-400 mt-1">ប្រភេទដែលវាយថ្មីនឹងរក្សាទុក ហើយជ្រើសបានពេលក្រោយ</p>
               </div>
               <div>
                 <label class="font-semibold text-gray-600 block mb-1">ប្រភេទលក់ *</label>
@@ -607,6 +611,30 @@
       });
     }
 
+
+    function refreshCategoryOptions() {
+      const select = document.getElementById('pCategory');
+      if (!select) return;
+      const predefined = new Set(Array.from(select.options).map(o => o.value).filter(Boolean));
+      const fromProducts = new Set();
+      products.forEach(p => {
+        const c = (p.category || '').trim();
+        if (c) fromProducts.add(c);
+      });
+      // Remove previously added dynamic options
+      select.querySelectorAll('option[data-dynamic="1"]').forEach(o => o.remove());
+      // Add product categories not in predefined
+      Array.from(fromProducts).sort().forEach(c => {
+        if (!predefined.has(c)) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c + ' (រក្សាទុក)';
+          opt.dataset.dynamic = '1';
+          select.appendChild(opt);
+        }
+      });
+    }
+
     window.saveProduct = async function() {
       if (!auth.currentUser) return alert('សូម Login មុន!');
       const name_km = document.getElementById('pNameKm').value.trim();
@@ -831,6 +859,7 @@
     onSnapshot(query(collection(db, 'products'), orderBy('createdAt', 'desc')), (snapshot) => {
       products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       renderAdminList();
+      refreshCategoryOptions();
     }, (err) => {
       // fallback without orderBy
       onSnapshot(collection(db, 'products'), (snapshot) => {
