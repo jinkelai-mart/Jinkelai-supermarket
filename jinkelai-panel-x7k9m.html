@@ -143,25 +143,28 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="font-semibold text-gray-600 block mb-1">ប្រភេទទំនិញ *</label>
-                <select id="pCategory" class="input-field">
-                  <option value="">-- ជ្រើសប្រភេទ --</option>
-                  <option value="ទំនិញចិន">ទំនិញចិន / 中国商品</option>
-                  <option value="ទំនិញខ្មែរ">ទំនិញខ្មែរ / 高棉商品</option>
-                  <option value="ភេសជ្ជៈ">ភេសជ្ជៈ / Drinks</option>
-                  <option value="បៀរ">បៀរ / Beer</option>
-                  <option value="ស្រា">ស្រា / Wine</option>
-                  <option value="បន្លែ">បន្លែ / Vegetables</option>
-                  <option value="ផ្លែឈើ">ផ្លែឈើ / Fruit</option>
-                  <option value="សាច់">សាច់ / Meat</option>
-                  <option value="ត្រី">ត្រី / Fish</option>
-                  <option value="អាហារស្ងួត">អាហារស្ងួត / Dry food</option>
-                  <option value="គ្រឿងទេស">គ្រឿងទេស / Spices</option>
-                  <option value="ទំនិញប្រើប្រាស់">ទំនិញប្រើប្រាស់ / Consumer</option>
-                  <option value="ផ្សេងៗ">ផ្សេងៗ / Other</option>
+                <select id="pCategoryPreset" class="input-field">
+                  <option value="">-- ជ្រើសរហ័ស (បំពេញ 3 ភាសាអោយ) --</option>
+                  <option value="ទំនិញចិន|Chinese products|中国商品">ទំនិញចិន / Chinese / 中国商品</option>
+                  <option value="ទំនិញខ្មែរ|Khmer products|高棉商品">ទំនិញខ្មែរ / Khmer / 高棉商品</option>
+                  <option value="ភេសជ្ជៈ|Drinks|饮料">ភេសជ្ជៈ / Drinks / 饮料</option>
+                  <option value="បៀរ|Beer|啤酒">បៀរ / Beer / 啤酒</option>
+                  <option value="ស្រា|Wine|酒类">ស្រា / Wine / 酒类</option>
+                  <option value="បន្លែ|Vegetables|蔬菜">បន្លែ / Vegetables / 蔬菜</option>
+                  <option value="ផ្លែឈើ|Fruit|水果">ផ្លែឈើ / Fruit / 水果</option>
+                  <option value="សាច់|Meat|肉类">សាច់ / Meat / 肉类</option>
+                  <option value="ត្រី|Fish|鱼类">ត្រី / Fish / 鱼类</option>
+                  <option value="អាហារស្ងួត|Dry food|干货">អាហារស្ងួត / Dry food / 干货</option>
+                  <option value="គ្រឿងទេស|Spices|香料">គ្រឿងទេស / Spices / 香料</option>
+                  <option value="ទំនិញប្រើប្រាស់|Consumer goods|日用品">ទំនិញប្រើប្រាស់ / Consumer / 日用品</option>
+                  <option value="ផ្សេងៗ|Miscellaneous|其他">ផ្សេងៗ / Other / 其他</option>
                 </select>
-                <div id="pCategoryDynamic"></div>
-                <input type="text" id="pCategoryCustom" placeholder="ឬវាយប្រភេទថ្មី..." class="input-field mt-1.5 text-[11px]">
-                <p class="text-[10px] text-gray-400 mt-1">ប្រភេទដែលវាយថ្មីនឹងរក្សាទុក ហើយជ្រើសបានពេលក្រោយ</p>
+                <div class="grid grid-cols-1 gap-1.5 mt-1.5">
+                  <input type="text" id="pCatKm" placeholder="ប្រភេទ ខ្មែរ *" class="input-field text-[11px]">
+                  <input type="text" id="pCatEn" placeholder="Category English" class="input-field text-[11px]">
+                  <input type="text" id="pCatZh" placeholder="类别 中文" class="input-field text-[11px]">
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">ជ្រើសរហ័ស ឬវាយ 3 ភាសាផ្ទាល់ — ពេលប្តូរភាសាហាង នឹងដូរតាម</p>
               </div>
               <div>
                 <label class="font-semibold text-gray-600 block mb-1">ប្រភេទលក់ *</label>
@@ -593,7 +596,7 @@
                 ${nameZh ? '<p class="text-[11px] text-gray-500">' + nameZh + '</p>' : ''}
                 <div class="flex flex-wrap gap-1 mt-1.5">
                   <span class="text-[10px] px-1.5 py-0.5 rounded-md ${saleColor} font-semibold">${saleType}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-semibold">${cat}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-semibold">${p.category_km || cat}${p.category_en ? ' / ' + p.category_en : ''}${p.category_zh ? ' / ' + p.category_zh : ''}</span>
                 </div>
                 <div class="text-[11px] text-gray-500 mt-1">
                   $${finalPrice} ${p.discount > 0 ? '(-' + p.discount + '%)' : ''} · 
@@ -613,26 +616,7 @@
 
 
     function refreshCategoryOptions() {
-      const select = document.getElementById('pCategory');
-      if (!select) return;
-      const predefined = new Set(Array.from(select.options).map(o => o.value).filter(Boolean));
-      const fromProducts = new Set();
-      products.forEach(p => {
-        const c = (p.category || '').trim();
-        if (c) fromProducts.add(c);
-      });
-      // Remove previously added dynamic options
-      select.querySelectorAll('option[data-dynamic="1"]').forEach(o => o.remove());
-      // Add product categories not in predefined
-      Array.from(fromProducts).sort().forEach(c => {
-        if (!predefined.has(c)) {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c + ' (រក្សាទុក)';
-          opt.dataset.dynamic = '1';
-          select.appendChild(opt);
-        }
-      });
+      // categories now stored as 3-lang fields; preset select is static
     }
 
     window.saveProduct = async function() {
@@ -646,13 +630,15 @@
       if (isNaN(stock) || stock < 0) stock = 0;
       const barcode = document.getElementById('pBarcode').value.trim();
       const editId = document.getElementById('editId').value;
-      let category = document.getElementById('pCategoryCustom').value.trim();
-      if (!category) category = document.getElementById('pCategory').value.trim();
+      const cat_km = document.getElementById('pCatKm').value.trim();
+      const cat_en = document.getElementById('pCatEn').value.trim();
+      const cat_zh = document.getElementById('pCatZh').value.trim();
+      const category = cat_km || cat_en || cat_zh; // primary key for filter
       const saleType = document.getElementById('pSaleType').value || 'retail';
 
       if (!name_km) return alert("សូមបំពេញឈ្មោះភាសាខ្មែរ!");
       if (isNaN(price) || price < 0) return alert("សូមបញ្ចូលតម្លៃឱ្យត្រឹមត្រូវ!");
-      if (!category) return alert("សូមជ្រើស ឬវាយប្រភេទទំនិញ!");
+      if (!category) return alert("សូមបំពេញប្រភេទទំនិញយ៉ាងហោចណាស់ 1 ភាសា!");
 
       const btn = document.getElementById('saveBtn');
       const oldText = btn.innerText;
@@ -668,7 +654,7 @@
             alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nនឹងរក្សាទុកដោយគ្មានរូប។");
           }
         }
-        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, category, saleType, active: true };
+        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, category, category_km: cat_km, category_en: cat_en, category_zh: cat_zh, saleType, active: true };
         if (editId) {
           if (imageUrl) data.image = imageUrl;
           await updateDoc(doc(db, 'products', editId), data);
@@ -701,14 +687,10 @@
       document.getElementById('pStock').value = p.stock || 0;
       document.getElementById('pBarcode').value = p.barcode || '';
       document.getElementById('pSaleType').value = p.saleType || 'retail';
-      const catSelect = document.getElementById('pCategory');
-      const catCustom = document.getElementById('pCategoryCustom');
-      const existingCats = Array.from(catSelect.options).map(o => o.value);
-      if (p.category && existingCats.includes(p.category)) {
-        catSelect.value = p.category; catCustom.value = '';
-      } else {
-        catSelect.value = ''; catCustom.value = p.category || '';
-      }
+      document.getElementById('pCatKm').value = p.category_km || p.category || '';
+      document.getElementById('pCatEn').value = p.category_en || '';
+      document.getElementById('pCatZh').value = p.category_zh || '';
+      document.getElementById('pCategoryPreset').value = '';
       document.getElementById('formTitle').innerText = '✏️ កែប្រែទំនិញ';
       document.getElementById('saveBtn').innerText = 'រក្សាទុកការកែប្រែ';
       document.getElementById('cancelBtn').classList.remove('hidden');
@@ -732,8 +714,10 @@
       document.getElementById('pDiscount').value = '';
       document.getElementById('pStock').value = '';
       document.getElementById('pBarcode').value = '';
-      document.getElementById('pCategory').value = '';
-      document.getElementById('pCategoryCustom').value = '';
+      document.getElementById('pCatKm').value = '';
+      document.getElementById('pCatEn').value = '';
+      document.getElementById('pCatZh').value = '';
+      document.getElementById('pCategoryPreset').value = '';
       document.getElementById('pSaleType').value = 'retail';
       document.getElementById('pImageFile').value = '';
       document.getElementById('imagePreview').classList.add('hidden');
@@ -853,6 +837,16 @@
         };
         reader.readAsDataURL(file);
       }
+    });
+
+
+    document.getElementById('pCategoryPreset')?.addEventListener('change', (e) => {
+      const v = e.target.value;
+      if (!v) return;
+      const [km, en, zh] = v.split('|');
+      document.getElementById('pCatKm').value = km || '';
+      document.getElementById('pCatEn').value = en || '';
+      document.getElementById('pCatZh').value = zh || '';
     });
 
     // ========== FIRESTORE LISTENERS ==========

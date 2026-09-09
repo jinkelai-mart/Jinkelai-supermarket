@@ -509,9 +509,25 @@
     };
     function catLabel(cat) {
       if (!cat) return '';
+      // Prefer multi-lang fields from any product with this category key
+      const p = products.find(x => (x.category || '') === cat);
+      if (p) {
+        if (currentLang === 'en' && p.category_en) return p.category_en;
+        if (currentLang === 'zh' && p.category_zh) return p.category_zh;
+        if (p.category_km) return p.category_km;
+        if (currentLang === 'en' && p.category_en) return p.category_en;
+      }
       const m = CAT_I18N[cat];
       if (m) return m[currentLang] || m.km || cat;
-      return cat; // custom category kept as-is
+      return cat;
+    }
+
+    function productCatLabel(p) {
+      if (!p) return '';
+      if (currentLang === 'en' && p.category_en) return p.category_en;
+      if (currentLang === 'zh' && p.category_zh) return p.category_zh;
+      if (p.category_km) return p.category_km;
+      return catLabel(p.category || '');
     }
 
     function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || i18n.km[key] || key; }
@@ -836,7 +852,7 @@
         const saleType = (p.saleType || 'retail').toLowerCase();
         const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
         const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
-        const catLbl = p.category ? `<span class="text-[9px] text-gray-400">${catLabel(p.category)}</span>` : '';
+        const catLbl = (p.category || p.category_km) ? `<span class="text-[9px] text-gray-400">${productCatLabel(p)}</span>` : '';
         const div = document.createElement('div');
         div.className = 'product-card flex flex-col';
         div.innerHTML = `
