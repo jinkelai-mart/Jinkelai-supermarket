@@ -163,26 +163,26 @@
       </div>
       <div>
         <div class="flex justify-between items-center mb-3">
-          <h3 class="font-bold text-sm text-gray-800">ការបញ្ជាទិញរបស់ខ្ញុំ</h3>
-          <button onclick="openMyOrders()" class="text-emerald-700 text-xs font-bold">មើលទាំងអស់ ></button>
+          <h3 class="font-bold text-sm text-gray-800" id="myOrdersTitle">ការបញ្ជាទិញរបស់ខ្ញុំ</h3>
+          <button onclick="openMyOrders()" class="text-emerald-700 text-xs font-bold" id="viewAllBtn">មើលទាំងអស់ ></button>
         </div>
         <div class="grid grid-cols-4 gap-2">
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-amber-100">⏳</div><p class="text-[11px] font-semibold text-gray-700">រង់ចាំ</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-blue-100">🔄</div><p class="text-[11px] font-semibold text-gray-700">កំពុងដំណើរការ</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-sky-100">🚚</div><p class="text-[11px] font-semibold text-gray-700">កំពុងដឹក</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-emerald-100">✅</div><p class="text-[11px] font-semibold text-gray-700">បានដឹករួច</p></button>
+          <button onclick="openTrack()" class="status-card"><div class="icon bg-amber-100">⏳</div><p class="text-[11px] font-semibold text-gray-700" id="stPending">រង់ចាំ</p></button>
+          <button onclick="openTrack()" class="status-card"><div class="icon bg-blue-100">🔄</div><p class="text-[11px] font-semibold text-gray-700" id="stProcessing">កំពុងដំណើរការ</p></button>
+          <button onclick="openTrack()" class="status-card"><div class="icon bg-sky-100">🚚</div><p class="text-[11px] font-semibold text-gray-700" id="stShipping">កំពុងដឹក</p></button>
+          <button onclick="openTrack()" class="status-card"><div class="icon bg-emerald-100">✅</div><p class="text-[11px] font-semibold text-gray-700" id="stDone">បានដឹករួច</p></button>
         </div>
       </div>
       <div>
-        <h3 class="font-bold text-sm text-gray-800 mb-3">សេវាកម្ម</h3>
+        <h3 class="font-bold text-sm text-gray-800 mb-3" id="servicesTitle">សេវាកម្ម</h3>
         <div class="grid grid-cols-2 gap-3">
           <button onclick="openTrack()" class="bg-white rounded-2xl p-4 border shadow-sm flex items-center gap-3 text-left">
             <span class="text-2xl">📦</span>
-            <div><p class="font-bold text-sm text-gray-800">តាមដានការបញ្ជាទិញ</p><p class="text-[11px] text-gray-500">វាយលេខទូរស័ព្ទ</p></div>
+            <div><p class="font-bold text-sm text-gray-800" id="trackOrderTitle">តាមដានការបញ្ជាទិញ</p><p class="text-[11px] text-gray-500" id="trackOrderHint">វាយលេខទូរស័ព្ទ</p></div>
           </button>
           <button onclick="openMyOrders()" class="bg-white rounded-2xl p-4 border shadow-sm flex items-center gap-3 text-left">
             <span class="text-2xl">🧾</span>
-            <div><p class="font-bold text-sm text-gray-800">ប្រវត្តិទិញ</p><p class="text-[11px] text-gray-500">មើលការបញ្ជាទិញមុន</p></div>
+            <div><p class="font-bold text-sm text-gray-800" id="orderHistoryTitle">ប្រវត្តិទិញ</p><p class="text-[11px] text-gray-500" id="orderHistoryHint">មើលការបញ្ជាទិញមុន</p></div>
           </button>
         </div>
       </div>
@@ -269,8 +269,8 @@
       <div id="authLoggedIn" class="hidden space-y-2 text-xs text-center">
         <p class="font-bold text-gray-800" id="authUserName">—</p>
         <p class="text-gray-500" id="authUserEmail">—</p>
-        <button onclick="openMyOrders()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl">📦 ប្រវត្តិទិញ</button>
-        <button onclick="doLogout()" class="w-full py-2 bg-gray-200 text-gray-700 font-bold rounded-xl">ចាកចេញ</button>
+        <button onclick="openMyOrders()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl" id="authMyOrdersBtn">📦 ប្រវត្តិទិញ</button>
+        <button onclick="doLogout()" class="w-full py-2 bg-gray-200 text-gray-700 font-bold rounded-xl" id="authLogoutBtn">ចាកចេញ</button>
       </div>
     </div>
   </div>
@@ -279,7 +279,7 @@
   <div id="ordersModal" class="fixed inset-0 z-[110] bg-black/50 flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-all">
     <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-4 shadow-xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm">📦 ប្រវត្តិទិញ</h3>
+        <h3 class="font-bold text-sm" id="ordersModalTitle">📦 ប្រវត្តិទិញ</h3>
         <button onclick="closeMyOrders()" class="text-gray-500 font-bold">✕</button>
       </div>
       <div id="myOrdersList" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs">
@@ -292,12 +292,12 @@
   <div id="trackModal" class="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
     <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-xl space-y-3">
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm">📦 តាមដានការបញ្ជាទិញ</h3>
+        <h3 class="font-bold text-sm" id="trackModalTitle">📦 តាមដានការបញ្ជាទិញ</h3>
         <button onclick="closeTrack()" class="text-gray-500 font-bold">✕</button>
       </div>
-      <p class="text-[11px] text-gray-500">វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ</p>
+      <p class="text-[11px] text-gray-500" id="trackHintText">វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ</p>
       <input type="text" id="trackPhone" placeholder="លេខទូរស័ព្ទ *" class="w-full p-2.5 border rounded-xl text-sm">
-      <button onclick="doTrack()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl text-sm">ស្វែងរក</button>
+      <button onclick="doTrack()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl text-sm" id="trackSearchBtn">ស្វែងរក</button>
       <div id="trackResults" class="space-y-2 text-xs max-h-60 overflow-y-auto"></div>
     </div>
   </div>
@@ -424,7 +424,7 @@
         helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ",
         authLogin:"ចូលគណនី", authRegister:"ចុះឈ្មោះ", authNamePh:"ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)", authPhonePh:"លេខទូរស័ព្ទ",
         authNoAccount:"មិនទាន់មានគណនី?", authHasAccount:"មានគណនីរួច?", authGoogle:"ចូលតាម Google",
-        navHome:"ទំព័រដើម", navAccount:"គណនី"
+        navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ"
       },
       en: {
         shopTitle:"Jinkelai Shop", sectionTitle:"All products available here",
@@ -448,7 +448,7 @@
         helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call",
         authLogin:"Login", authRegister:"Register", authNamePh:"Name (for register)", authPhonePh:"Phone",
         authNoAccount:"No account yet?", authHasAccount:"Already have account?", authGoogle:"Login with Google",
-        navHome:"Home", navAccount:"Account"
+        navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering"
       },
       zh: {
         shopTitle:"金克莱超市", sectionTitle:"这里有所有商品",
@@ -472,7 +472,7 @@
         helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话",
         authLogin:"登录", authRegister:"注册", authNamePh:"姓名（注册用）", authPhonePh:"电话",
         authNoAccount:"还没有账号？", authHasAccount:"已有账号？", authGoogle:"通过 Google 登录",
-        navHome:"首页", navAccount:"账户"
+        navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码"
       }
     };
 
@@ -539,6 +539,34 @@
       if (helpCall) helpCall.innerText = t('callPhone');
       const helpCall2 = document.getElementById('helpCall2');
       if (helpCall2) helpCall2.innerText = t('callPhone');
+      // Account page sections
+      const setTxt = (id, key) => { const el = document.getElementById(id); if (el) el.innerText = t(key); };
+      setTxt('myOrdersTitle', 'myOrdersTitle');
+      setTxt('viewAllBtn', 'viewAll');
+      setTxt('stPending', 'statusPending');
+      setTxt('stProcessing', 'statusProcessing');
+      setTxt('stShipping', 'statusShipping');
+      setTxt('stDone', 'statusDone');
+      setTxt('servicesTitle', 'services');
+      setTxt('trackOrderTitle', 'trackOrder');
+      setTxt('trackOrderHint', 'trackHint');
+      setTxt('orderHistoryTitle', 'orderHistory');
+      setTxt('orderHistoryHint', 'historyHint');
+      setTxt('ordersModalTitle', 'myOrders');
+      setTxt('trackModalTitle', 'trackOrder');
+      setTxt('authMyOrdersBtn', 'myOrders');
+      setTxt('authLogoutBtn', 'logout');
+      // prepend emoji for modal titles
+      const omt = document.getElementById('ordersModalTitle');
+      if (omt) omt.innerText = '📦 ' + t('myOrders');
+      const tmt = document.getElementById('trackModalTitle');
+      if (tmt) tmt.innerText = '📦 ' + t('trackOrder');
+      const amb = document.getElementById('authMyOrdersBtn');
+      if (amb) amb.innerText = '📦 ' + t('myOrders');
+      setTxt('trackHintText', 'trackHintLong');
+      setTxt('trackSearchBtn', 'searchBtn');
+      const trackPhone = document.getElementById('trackPhone');
+      if (trackPhone) trackPhone.placeholder = t('phonePh');
       // Bottom nav
       const navHome = document.querySelector('.nav-item[data-page="home"] span');
       if (navHome) navHome.innerText = t('navHome');
