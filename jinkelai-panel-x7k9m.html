@@ -365,26 +365,90 @@
     }
 
     // ========== NOTIFICATIONS ==========
-    function playNotifySound() {
+    let _audioCtx = null;
+    function getAudioCtx() {
+      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_audioCtx.state === 'suspended') _audioCtx.resume();
+      return _audioCtx;
+    }
+    function beep(freq, duration, vol, type, delay) {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = getAudioCtx();
+        const t0 = ctx.currentTime + (delay || 0);
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol || 0.4, t0);
+        gain.gain.exponentialRampToValueAtTime(0.01, t0 + duration);
         osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880; gain.gain.value = 0.35;
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-        osc.stop(ctx.currentTime + 0.4);
-        setTimeout(() => {
-          const osc2 = ctx.createOscillator();
-          const gain2 = ctx.createGain();
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.frequency.value = 1175; gain2.gain.value = 0.35;
-          osc2.start();
-          gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-          osc2.stop(ctx.currentTime + 0.4);
-        }, 250);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
       } catch (e) {}
+    }
+    /** Short success beep for barcode scan */
+    function playScanBeep(ok) {
+      if (ok === false) {
+        beep(220, 0.15, 0.35, 'square', 0);
+        beep(180, 0.2, 0.3, 'square', 0.15);
+      } else {
+        beep(1200, 0.08, 0.3, 'sine', 0);
+        beep(1600, 0.1, 0.35, 'sine', 0.09);
+      }
+    }
+    /** Louder alert for new order */
+    // Unlock audio on first user gesture (iOS/Android)
+    document.addEventListener('click', function unlockAudioOnce() {
+      try { getAudioCtx(); } catch(e) {}
+      document.removeEventListener('click', unlockAudioOnce);
+    }, { once: true });
+
+    function playNotifySound() {
+      try {
+        // triple ascending chime
+        beep(660, 0.15, 0.45, 'sine', 0);
+        beep(880, 0.15, 0.45, 'sine', 0.18);
+        beep(1175, 0.25, 0.5, 'sine', 0.36);
+        beep(1175, 0.15, 0.35, 'sine', 0.7);
+      } catch (e) {}
+    }
+
+    function isValidBarcode(code) {
+      if (!code || !/^\d{8,14}$/.test(code)) {
+        // allow CODE128 alphanumeric of reasonable length
+        if (code && code.length >= 6 && code.length <= 32 && /^[A-Za-z0-9\-_.]+$/.test(code)) return true;
+        return false;
+      }
+      // EAN-8 / EAN-13 / UPC checksum
+      const digits = code.split('').map(Number);
+      if (digits.some(d => isNaN(d))) return false;
+      if (code.length === 13 || code.length === 8 || code.length === 12) {
+        let sum = 0;
+        const len = digits.length;
+        for (let i = 0; i < len - 1; i++) {
+          const n = digits[len - 2 - i];
+          sum += (i % 2 === 0) ? n * 3 : n;
+        }
+        const check = (10 - (sum % 10)) % 10;
+        return check === digits[len - 1];
+      }
+      return true; // other lengths accept
+    }
+
+    // Stable read: same code must be seen N times
+    const SCAN_CONFIRM_COUNT = 2;
+    let scanVotes = {};
+    let stockVotes = {};
+    function voteCode(bucket, code) {
+      const now = Date.now();
+      // expire old votes
+      Object.keys(bucket).forEach(k => {
+        if (now - bucket[k].t > 2000) delete bucket[k];
+      });
+      if (!bucket[code]) bucket[code] = { n: 0, t: now };
+      bucket[code].n += 1;
+      bucket[code].t = now;
+      return bucket[code].n >= SCAN_CONFIRM_COUNT;
     }
 
     function speakNewOrder(order) {
@@ -952,10 +1016,7 @@
       const product = products.find(p => (p.barcode || '').trim() === code) || null;
       renderStockResult(code, product);
       pushStockHistory(code, product);
-      // beep-like feedback via title flash
-      try {
-        if (product && product.stock > 0) playNotifySound();
-      } catch(e) {}
+      playScanBeep(!!product);
     };
 
     window.checkStockByInput = function() {
@@ -985,19 +1046,9 @@
       reader.classList.remove('hidden');
       document.getElementById('stopStockScanBtn').classList.remove('hidden');
       if (!stockQr) stockQr = new Html5Qrcode('stockScanReader');
-      const config = { fps: 20, qrbox: { width: 280, height: 120 } };
-      try {
-        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-          config.formatsToSupport = [
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E
-          ];
-        }
-      } catch (e) {}
+      const config = getBarcodeCameraConfig();
+      try { getAudioCtx(); } catch(e) {}
+      stockVotes = {};
       try {
         await stockQr.start(
           { facingMode: 'environment' },
@@ -1005,9 +1056,12 @@
           (decoded) => {
             const code = String(decoded).trim();
             if (stockScanLock) return;
+            if (!isValidBarcode(code)) return;
+            if (!voteCode(stockVotes, code)) return;
             stockScanLock = true;
+            stockVotes = {};
             checkStockBarcode(code);
-            setTimeout(() => { stockScanLock = false; }, 1200);
+            setTimeout(() => { stockScanLock = false; }, 1500);
           },
           () => {}
         );
@@ -1044,18 +1098,48 @@
       return products.find(p => (p.barcode || '').trim() === c) || null;
     }
 
+    function getBarcodeCameraConfig() {
+      const config = {
+        fps: 15,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          const w = Math.floor(Math.min(viewfinderWidth * 0.92, 320));
+          const h = Math.floor(Math.min(viewfinderHeight * 0.28, 140));
+          return { width: w, height: h };
+        },
+        aspectRatio: 1.333,
+        disableFlip: true,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+      };
+      try {
+        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+          config.formatsToSupport = [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128
+          ];
+        }
+      } catch (e) {}
+      return config;
+    }
+
     function handleBarcodeDetected(code) {
+      code = String(code || '').trim();
+      if (!code || scanLock) return;
+      if (!isValidBarcode(code)) return; // reject bad checksum / noise
+      if (!voteCode(scanVotes, code)) return; // need stable re-read
+
       const now = Date.now();
-      // debounce: ignore rapid repeats of same/different noise
-      if (scanLock) return;
       if (code === lastScanCode && now - lastScanAt < 1500) return;
       scanLock = true;
       lastScanCode = code;
       lastScanAt = now;
+      scanVotes = {};
 
+      playScanBeep(true);
       const existing = findProductByBarcode(code);
       const editId = document.getElementById('editId').value;
-
       stopBarcodeScan();
 
       setTimeout(() => {
@@ -1070,43 +1154,34 @@
           document.getElementById('pBarcode').value = code;
         }
         scanLock = false;
-      }, 250);
+      }, 200);
     }
 
     window.startBarcodeScan = function() {
       scanLock = false;
       lastScanCode = '';
+      scanVotes = {};
+      try { getAudioCtx(); } catch(e) {}
       document.getElementById('scannerModal').classList.remove('hidden');
       document.getElementById('scannerModal').classList.add('flex');
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-      const config = {
-        fps: 20,
-        qrbox: { width: 280, height: 120 },
-        aspectRatio: 1.777,
-        disableFlip: false
-      };
-      // formats if supported
-      try {
-        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-          config.formatsToSupport = [
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.QR_CODE
-          ];
-        }
-      } catch (e) {}
+      const config = getBarcodeCameraConfig();
       html5QrCode.start(
-        { facingMode: "environment" },
+        { facingMode: { exact: "environment" } },
         config,
         (decoded) => { handleBarcodeDetected(String(decoded).trim()); },
         () => {}
-      ).catch(err => {
-        alert('មិនអាចបើកកាមេរ៉ា: ' + err);
-        stopBarcodeScan();
+      ).catch(() => {
+        // fallback without exact facingMode
+        html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          (decoded) => { handleBarcodeDetected(String(decoded).trim()); },
+          () => {}
+        ).catch(err => {
+          alert('មិនអាចបើកកាមេរ៉ា: ' + err);
+          stopBarcodeScan();
+        });
       });
     };
 
