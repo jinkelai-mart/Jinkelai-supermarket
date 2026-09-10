@@ -1,24 +1,30 @@
 {
   "name": "Jinkelai Shop",
   "short_name": "Jinkelai",
-  "description": "Jinkelai Supermarket Online Shop",
+  "description": "金客来超市 Jinkelai Supermarket",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#047857",
-  "theme_color": "#047857",
+  "background_color": "#7f1d1d",
+  "theme_color": "#7f1d1d",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo.png",
+      "src": "app-icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "app-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
