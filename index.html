@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="km">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Jinkelai Shop</title>
+  <meta name="theme-color" content="#047857">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jinkelai">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" type="image/png" href="logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -459,7 +466,7 @@
         cartLabel:"កន្ត្រក", cartTitle:"កន្ត្រកទំនិញ", totalLabel:"សរុប៖", checkoutBtn:"បញ្ជាទិញ",
         namePh:"ឈ្មោះ *", phonePh:"លេខទូរស័ព្ទ *", addressPh:"អាសយដ្ឋាន *",
         loading:"កំពុងផ្ទុកទំនិញ...", empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock:"អស់ស្តុក", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
+        outOfStock:"អស់ស្តុក", inStock:"មានស្តុក", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
         orderSuccess:"ការបញ្ជាទិញបានរក្សាទុក!\nស្ថានភាព៖ រង់ចាំការទូទាត់\nAdmin នឹងបញ្ជាក់ពេលទទួលប្រាក់",
         fillInfo:"សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!", addFirst:"សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
         networkError:"មានបញ្ហាបណ្តាញ ឬ Firebase!",
@@ -476,14 +483,14 @@
         helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ",
         authLogin:"ចូលគណនី", authRegister:"ចុះឈ្មោះ", authNamePh:"ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)", authPhonePh:"លេខទូរស័ព្ទ",
         authNoAccount:"មិនទាន់មានគណនី?", authHasAccount:"មានគណនីរួច?", authGoogle:"ចូលតាម Google",
-        navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ", promoCnTitle:"ទំនិញចិន", promoCnSub:"ផលិតផលនាំចូលពីចិន", promoKhTitle:"ទំនិញខ្មែរ", promoKhSub:"ផលិតផលក្នុងស្រុក", promoShipTitle:"ដឹកជញ្ជូនរហ័ស", promoShipSub:"COD និង KHQR"
+        navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ", promoCnTitle:"ទំនិញចិន", promoCnSub:"ផលិតផលនាំចូលពីចិន", promoKhTitle:"ទំនិញខ្មែរ", promoKhSub:"ផលិតផលក្នុងស្រុក", promoShipTitle:"ដឹកជញ្ជូនរហ័ស", promoShipSub:"COD និង KHQR", a2hsTitle:"បន្ថែមទៅទំព័រដើម", a2hsSub:"ដើម្បីចូលហាងបានលឿន ដូច App", a2hsHow:"របៀបដំឡើង", a2hsLater:"ពេលក្រោយ", a2hsModalTitle:"បន្ថែមទៅ Home Screen", a2hsModalSub:"ចូលប្រើដូច App លើទូរស័ព្ទ", a2hsOk:"យល់ព្រម", a2hsIos1:"1. ចុចប៊ូតុង Share (□↑) នៅរបារក្រោម Safari", a2hsIos2:"2. រក «Add to Home Screen» / «បន្ថែមទៅអេក្រង់ដើម»", a2hsIos3:"3. ចុច Add / បន្ថែម — រូប Jinkelai នឹងលេចលើទំព័រដើម", a2hsAnd1:"1. ចុច ⋮ (ម៉ឺនុយ) នៅជ្រុង browser", a2hsAnd2:"2. ជ្រើស «Install app» ឬ «Add to Home screen»", a2hsAnd3:"3. ចុច Install / បន្ថែម — បើកពីទំព័រដើមបាន"
       },
       en: {
         shopTitle:"Jinkelai Shop", sectionTitle:"All products available here",
         cartLabel:"Cart", cartTitle:"Shopping Cart", totalLabel:"Total:", checkoutBtn:"Checkout",
         namePh:"Name *", phonePh:"Phone *", addressPh:"Address *",
         loading:"Loading products...", empty:"No products available yet",
-        outOfStock:"Out of stock", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
+        outOfStock:"Out of stock", inStock:"In stock", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
         orderSuccess:"Order saved!\nStatus: Waiting for payment\nAdmin will confirm after receiving payment",
         fillInfo:"Please fill name, phone and address!", addFirst:"Please add items to cart first!",
         networkError:"Network or Firebase error!",
@@ -500,14 +507,14 @@
         helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call",
         authLogin:"Login", authRegister:"Register", authNamePh:"Name (for register)", authPhonePh:"Phone",
         authNoAccount:"No account yet?", authHasAccount:"Already have account?", authGoogle:"Login with Google",
-        navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering", promoCnTitle:"Chinese Products", promoCnSub:"Imported from China", promoKhTitle:"Khmer Products", promoKhSub:"Local products", promoShipTitle:"Fast Delivery", promoShipSub:"COD & KHQR"
+        navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering", promoCnTitle:"Chinese Products", promoCnSub:"Imported from China", promoKhTitle:"Khmer Products", promoKhSub:"Local products", promoShipTitle:"Fast Delivery", promoShipSub:"COD & KHQR", a2hsTitle:"Add to Home Screen", a2hsSub:"Open the shop faster, like an app", a2hsHow:"How to install", a2hsLater:"Later", a2hsModalTitle:"Add to Home Screen", a2hsModalSub:"Use it like an app on your phone", a2hsOk:"Got it", a2hsIos1:"1. Tap the Share button (□↑) in Safari", a2hsIos2:"2. Choose «Add to Home Screen»", a2hsIos3:"3. Tap Add — Jinkelai icon appears on home", a2hsAnd1:"1. Tap ⋮ menu in the browser", a2hsAnd2:"2. Choose «Install app» or «Add to Home screen»", a2hsAnd3:"3. Tap Install — open from home screen"
       },
       zh: {
         shopTitle:"金克莱超市", sectionTitle:"这里有所有商品",
         cartLabel:"购物车", cartTitle:"购物车", totalLabel:"合计：", checkoutBtn:"下单",
         namePh:"姓名 *", phonePh:"电话 *", addressPh:"地址 *",
         loading:"正在加载商品...", empty:"暂无商品",
-        outOfStock:"缺货", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
+        outOfStock:"缺货", inStock:"有货", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
         orderSuccess:"订单已保存！\n状态：等待付款\n管理员确认收款后会更新",
         fillInfo:"请填写姓名、电话和地址！", addFirst:"请先添加商品到购物车！",
         networkError:"网络或Firebase错误！",
@@ -524,7 +531,7 @@
         helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话",
         authLogin:"登录", authRegister:"注册", authNamePh:"姓名（注册用）", authPhonePh:"电话",
         authNoAccount:"还没有账号？", authHasAccount:"已有账号？", authGoogle:"通过 Google 登录",
-        navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码", promoCnTitle:"中国商品", promoCnSub:"中国进口产品", promoKhTitle:"高棉商品", promoKhSub:"本地产品", promoShipTitle:"快速配送", promoShipSub:"货到付款 & KHQR"
+        navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码", promoCnTitle:"中国商品", promoCnSub:"中国进口产品", promoKhTitle:"高棉商品", promoKhSub:"本地产品", promoShipTitle:"快速配送", promoShipSub:"货到付款 & KHQR", a2hsTitle:"添加到主屏幕", a2hsSub:"像 App 一样快速打开商店", a2hsHow:"安装方法", a2hsLater:"稍后", a2hsModalTitle:"添加到主屏幕", a2hsModalSub:"像手机 App 一样使用", a2hsOk:"知道了", a2hsIos1:"1. 在 Safari 点击底部分享按钮 (□↑)", a2hsIos2:"2. 选择「添加到主屏幕」", a2hsIos3:"3. 点击添加 — 主屏幕会出现 Jinkelai 图标", a2hsAnd1:"1. 点击浏览器 ⋮ 菜单", a2hsAnd2:"2. 选择「安装应用」或「添加到主屏幕」", a2hsAnd3:"3. 点击安装 — 可从主屏幕打开"
       }
     };
 
@@ -677,6 +684,14 @@
       setTxt('promoKhSub', 'promoKhSub');
       setTxt('promoShipTitle', 'promoShipTitle');
       setTxt('promoShipSub', 'promoShipSub');
+      setTxt('a2hsTitle', 'a2hsTitle');
+      setTxt('a2hsSub', 'a2hsSub');
+      setTxt('a2hsHowBtn', 'a2hsHow');
+      setTxt('a2hsLaterBtn', 'a2hsLater');
+      setTxt('a2hsModalTitle', 'a2hsModalTitle');
+      setTxt('a2hsModalSub', 'a2hsModalSub');
+      setTxt('a2hsOkBtn', 'a2hsOk');
+      if (typeof renderA2HSSteps === 'function') renderA2HSSteps();
       renderCategoryBar();
       const trackPhone = document.getElementById('trackPhone');
       if (trackPhone) trackPhone.placeholder = t('phonePh');
@@ -1041,7 +1056,7 @@
             <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLbl}</div>
             <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
             ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
-            <p class="text-[10px] text-gray-500 mt-0.5">${t('stock')}: <span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : p.stock}</span></p>
+            <p class="text-[10px] mt-0.5"><span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : t('inStock')}</span></p>
             <div class="mt-auto pt-2 flex justify-between items-center">
               <div><span class="font-bold text-xs text-emerald-700">$${finalPrice}</span>${p.discount > 0 ? `<span class="text-[9px] line-through text-gray-400">$${Number(p.price).toFixed(2)}</span>` : ''}</div>
               <button onclick="event.stopPropagation(); window.addToCart('${p.id}')" class="bg-emerald-700 text-white text-[10px] px-2.5 py-1.5 rounded-lg font-bold ${p.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}">${t('buy')}</button>
@@ -1079,7 +1094,7 @@
         disc.innerText = '-' + p.discount + '%'; disc.classList.remove('hidden');
       } else { oldP.classList.add('hidden'); disc.classList.add('hidden'); }
       const stockEl = document.getElementById('pdStock');
-      stockEl.innerText = p.stock <= 0 ? t('outOfStock') : String(p.stock);
+      stockEl.innerText = p.stock <= 0 ? t('outOfStock') : t('inStock');
       stockEl.className = p.stock <= 0 ? 'text-red-500' : 'text-emerald-700';
       document.getElementById('pdBarcode').innerText = p.barcode || '—';
       document.getElementById('pdCategory').innerText = productCatLabel(p) || '—';
@@ -1311,6 +1326,79 @@
     };
 
     applyLang(); loadKhqr(); updateAccountUI();
-  </script>
+  
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+    function isIOS() {
+      return /iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+    function renderA2HSSteps() {
+      const box = document.getElementById('a2hsSteps');
+      if (!box) return;
+      if (isIOS()) {
+        box.innerHTML = [t('a2hsIos1'), t('a2hsIos2'), t('a2hsIos3')].map(s => '<p class="leading-relaxed">'+s+'</p>').join('');
+      } else {
+        box.innerHTML = [t('a2hsAnd1'), t('a2hsAnd2'), t('a2hsAnd3')].map(s => '<p class="leading-relaxed">'+s+'</p>').join('');
+      }
+    }
+    window.openA2HSGuide = function() {
+      renderA2HSSteps();
+      document.getElementById('a2hsModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+    window.closeA2HSGuide = function() {
+      document.getElementById('a2hsModal').classList.add('opacity-0', 'pointer-events-none');
+      dismissA2HS();
+    };
+    window.dismissA2HS = function() {
+      document.getElementById('a2hsBanner').classList.add('hidden');
+      try { localStorage.setItem('a2hs_dismissed', String(Date.now())); } catch(e) {}
+    };
+    function maybeShowA2HS() {
+      if (isStandalone()) return;
+      if (window.innerWidth > 900) return;
+      try {
+        const d = localStorage.getItem('a2hs_dismissed');
+        if (d && Date.now() - Number(d) < 3 * 24 * 3600 * 1000) return; // 3 days
+      } catch(e) {}
+      setTimeout(() => {
+        const b = document.getElementById('a2hsBanner');
+        if (b) b.classList.remove('hidden');
+      }, 2500);
+    }
+    maybeShowA2HS();
+
+</script>
+
+  <!-- ADD TO HOME SCREEN GUIDE -->
+  <div id="a2hsBanner" class="fixed bottom-20 left-3 right-3 z-[90] max-w-md mx-auto hidden">
+    <div class="bg-white border border-emerald-200 shadow-xl rounded-2xl p-3 flex gap-3 items-start">
+      <img src="logo.png" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border" alt="icon">
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm text-gray-800" id="a2hsTitle">បន្ថែមទៅទំព័រដើម</p>
+        <p class="text-[11px] text-gray-500 mt-0.5 leading-snug" id="a2hsSub">ដើម្បីចូលហាងបានលឿន ដូច App</p>
+        <div class="flex gap-2 mt-2">
+          <button onclick="openA2HSGuide()" class="px-3 py-1.5 bg-emerald-700 text-white text-[11px] font-bold rounded-lg" id="a2hsHowBtn">របៀបដំឡើង</button>
+          <button onclick="dismissA2HS()" class="px-3 py-1.5 bg-gray-100 text-gray-600 text-[11px] font-bold rounded-lg" id="a2hsLaterBtn">ពេលក្រោយ</button>
+        </div>
+      </div>
+      <button onclick="dismissA2HS()" class="text-gray-400 font-bold text-sm leading-none">✕</button>
+    </div>
+  </div>
+
+  <div id="a2hsModal" class="fixed inset-0 z-[120] bg-black/50 flex items-end sm:items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3">
+        <img src="logo.png" class="w-14 h-14 rounded-2xl object-cover border shadow-sm" alt="Jinkelai">
+        <div>
+          <h3 class="font-bold text-base text-gray-900" id="a2hsModalTitle">បន្ថែមទៅ Home Screen</h3>
+          <p class="text-[11px] text-gray-500" id="a2hsModalSub">ចូលប្រើដូច App លើទូរស័ព្ទ</p>
+        </div>
+      </div>
+      <div id="a2hsSteps" class="space-y-3 text-sm text-gray-700"></div>
+      <button onclick="closeA2HSGuide()" class="w-full py-3 bg-emerald-700 text-white font-bold rounded-xl text-sm" id="a2hsOkBtn">យល់ព្រម</button>
+    </div>
+  </div>
+
 </body>
 </html>
