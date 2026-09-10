@@ -457,7 +457,7 @@
 
     let products = [], cart = [], currentUser = null;
     let currentLang = localStorage.getItem('jk_lang') || 'km';
-    let currentCategory = 'all', currentSaleType = 'all', searchQuery = '';
+    let currentCategory = 'all', currentGroup = 'all', currentSaleType = 'all', searchQuery = '';
     let selectedLocFile = null, khqrData = {}, mapInstance = null, isRegisterMode = false;
 
     const i18n = {
@@ -927,24 +927,30 @@
       renderProducts();
     };
     window.filterByPromo = function(catKey) {
-      // Match category or category_km / en / zh
-      const matchKeys = [catKey];
-      if (catKey === 'ទំនិញចិន') matchKeys.push('Chinese products', '中国商品');
-      if (catKey === 'ទំនិញខ្មែរ') matchKeys.push('Khmer products', '高棉商品');
-      // Prefer exact category value stored as Khmer key
-      let found = null;
-      for (const p of products) {
-        const vals = [p.category, p.category_km, p.category_en, p.category_zh].filter(Boolean);
-        if (vals.some(v => matchKeys.includes(v))) { found = p.category || p.category_km || catKey; break; }
-      }
-      currentCategory = found || catKey;
+      if (catKey === 'ទំនិញចិន' || catKey === 'chinese') currentGroup = 'chinese';
+      else if (catKey === 'ទំនិញខ្មែរ' || catKey === 'khmer') currentGroup = 'khmer';
+      else currentGroup = 'all';
+      currentCategory = 'all';
       renderCategoryBar();
-      document.querySelectorAll('#categoryBar .cat-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.cat === currentCategory);
-      });
       renderProducts();
       document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
+    window.clearGroupFilter = function() {
+      currentGroup = 'all';
+      currentCategory = 'all';
+      renderCategoryBar();
+      renderProducts();
+    };
+    function productInGroup(p) {
+      if (currentGroup === 'all') return true;
+      const g = (p.productGroup || '').toLowerCase();
+      if (g === currentGroup) return true;
+      // fallback: old data tagged only in category name
+      const vals = [p.category, p.category_km, p.category_en, p.category_zh].map(x => (x||'').toLowerCase());
+      if (currentGroup === 'khmer') return vals.some(v => v.includes('ខ្មែ') || v.includes('khmer') || v.includes('高棉'));
+      if (currentGroup === 'chinese') return vals.some(v => v.includes('ចិន') || v.includes('chinese') || v.includes('中国') || v.includes('中國'));
+      return false;
+    }
 
     // ----- Store hours (Cambodia) -----
     let storeHours = { enabled: false, open: '08:00', close: '21:00', note: '' };
@@ -996,12 +1002,16 @@
     function renderCategoryBar() {
       const bar = document.getElementById('categoryBar');
       const cats = new Set();
-      products.forEach(p => { if (p.category && p.category.trim()) cats.add(p.category.trim()); });
+      products.filter(p => p.active !== false && productInGroup(p)).forEach(p => {
+        if (p.category && p.category.trim()) cats.add(p.category.trim());
+      });
       const sorted = Array.from(cats).sort();
-      bar.innerHTML = `<button class="cat-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategory('all')">${t('catAll')}</button>`;
+      let groupHint = '';
+      if (currentGroup === 'khmer') groupHint = '<button class="cat-btn active" onclick="clearGroupFilter()">🇰🇭 ' + t('promoKhTitle') + ' ✕</button>';
+      else if (currentGroup === 'chinese') groupHint = '<button class="cat-btn active" onclick="clearGroupFilter()">🇨🇳 ' + t('promoCnTitle') + ' ✕</button>';
+      bar.innerHTML = groupHint + `<button class="cat-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategory('all')">${t('catAll')}</button>`;
       sorted.forEach(c => {
         const label = catLabel(c);
-        // escape for attribute
         const safe = c.replace(/'/g, "\'");
         bar.innerHTML += `<button class="cat-btn ${currentCategory === c ? 'active' : ''}" data-cat="${c}" onclick="setCategory('${safe}')">${label}</button>`;
       });
@@ -1020,6 +1030,7 @@
       const noResult = document.getElementById('noResultMsg');
       grid.innerHTML = '';
       let list = products.filter(p => p.active !== false);
+      if (currentGroup !== 'all') list = list.filter(productInGroup);
       if (currentCategory !== 'all') {
         list = list.filter(p => {
           const vals = [p.category, p.category_km, p.category_en, p.category_zh].map(x => (x||'').trim());

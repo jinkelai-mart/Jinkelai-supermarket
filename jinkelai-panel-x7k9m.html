@@ -143,7 +143,13 @@
             <!-- Category + Sale Type -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="font-semibold text-gray-600 block mb-1">ប្រភេទទំនិញ *</label>
+                <label class="font-semibold text-gray-600 block mb-1">ក្រុមធំ (Banner)</label>
+                <select id="pGroup" class="input-field mb-2">
+                  <option value="">— ទូទៅ —</option>
+                  <option value="khmer">🇰🇭 ទំនិញខ្មែរ</option>
+                  <option value="chinese">🇨🇳 ទំនិញចិន</option>
+                </select>
+                <label class="font-semibold text-gray-600 block mb-1">ប្រភេទរង *</label>
                 <select id="pCategoryPreset" class="input-field">
                   <option value="">-- ជ្រើសរហ័ស (បំពេញ 3 ភាសាអោយ) --</option>
                   <option value="ទំនិញចិន|Chinese products|中国商品">ទំនិញចិន / Chinese / 中国商品</option>
@@ -646,6 +652,7 @@
                 ${nameZh ? '<p class="text-[11px] text-gray-500">' + nameZh + '</p>' : ''}
                 <div class="flex flex-wrap gap-1 mt-1.5">
                   <span class="text-[10px] px-1.5 py-0.5 rounded-md ${saleColor} font-semibold">${saleType}</span>
+                  ${p.productGroup==='khmer'?'<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-semibold">🇰🇭</span>':p.productGroup==='chinese'?'<span class="text-[10px] px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 font-semibold">🇨🇳</span>':''}
                   <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-semibold">${p.category_km || cat}${p.category_en ? ' / ' + p.category_en : ''}${p.category_zh ? ' / ' + p.category_zh : ''}</span>
                 </div>
                 <div class="text-[11px] text-gray-500 mt-1">
@@ -714,7 +721,8 @@
             alert("⚠️ Upload រូបបរាជ័យ: " + uploadErr.message + "\n\nនឹងរក្សាទុកដោយគ្មានរូប។");
           }
         }
-        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, category, category_km: cat_km, category_en: cat_en, category_zh: cat_zh, saleType, active: true };
+        const productGroup = document.getElementById('pGroup').value || '';
+        const data = { name_km, name_en, name_zh, price, discount, stock, barcode, category, category_km: cat_km, category_en: cat_en, category_zh: cat_zh, productGroup, saleType, active: true };
         if (editId) {
           if (imageUrl) data.image = imageUrl;
           await updateDoc(doc(db, 'products', editId), data);
@@ -747,6 +755,7 @@
       document.getElementById('pStock').value = p.stock || 0;
       document.getElementById('pBarcode').value = p.barcode || '';
       document.getElementById('pSaleType').value = p.saleType || 'retail';
+      document.getElementById('pGroup').value = p.productGroup || '';
       document.getElementById('pCatKm').value = p.category_km || p.category || '';
       document.getElementById('pCatEn').value = p.category_en || '';
       document.getElementById('pCatZh').value = p.category_zh || '';
@@ -774,6 +783,7 @@
       document.getElementById('pDiscount').value = '';
       document.getElementById('pStock').value = '';
       document.getElementById('pBarcode').value = '';
+      document.getElementById('pGroup').value = '';
       document.getElementById('pCatKm').value = '';
       document.getElementById('pCatEn').value = '';
       document.getElementById('pCatZh').value = '';
