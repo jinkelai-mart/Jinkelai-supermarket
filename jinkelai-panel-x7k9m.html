@@ -4,6 +4,13 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>Admin - Jinkelai</title>
+  <meta name="theme-color" content="#065f46">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JK Admin">
+  <link rel="manifest" href="admin-manifest.json">
+  <link rel="apple-touch-icon" href="admin-logo.jpg">
+  <link rel="icon" type="image/jpeg" href="admin-logo.jpg">
   <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -31,7 +38,7 @@
   <div id="loginSection" class="fixed inset-0 bg-emerald-900/95 z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-5">
       <div class="text-center">
-        <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center text-3xl mb-3">🛍️</div>
+        <img src="admin-logo.jpg" alt="logo" class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-emerald-100 shadow mb-3 bg-white">
         <h2 class="text-lg font-bold text-gray-800">Jinkelai Admin</h2>
         <p class="text-[11px] text-gray-500 mt-1">Firebase Authentication</p>
       </div>
@@ -67,6 +74,7 @@
               <button type="button" id="admLangEn" onclick="setAdminLang('en')" class="px-2 py-1 rounded-full">EN</button>
               <button type="button" id="admLangZh" onclick="setAdminLang('zh')" class="px-2 py-1 rounded-full">中文</button>
             </div>
+            <button type="button" onclick="testOrderVoice(adminLang)" title="Test voice" class="bg-white/15 hover:bg-white/25 px-2 py-1.5 rounded-full text-[11px] font-bold">🔊</button>
             <button onclick="switchTab('orders')" class="relative bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full text-xs font-bold transition">
               🧾 <span data-i18n="tabOrdersShort">Order</span>
               <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
@@ -491,6 +499,14 @@
     function at(key) {
       return (adminI18n[adminLang] && adminI18n[adminLang][key]) || adminI18n.km[key] || key;
     }
+    window.testOrderVoice = function(lang) {
+      speakNewOrder({
+        lang: lang || adminLang,
+        total: 12.5,
+        paymentMethod: 'cod',
+        customer: { name: 'Test' }
+      });
+    };
     window.setAdminLang = function(lang) {
       adminLang = lang;
       localStorage.setItem('jk_admin_lang', lang);
@@ -529,49 +545,70 @@ function orderLang(order) {
     }
 
     function speakNewOrder(order) {
+      const run = (voices) => {
+        try {
+          if (!window.speechSynthesis) return;
+          window.speechSynthesis.cancel();
+          const name = (order.customer && order.customer.name) || 'Customer';
+          const total = Number(order.total || 0).toFixed(2);
+          const lang = (order && order.lang) ? order.lang : (typeof adminLang !== 'undefined' ? adminLang : 'km');
+          let text, locale, pick;
+          if (lang === 'zh') {
+            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : '货到付款';
+            text = '新订单！来自' + name + '，金额' + total + '美元，支付方式' + pay;
+            locale = 'zh-CN';
+            pick = function(v) {
+              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
+              return /zh|cmn|chinese|中文/.test(s);
+            };
+          } else if (lang === 'en') {
+            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
+            text = 'New order from ' + name + ', total ' + total + ' dollars, paid by ' + pay;
+            locale = 'en-US';
+            pick = function(v) {
+              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
+              return /^en/.test(v.lang || '') || /english/.test(s);
+            };
+          } else {
+            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
+            text = 'មានការបញ្ជាទិញថ្មី ពី ' + name + ' ចំនួន ' + total + ' ដុល្លារ បង់តាម ' + pay;
+            locale = 'km-KH';
+            pick = function(v) {
+              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
+              return /km|khmer|cambodian/.test(s);
+            };
+          }
+          let v = (voices || []).find(pick);
+          // If target voice missing: still speak TARGET language text (OS may approximate)
+          // Only fall back text to English if completely necessary for km with zero km voice
+          if (!v && lang === 'km') {
+            // Keep Khmer text; some browsers ignore unknown lang
+            v = null;
+          }
+          if (!v && lang === 'zh') {
+            v = (voices || []).find(function(x) { return /zh/.test((x.lang || '').toLowerCase()); });
+          }
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = v ? v.lang : locale;
+          if (v) u.voice = v;
+          u.rate = lang === 'km' ? 0.85 : 0.92;
+          u.volume = 1;
+          window.speechSynthesis.speak(u);
+        } catch (e) { console.error('speak', e); }
+      };
       try {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const name = order.customer?.name || 'Customer';
-        const total = Number(order.total || 0).toFixed(2);
-        // Prefer language from order (shop), then admin UI language
-        const lang = (order && order.lang) ? order.lang : (adminLang || 'km');
-        let text, locale, prefixes;
-        if (lang === 'zh') {
-          const pay = order.paymentMethod === 'khqr' ? 'KHQR' : '货到付款';
-          text = `新订单！来自 ${name}，金额 ${total} 美元，支付方式 ${pay}`;
-          locale = 'zh-CN';
-          prefixes = ['zh-CN', 'zh_CN', 'zh-TW', 'zh', 'cmn'];
-        } else if (lang === 'en') {
-          const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'C O D';
-          text = `New order from ${name}, total ${total} dollars, paid by ${pay}`;
-          locale = 'en-US';
-          prefixes = ['en-US', 'en-GB', 'en'];
-        } else {
-          const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
-          // Khmer voice rare on Windows — use Khmer text; if no voice, still try km then soft English fallback label
-          text = `មានការបញ្ជាទិញថ្មី ពី ${name} ចំនួន ${total} ដុល្លារ`;
-          locale = 'km-KH';
-          prefixes = ['km-KH', 'km', 'kh'];
+        let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        if (voices && voices.length) {
+          run(voices);
+        } else if (window.speechSynthesis) {
+          const once = function() {
+            run(window.speechSynthesis.getVoices());
+            window.speechSynthesis.onvoiceschanged = null;
+          };
+          window.speechSynthesis.onvoiceschanged = once;
+          setTimeout(function() { run(window.speechSynthesis.getVoices()); }, 400);
         }
-        const voices = window.speechSynthesis.getVoices() || [];
-        let v = null;
-        for (const p of prefixes) {
-          v = voices.find(x => x.lang && x.lang.toLowerCase().replace('_','-').startsWith(p.toLowerCase().replace('_','-')));
-          if (v) break;
-        }
-        // If Khmer voice missing, speak clear bilingual short English with note is worse — keep Khmer text
-        // If Chinese voice missing, try any zh*
-        if (!v && lang === 'zh') {
-          v = voices.find(x => /zh|cmn|chinese/i.test((x.lang||'') + (x.name||'')));
-        }
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = v ? v.lang : locale;
-        if (v) u.voice = v;
-        u.rate = lang === 'km' ? 0.85 : 0.95;
-        u.volume = 1;
-        window.speechSynthesis.speak(u);
-      } catch (e) { console.error('speak', e); }
+      } catch (e) {}
     }
 
     function showBrowserNotify(order) {

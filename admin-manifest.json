@@ -1,0 +1,24 @@
+{
+  "name": "Jinkelai Admin",
+  "short_name": "JK Admin",
+  "description": "Jinkelai Admin Panel",
+  "start_url": "./jinkelai-panel-x7k9m.html",
+  "display": "standalone",
+  "background_color": "#065f46",
+  "theme_color": "#065f46",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "admin-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "admin-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
