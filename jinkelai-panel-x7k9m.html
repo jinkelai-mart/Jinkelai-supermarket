@@ -61,12 +61,17 @@
             <span class="text-xl">⚙️</span>
             <h1 class="font-bold text-base">Admin Dashboard</h1>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap justify-end">
+            <div class="flex bg-white/15 rounded-full p-0.5 text-[11px] font-bold">
+              <button type="button" id="admLangKm" onclick="setAdminLang('km')" class="px-2 py-1 rounded-full">ខ្មែរ</button>
+              <button type="button" id="admLangEn" onclick="setAdminLang('en')" class="px-2 py-1 rounded-full">EN</button>
+              <button type="button" id="admLangZh" onclick="setAdminLang('zh')" class="px-2 py-1 rounded-full">中文</button>
+            </div>
             <button onclick="switchTab('orders')" class="relative bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full text-xs font-bold transition">
-              🧾 Order
+              🧾 <span data-i18n="tabOrdersShort">Order</span>
               <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
             </button>
-            <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 text-xs rounded-lg font-bold transition">ចាកចេញ</button>
+            <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 text-xs rounded-lg font-bold transition" data-i18n="logout">ចាកចេញ</button>
           </div>
         </div>
       </div>
@@ -75,11 +80,11 @@
     <!-- Tab Navigation -->
     <div class="bg-white border-b sticky top-[52px] z-20 shadow-sm">
       <div class="max-w-4xl mx-auto px-4 py-2 flex gap-2 overflow-x-auto">
-        <button onclick="switchTab('orders')" id="tab-orders" class="tab-btn active px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">🧾 ការបញ្ជាទិញ</button>
-        <button onclick="switchTab('products')" id="tab-products" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📦 ទំនិញ</button>
-        <button onclick="switchTab('add')" id="tab-add" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">➕ បន្ថែម</button>
-        <button onclick="switchTab('stock')" id="tab-stock" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📷 ស្តុក</button>
-        <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">⚙️ កំណត់</button>
+        <button onclick="switchTab('orders')" id="tab-orders" class="tab-btn active px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">🧾 <span data-i18n="tabOrders">ការបញ្ជាទិញ</span></button>
+        <button onclick="switchTab('products')" id="tab-products" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📦 <span data-i18n="tabProducts">ទំនិញ</span></button>
+        <button onclick="switchTab('add')" id="tab-add" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">➕ <span data-i18n="tabAdd">បន្ថែម</span></button>
+        <button onclick="switchTab('stock')" id="tab-stock" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📷 <span data-i18n="tabStock">ស្តុក</span></button>
+        <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">⚙️ <span data-i18n="tabSettings">កំណត់</span></button>
       </div>
     </div>
 
@@ -451,20 +456,83 @@
       return bucket[code].n >= SCAN_CONFIRM_COUNT;
     }
 
+    
+    // ========== ADMIN i18n ==========
+    let adminLang = localStorage.getItem('jk_admin_lang') || 'km';
+    const adminI18n = {
+      km: {
+        tabOrders: 'ការបញ្ជាទិញ', tabOrdersShort: 'Order', tabProducts: 'ទំនិញ', tabAdd: 'បន្ថែម',
+        tabStock: 'ស្តុក', tabSettings: 'កំណត់', logout: 'ចាកចេញ',
+        dashTitle: 'Admin Dashboard'
+      },
+      en: {
+        tabOrders: 'Orders', tabOrdersShort: 'Orders', tabProducts: 'Products', tabAdd: 'Add',
+        tabStock: 'Stock', tabSettings: 'Settings', logout: 'Logout',
+        dashTitle: 'Admin Dashboard'
+      },
+      zh: {
+        tabOrders: '订单', tabOrdersShort: '订单', tabProducts: '商品', tabAdd: '添加',
+        tabStock: '库存', tabSettings: '设置', logout: '退出',
+        dashTitle: '管理后台'
+      }
+    };
+    function at(key) {
+      return (adminI18n[adminLang] && adminI18n[adminLang][key]) || adminI18n.km[key] || key;
+    }
+    window.setAdminLang = function(lang) {
+      adminLang = lang;
+      localStorage.setItem('jk_admin_lang', lang);
+      applyAdminLang();
+    };
+    function applyAdminLang() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        if (k) el.innerText = at(k);
+      });
+      const map = { km: 'admLangKm', en: 'admLangEn', zh: 'admLangZh' };
+      Object.keys(map).forEach(l => {
+        const b = document.getElementById(map[l]);
+        if (b) b.className = 'px-2 py-1 rounded-full ' + (adminLang === l ? 'bg-white text-emerald-800' : 'text-white/90');
+      });
+      const h1 = document.querySelector('header h1');
+      if (h1) h1.innerText = at('dashTitle');
+    }
+    setTimeout(applyAdminLang, 150);
+
+function orderLang(order) {
+      const l = (order && order.lang) || adminLang || 'km';
+      if (l === 'zh' || l === 'en' || l === 'km') return l;
+      return 'km';
+    }
+
     function speakNewOrder(order) {
       try {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
-        const name = order.customer?.name || 'អតិថិជន';
+        const name = order.customer?.name || 'Customer';
         const total = Number(order.total || 0).toFixed(2);
-        const pay = order.paymentMethod === 'khqr' ? 'ខេអេចគ្យូអា' : 'ស៊ីអូឌី';
-        const text = `មានការបញ្ជាទិញថ្មី! ពី ${name} ចំនួន ${total} ដុល្លារ បង់តាម ${pay}`;
+        const lang = orderLang(order);
+        let text, locale;
+        if (lang === 'zh') {
+          const pay = order.paymentMethod === 'khqr' ? 'KHQR' : '货到付款';
+          text = `新订单！来自 ${name}，金额 ${total} 美元，支付方式 ${pay}`;
+          locale = 'zh-CN';
+        } else if (lang === 'en') {
+          const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
+          text = `New order from ${name}, total ${total} dollars, paid by ${pay}`;
+          locale = 'en-US';
+        } else {
+          const pay = order.paymentMethod === 'khqr' ? 'ខេអេចគ្យូអា' : 'ស៊ីអូឌី';
+          text = `មានការបញ្ជាទិញថ្មី! ពី ${name} ចំនួន ${total} ដុល្លារ បង់តាម ${pay}`;
+          locale = 'km-KH';
+        }
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'km-KH'; u.rate = 0.9;
+        u.lang = locale;
+        u.rate = 0.95;
         const voices = window.speechSynthesis.getVoices();
-        const kmVoice = voices.find(v => v.lang.startsWith('km'));
-        if (kmVoice) u.voice = kmVoice;
-        else { u.lang = 'en-US'; u.text = `New order from ${name}, total ${total} dollars`; }
+        const pref = locale.slice(0, 2);
+        const v = voices.find(x => x.lang && x.lang.toLowerCase().startsWith(pref));
+        if (v) u.voice = v;
         window.speechSynthesis.speak(u);
       } catch (e) {}
     }
@@ -472,13 +540,14 @@
     function showBrowserNotify(order) {
       try {
         if (!('Notification' in window)) return;
-        const title = '🛍️ ការបញ្ជាទិញថ្មី!';
+        const lang = orderLang(order);
+        const title = lang === 'zh' ? '🛍️ 新订单！' : lang === 'en' ? '🛍️ New order!' : '🛍️ ការបញ្ជាទិញថ្មី!';
         const body = `${order.customer?.name || '—'} · $${Number(order.total || 0).toFixed(2)} · ${order.paymentMethod === 'khqr' ? 'KHQR' : 'COD'}`;
         if (Notification.permission === 'granted') {
-          new Notification(title, { body, icon: 'logo.png', tag: 'new-order' });
+          new Notification(title, { body, icon: 'app-icon.png', tag: 'new-order' });
         } else if (Notification.permission !== 'denied') {
           Notification.requestPermission().then(p => {
-            if (p === 'granted') new Notification(title, { body, icon: 'logo.png', tag: 'new-order' });
+            if (p === 'granted') new Notification(title, { body, icon: 'app-icon.png', tag: 'new-order' });
           });
         }
       } catch (e) {}
@@ -492,7 +561,9 @@
         toast.className = 'fixed top-16 left-1/2 -translate-x-1/2 z-[300] bg-emerald-700 text-white px-4 py-3 rounded-2xl shadow-2xl text-sm font-bold max-w-sm w-[90%] text-center transition-all duration-300 opacity-0 pointer-events-none';
         document.body.appendChild(toast);
       }
-      toast.innerHTML = `🛍️ ការបញ្ជាទិញថ្មី!<br><span class="font-normal text-xs">${order.customer?.name || '—'} · $${Number(order.total || 0).toFixed(2)}</span>`;
+      const lang = orderLang(order);
+      const title = lang === 'zh' ? '🛍️ 新订单！' : lang === 'en' ? '🛍️ New order!' : '🛍️ ការបញ្ជាទិញថ្មី!';
+      toast.innerHTML = title + `<br><span class="font-normal text-xs">${order.customer?.name || '—'} · $${Number(order.total || 0).toFixed(2)} · ${(order.lang||'km').toUpperCase()}</span>`;
       toast.classList.remove('opacity-0', 'pointer-events-none');
       setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 6000);
     }

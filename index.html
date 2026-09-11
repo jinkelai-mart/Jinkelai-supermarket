@@ -1288,19 +1288,44 @@
     window.closeResultModal = function() { document.getElementById('resultModal').classList.add('opacity-0', 'pointer-events-none'); };
 
     window.useMyLocation = function() {
-      if (!navigator.geolocation) return alert('GPS not supported');
+      if (!navigator.geolocation) {
+        return alert(currentLang==='zh' ? '此设备不支持 GPS' : currentLang==='en' ? 'GPS not supported on this device' : 'ឧបករណ៍នេះមិនគាំទ្រ GPS');
+      }
+      // Must be HTTPS (GitHub Pages is OK) + user permission
+      const btnGps = document.querySelector('button[onclick="useMyLocation()"]');
+      if (btnGps) { btnGps.disabled = true; btnGps.innerText = currentLang==='zh'?'定位中...':currentLang==='en'?'Getting location...':'កំពុងរកទីតាំង...'; }
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude; const lng = pos.coords.longitude;
         document.getElementById('custLat').value = lat; document.getElementById('custLng').value = lng;
-        document.getElementById('mapCoords').innerText = `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        document.getElementById('mapCoords').innerText = '📍 ' + lat.toFixed(5) + ', ' + lng.toFixed(5);
         document.getElementById('mapCoords').classList.remove('hidden');
         const mapEl = document.getElementById('mapPicker'); mapEl.classList.remove('hidden'); mapEl.style.height='160px';
-        if (mapInstance) mapInstance.remove();
+        if (mapInstance) { try { mapInstance.remove(); } catch(e){} }
         mapInstance = L.map('mapPicker').setView([lat, lng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
         L.marker([lat, lng]).addTo(mapInstance);
-        setTimeout(() => { try { mapInstance.invalidateSize(); } catch(e){} }, 200);
-      }, () => alert('Cannot get location'));
+        setTimeout(() => { try { mapInstance.invalidateSize(); } catch(e){} }, 250);
+        if (btnGps) { btnGps.disabled = false; btnGps.innerText = currentLang==='zh'?'📡 使用当前位置 (GPS)':currentLang==='en'?'📡 Use current location (GPS)':'📡 ប្រើទីតាំងបច្ចុប្បន្ន (GPS)'; }
+      }, (err) => {
+        if (btnGps) { btnGps.disabled = false; btnGps.innerText = currentLang==='zh'?'📡 使用当前位置 (GPS)':currentLang==='en'?'📡 Use current location (GPS)':'📡 ប្រើទីតាំងបច្ចុប្បន្ន (GPS)'; }
+        let msg;
+        const code = err && err.code;
+        if (code === 1) {
+          // PERMISSION_DENIED
+          msg = currentLang==='zh'
+            ? '未允许定位。请在手机设置 → Safari/Chrome → 位置 → 允许，然后重试。\n\n也可只填写地址下单（GPS 可选）。'
+            : currentLang==='en'
+            ? 'Location permission denied. Enable Location for this browser in phone Settings, then try again.\n\nOr just type your address (GPS is optional).'
+            : 'មិនអនុញ្ញាតទីតាំង។ ចូល Settings → Safari/Chrome → Location → Allow បន្ទាប់មកសាកម្តងទៀត។\n\nឬវាយអាសយដ្ឋានមក (GPS មិនបាច់)។';
+        } else if (code === 2) {
+          msg = currentLang==='zh' ? '无法获取位置（信号弱）。请填写地址下单。' : currentLang==='en' ? 'Location unavailable. Please type your address.' : 'រកទីតាំងមិនបាន (សញ្ញាខ្សោយ)។ សូមវាយអាសយដ្ឋាន។';
+        } else if (code === 3) {
+          msg = currentLang==='zh' ? '定位超时。请重试或填写地址。' : currentLang==='en' ? 'Location timeout. Try again or type address.' : 'រកទីតាំងយូរពេក។ សាកម្តងទៀត ឬវាយអាសយដ្ឋាន។';
+        } else {
+          msg = currentLang==='zh' ? '无法获取位置。请填写地址下单（GPS 可选）。' : currentLang==='en' ? 'Cannot get location. Type your address (GPS optional).' : 'រកទីតាំងមិនបាន។ សូមវាយអាសយដ្ឋាន (GPS មិនបាច់)។';
+        }
+        alert(msg);
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
     };
 
     window.checkoutOrder = async function() {
@@ -1334,7 +1359,8 @@
           total: parseFloat(total), customer: { name, phone, address }, paymentMethod: payMethod,
           locationImage: null,
           location: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
-          status: 'pending_payment', telegramSent: false, createdAt: serverTimestamp()
+          status: 'pending_payment', telegramSent: false, createdAt: serverTimestamp(),
+          lang: currentLang || 'km'
         };
         if (currentUser) orderData.userId = currentUser.uid;
         const orderRef = await addDoc(collection(db, 'orders'), orderData);
