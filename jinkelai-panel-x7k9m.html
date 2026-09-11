@@ -74,7 +74,7 @@
               <button type="button" id="admLangEn" onclick="setAdminLang('en')" class="px-2 py-1 rounded-full">EN</button>
               <button type="button" id="admLangZh" onclick="setAdminLang('zh')" class="px-2 py-1 rounded-full">中文</button>
             </div>
-            <button type="button" onclick="testOrderVoice(adminLang)" title="Test voice" class="bg-white/15 hover:bg-white/25 px-2 py-1.5 rounded-full text-[11px] font-bold">🔊</button>
+            <button type="button" onclick="testOrderVoice()" title="Test voice" class="bg-white/15 hover:bg-white/25 px-2 py-1.5 rounded-full text-[11px] font-bold">🔊</button>
             <button onclick="switchTab('orders')" class="relative bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-full text-xs font-bold transition">
               🧾 <span data-i18n="tabOrdersShort">Order</span>
               <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
@@ -500,16 +500,24 @@
       return (adminI18n[adminLang] && adminI18n[adminLang][key]) || adminI18n.km[key] || key;
     }
     window.testOrderVoice = function(lang) {
-      speakNewOrder({
-        lang: lang || adminLang,
+      const L = lang || adminLang || 'km';
+      try {
+        // unlock / ensure voices loaded
+        if (window.speechSynthesis) {
+          window.speechSynthesis.getVoices();
+        }
+      } catch (e) {}
+      const sample = {
+        lang: L,
         total: 12.5,
         paymentMethod: 'cod',
-        customer: { name: 'Test' }
-      });
+        customer: { name: L === 'zh' ? '测试客户' : (L === 'en' ? 'Test Customer' : 'អតិថិជនសាក') }
+      };
+      window.speakNewOrder(sample);
     };
     window.setAdminLang = function(lang) {
       adminLang = lang;
-      localStorage.setItem('jk_admin_lang', lang);
+      try { localStorage.setItem('jk_admin_lang', lang); } catch(e) {}
       applyAdminLang();
     };
     function applyAdminLang() {
@@ -526,7 +534,6 @@
         const b = document.getElementById(map[l]);
         if (b) b.className = 'px-2 py-1 rounded-full ' + (adminLang === l ? 'bg-white text-emerald-800' : 'text-white/90');
       });
-      // form title: keep edit mode if editing
       const formTitle = document.getElementById('formTitle');
       const editId = document.getElementById('editId');
       if (formTitle && editId && !editId.value) formTitle.innerText = at('formTitle');
@@ -534,82 +541,78 @@
     }
     setTimeout(applyAdminLang, 150);
     if (window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+      try {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+      } catch (e) {}
     }
 
-function orderLang(order) {
+    function orderLang(order) {
       const l = (order && order.lang) || adminLang || 'km';
       if (l === 'zh' || l === 'en' || l === 'km') return l;
       return 'km';
     }
 
-    function speakNewOrder(order) {
-      const run = (voices) => {
-        try {
-          if (!window.speechSynthesis) return;
-          window.speechSynthesis.cancel();
-          const name = (order.customer && order.customer.name) || 'Customer';
-          const total = Number(order.total || 0).toFixed(2);
-          const lang = (order && order.lang) ? order.lang : (typeof adminLang !== 'undefined' ? adminLang : 'km');
-          let text, locale, pick;
+    window.speakNewOrder = function(order) {
+      try {
+        if (!window.speechSynthesis) {
+          alert('Browser មិនគាំទ្រ speech');
+          return;
+        }
+        // Chrome bug: need cancel + short delay
+        window.speechSynthesis.cancel();
+        const name = (order.customer && order.customer.name) || 'Customer';
+        const total = Number(order.total || 0).toFixed(2);
+        const lang = (order && order.lang) ? order.lang : (adminLang || 'km');
+
+        let text, locale;
+        if (lang === 'zh') {
+          text = '您有新订单，金额 ' + total + ' 美元';
+          locale = 'zh-CN';
+        } else if (lang === 'en') {
+          text = 'You have a new order, amount ' + total + ' dollars';
+          locale = 'en-US';
+        } else {
+          text = 'លោកអ្នកមានការបញ្ជាទិញថ្មី ចំនួន ' + total + ' ដុល្លារ';
+          locale = 'km-KH';
+        }
+
+        const speakNow = function() {
+          const voices = window.speechSynthesis.getVoices() || [];
+          let voice = null;
           if (lang === 'zh') {
-            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : '货到付款';
-            text = '新订单！来自' + name + '，金额' + total + '美元，支付方式' + pay;
-            locale = 'zh-CN';
-            pick = function(v) {
-              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
-              return /zh|cmn|chinese|中文/.test(s);
-            };
+            voice = voices.find(v => /zh|cmn|chinese/i.test((v.lang || '') + (v.name || '')));
           } else if (lang === 'en') {
-            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
-            text = 'New order from ' + name + ', total ' + total + ' dollars, paid by ' + pay;
-            locale = 'en-US';
-            pick = function(v) {
-              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
-              return /^en/.test(v.lang || '') || /english/.test(s);
-            };
+            voice = voices.find(v => /^en/i.test(v.lang || ''));
           } else {
-            const pay = order.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
-            text = 'មានការបញ្ជាទិញថ្មី ពី ' + name + ' ចំនួន ' + total + ' ដុល្លារ បង់តាម ' + pay;
-            locale = 'km-KH';
-            pick = function(v) {
-              const s = ((v.lang || '') + ' ' + (v.name || '')).toLowerCase();
-              return /km|khmer|cambodian/.test(s);
-            };
-          }
-          let v = (voices || []).find(pick);
-          // If target voice missing: still speak TARGET language text (OS may approximate)
-          // Only fall back text to English if completely necessary for km with zero km voice
-          if (!v && lang === 'km') {
-            // Keep Khmer text; some browsers ignore unknown lang
-            v = null;
-          }
-          if (!v && lang === 'zh') {
-            v = (voices || []).find(function(x) { return /zh/.test((x.lang || '').toLowerCase()); });
+            voice = voices.find(v => /km|khmer/i.test((v.lang || '') + (v.name || '')));
           }
           const u = new SpeechSynthesisUtterance(text);
-          u.lang = v ? v.lang : locale;
-          if (v) u.voice = v;
-          u.rate = lang === 'km' ? 0.85 : 0.92;
+          u.lang = voice ? voice.lang : locale;
+          if (voice) u.voice = voice;
+          u.rate = 0.9;
           u.volume = 1;
+          u.onerror = function(ev) { console.error('utterance error', ev); };
           window.speechSynthesis.speak(u);
-        } catch (e) { console.error('speak', e); }
-      };
-      try {
-        let voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        };
+
+        // voices list often empty until after a tick
+        const voices = window.speechSynthesis.getVoices();
         if (voices && voices.length) {
-          run(voices);
-        } else if (window.speechSynthesis) {
-          const once = function() {
-            run(window.speechSynthesis.getVoices());
-            window.speechSynthesis.onvoiceschanged = null;
+          setTimeout(speakNow, 80);
+        } else {
+          const prev = window.speechSynthesis.onvoiceschanged;
+          window.speechSynthesis.onvoiceschanged = function() {
+            setTimeout(speakNow, 80);
+            window.speechSynthesis.onvoiceschanged = prev;
           };
-          window.speechSynthesis.onvoiceschanged = once;
-          setTimeout(function() { run(window.speechSynthesis.getVoices()); }, 400);
+          setTimeout(speakNow, 500);
         }
-      } catch (e) {}
-    }
+      } catch (e) {
+        console.error('speakNewOrder', e);
+        alert('Speech error: ' + (e.message || e));
+      }
+    };
 
     function showBrowserNotify(order) {
       try {
@@ -646,7 +649,7 @@ function orderLang(order) {
       brandNew.forEach((o, i) => {
         setTimeout(() => {
           playNotifySound();
-          speakNewOrder(o);
+          window.speakNewOrder(o);
           showBrowserNotify(o);
           showOrderToast(o);
         }, i * 1500);
