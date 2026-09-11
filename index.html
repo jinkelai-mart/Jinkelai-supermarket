@@ -1072,7 +1072,9 @@
         const div = document.createElement('div');
         div.className = 'product-card flex flex-col';
         div.innerHTML = `
-          <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="w-full h-28 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+          <div class="w-full h-36 bg-white flex items-center justify-center overflow-hidden">
+            <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="max-w-full max-h-36 w-auto h-auto object-contain" onerror="this.src='https://via.placeholder.com/150'">
+          </div>
           <div class="p-2.5 flex flex-col flex-1">
             <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLbl}</div>
             <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
@@ -1241,7 +1243,7 @@
           container.innerHTML += `
             <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
               <div class="flex gap-3">
-                <img src="${img}" class="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0" onerror="this.src='https://via.placeholder.com/80'">
+                <img src="${img}" class="w-16 h-16 rounded-lg object-contain bg-white flex-shrink-0 border" onerror="this.src='https://via.placeholder.com/80'">
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between gap-2">
                     <b class="text-xs leading-snug text-gray-800 line-clamp-2">${i.name}</b>
