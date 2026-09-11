@@ -313,10 +313,10 @@
 
   <!-- PRODUCT DETAIL MODAL -->
   <div id="productDetailModal" class="fixed inset-0 z-[105] bg-black/50 flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-all duration-200">
-    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-      <div class="relative">
-        <img id="pdImage" src="" class="w-full h-56 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/400'">
-        <button onclick="closeProductDetail()" class="absolute top-3 right-3 w-8 h-8 bg-black/40 text-white rounded-full font-bold">✕</button>
+    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="relative bg-white sticky top-0 z-10">
+        <img id="pdImage" src="" class="w-full max-h-[50vh] h-auto object-contain bg-white mx-auto" style="min-height:220px;" onerror="this.src='https://via.placeholder.com/400'">
+        <button onclick="closeProductDetail()" class="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-full font-bold shadow">✕</button>
       </div>
       <div class="p-4 space-y-3">
         <div class="flex flex-wrap gap-1.5" id="pdBadges"></div>
@@ -339,6 +339,11 @@
             <button type="button" onclick="pdChangeQty(1)" class="w-8 h-8 rounded-lg bg-white border font-bold text-emerald-700">+</button>
           </div>
           <button onclick="addFromDetail()" id="pdAddBtn" class="flex-1 py-3 bg-emerald-700 text-white font-bold rounded-xl text-sm">+ ទិញ</button>
+        </div>
+        <!-- Related products -->
+        <div id="pdRelatedWrap" class="pt-2 border-t hidden">
+          <p class="font-bold text-sm text-gray-800 mb-2" id="pdRelatedTitle">ទំនិញពាក់ព័ន្ធ</p>
+          <div id="pdRelated" class="flex gap-2 overflow-x-auto pb-2" style="-webkit-overflow-scrolling:touch;"></div>
         </div>
       </div>
     </div>
@@ -466,7 +471,7 @@
         cartLabel:"កន្ត្រក", cartTitle:"កន្ត្រកទំនិញ", totalLabel:"សរុប៖", checkoutBtn:"បញ្ជាទិញ",
         namePh:"ឈ្មោះ *", phonePh:"លេខទូរស័ព្ទ *", addressPh:"អាសយដ្ឋាន *",
         loading:"កំពុងផ្ទុកទំនិញ...", empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock:"អស់ស្តុក", inStock:"មានស្តុក", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
+        outOfStock:"អស់ស្តុក", inStock:"មានស្តុក", relatedTitle:"ទំនិញពាក់ព័ន្ធ", storeClosedBuy:"ហាងបិទ — មើលបាន តែមិនអាចទិញ", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
         orderSuccess:"ការបញ្ជាទិញបានរក្សាទុក!\nស្ថានភាព៖ រង់ចាំការទូទាត់\nAdmin នឹងបញ្ជាក់ពេលទទួលប្រាក់",
         fillInfo:"សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!", addFirst:"សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
         networkError:"មានបញ្ហាបណ្តាញ ឬ Firebase!",
@@ -490,7 +495,7 @@
         cartLabel:"Cart", cartTitle:"Shopping Cart", totalLabel:"Total:", checkoutBtn:"Checkout",
         namePh:"Name *", phonePh:"Phone *", addressPh:"Address *",
         loading:"Loading products...", empty:"No products available yet",
-        outOfStock:"Out of stock", inStock:"In stock", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
+        outOfStock:"Out of stock", inStock:"In stock", relatedTitle:"Related products", storeClosedBuy:"Store closed — browse only", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
         orderSuccess:"Order saved!\nStatus: Waiting for payment\nAdmin will confirm after receiving payment",
         fillInfo:"Please fill name, phone and address!", addFirst:"Please add items to cart first!",
         networkError:"Network or Firebase error!",
@@ -514,7 +519,7 @@
         cartLabel:"购物车", cartTitle:"购物车", totalLabel:"合计：", checkoutBtn:"下单",
         namePh:"姓名 *", phonePh:"电话 *", addressPh:"地址 *",
         loading:"正在加载商品...", empty:"暂无商品",
-        outOfStock:"缺货", inStock:"有货", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
+        outOfStock:"缺货", inStock:"有货", relatedTitle:"相关商品", storeClosedBuy:"已打烊 — 仅可浏览", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
         orderSuccess:"订单已保存！\n状态：等待付款\n管理员确认收款后会更新",
         fillInfo:"请填写姓名、电话和地址！", addFirst:"请先添加商品到购物车！",
         networkError:"网络或Firebase错误！",
@@ -977,7 +982,12 @@
       if (!banner) return;
       if (!isStoreOpen()) {
         const note = storeHours.note || '';
-        banner.innerHTML = '🔴 ហាងបិទជាបណ្ដោះអាសន្ន<br><span class="font-normal">ម៉ោងបើក ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>';
+        const msg = currentLang==='zh'
+          ? ('🔴 已打烊（可浏览，不可下单）<br><span class="font-normal">营业时间 ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
+          : currentLang==='en'
+          ? ('🔴 Store closed (browse only)<br><span class="font-normal">Hours ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
+          : ('🔴 ហាងបិទ — មើលបាន តែមិនអាចទិញ<br><span class="font-normal">ម៉ោងបើក ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>');
+        banner.innerHTML = msg;
         banner.classList.remove('hidden');
         if (btn) { btn.disabled = true; btn.classList.add('opacity-60'); btn.innerText = currentLang==='zh'?'已打烊':(currentLang==='en'?'Store Closed':'ហាងបិទ'); }
       } else {
@@ -1114,11 +1124,59 @@
       const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
       document.getElementById('pdBadges').innerHTML = '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>';
       const btn = document.getElementById('pdAddBtn');
-      btn.disabled = p.stock <= 0;
-      btn.innerText = p.stock <= 0 ? t('outOfStock') : t('buy');
-      btn.className = 'flex-1 py-3 font-bold rounded-xl text-sm ' + (p.stock <= 0 ? 'bg-gray-300 text-gray-500' : 'bg-emerald-700 text-white');
+      const closed = !isStoreOpen();
+      if (p.stock <= 0) {
+        btn.disabled = true;
+        btn.innerText = t('outOfStock');
+        btn.className = 'flex-1 py-3 font-bold rounded-xl text-sm bg-gray-300 text-gray-500';
+      } else if (closed) {
+        btn.disabled = true;
+        btn.innerText = t('storeClosedBuy') || 'ហាងបិទ';
+        btn.className = 'flex-1 py-3 font-bold rounded-xl text-sm bg-gray-300 text-gray-600';
+      } else {
+        btn.disabled = false;
+        btn.innerText = t('buy');
+        btn.className = 'flex-1 py-3 font-bold rounded-xl text-sm bg-emerald-700 text-white';
+      }
+      // Related: same category or same productGroup
+      renderRelatedProducts(p);
       document.getElementById('productDetailModal').classList.remove('opacity-0', 'pointer-events-none');
     };
+    function renderRelatedProducts(base) {
+      const wrap = document.getElementById('pdRelatedWrap');
+      const box = document.getElementById('pdRelated');
+      const title = document.getElementById('pdRelatedTitle');
+      if (title) title.innerText = t('relatedTitle') || 'ទំនិញពាក់ព័ន្ធ';
+      const cat = (base.category || '').trim();
+      const group = (base.productGroup || '').trim();
+      let list = products.filter(p => p.active !== false && p.id !== base.id);
+      // prefer same category
+      let related = list.filter(p => cat && (p.category || '').trim() === cat);
+      if (related.length < 2 && group) {
+        const byGroup = list.filter(p => (p.productGroup || '') === group);
+        const ids = new Set(related.map(r => r.id));
+        byGroup.forEach(p => { if (!ids.has(p.id)) related.push(p); });
+      }
+      if (related.length < 2) {
+        // fallback: same sale type
+        const more = list.filter(p => (p.saleType || 'retail') === (base.saleType || 'retail'));
+        const ids = new Set(related.map(r => r.id));
+        more.forEach(p => { if (!ids.has(p.id)) related.push(p); });
+      }
+      related = related.slice(0, 10);
+      if (!related.length) { wrap.classList.add('hidden'); box.innerHTML = ''; return; }
+      wrap.classList.remove('hidden');
+      box.innerHTML = related.map(p => {
+        const price = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
+        const name = getProductName(p);
+        const img = p.image || 'https://via.placeholder.com/80';
+        return `<button type="button" onclick="openProductDetail('${p.id}')" class="flex-shrink-0 w-28 bg-gray-50 border rounded-xl p-1.5 text-left">
+          <img src="${img}" class="w-full h-20 object-contain bg-white rounded-lg" onerror="this.src='https://via.placeholder.com/80'">
+          <p class="text-[10px] font-semibold text-gray-800 mt-1 line-clamp-2 leading-tight">${name}</p>
+          <p class="text-[11px] font-bold text-emerald-700 mt-0.5">$${price}</p>
+        </button>`;
+      }).join('');
+    }
     window.closeProductDetail = function() {
       document.getElementById('productDetailModal').classList.add('opacity-0', 'pointer-events-none');
       pdCurrentId = null;
@@ -1131,6 +1189,7 @@
     };
     window.addFromDetail = function() {
       if (!pdCurrentId) return;
+      if (!isStoreOpen()) return alert(t('storeClosedBuy') || 'ហាងបិទហើយ');
       const p = products.find(x => x.id === pdCurrentId);
       if (!p || p.stock <= 0) return alert(t('outOfStock'));
       for (let i = 0; i < pdQty; i++) {
@@ -1149,6 +1208,7 @@
     };
 
     window.addToCart = function(id) {
+      if (!isStoreOpen()) return alert(t('storeClosedBuy') || 'ហាងបិទហើយ');
       const p = products.find(x => x.id === id);
       if (!p || p.stock <= 0) return alert(t('outOfStock'));
       const item = cart.find(x => x.id === id);
