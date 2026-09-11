@@ -959,49 +959,93 @@
 
     // ----- Store hours (Cambodia) -----
     let storeHours = { enabled: false, open: '08:00', close: '21:00', note: '' };
-    function getPhnomPenhNow() {
+    function getPhnomPenhHM() {
       try {
-        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Phnom_Penh' }));
-      } catch (e) { return new Date(); }
+        const parts = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', hour12: false
+        }).formatToParts(new Date());
+        const hh = (parts.find(p => p.type === 'hour') || {}).value || '00';
+        const mm = (parts.find(p => p.type === 'minute') || {}).value || '00';
+        // en-GB can give 24:xx at midnight edge — normalize
+        const H = String(hh === '24' ? '00' : hh).padStart(2, '0');
+        const M = String(mm).padStart(2, '0');
+        return H + ':' + M;
+      } catch (e) {
+        const n = new Date();
+        return String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+      }
+    }
+    function normTime(t) {
+      if (!t) return '00:00';
+      const m = String(t).trim().match(/(\d{1,2}):(\d{2})/);
+      if (!m) return '00:00';
+      return String(Math.min(23, parseInt(m[1],10))).padStart(2,'0') + ':' + String(Math.min(59, parseInt(m[2],10))).padStart(2,'0');
     }
     function isStoreOpen() {
-      if (!storeHours || !storeHours.enabled) return true;
-      const now = getPhnomPenhNow();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const cur = hh + ':' + mm;
-      const open = storeHours.open || '08:00';
-      const close = storeHours.close || '21:00';
-      if (open <= close) return cur >= open && cur < close;
+      if (!storeHours || storeHours.enabled !== true) return true;
+      const cur = getPhnomPenhHM();
+      const open = normTime(storeHours.open || '08:00');
+      const close = normTime(storeHours.close || '21:00');
+      if (open === close) return false; // 24h closed if same
+      if (open < close) return cur >= open && cur < close;
       // overnight e.g. 22:00 - 06:00
       return cur >= open || cur < close;
+    }
+    function storeClosedMsg() {
+      return currentLang==='zh' ? '商店已打烊，请在营业时间下单'
+        : currentLang==='en' ? 'Store is closed. Please order during opening hours.'
+        : 'ហាងបិទហើយ សូមបញ្ជាទិញក្នុងម៉ោងបើក';
     }
     function updateStoreClosedUI() {
       const banner = document.getElementById('storeClosedBanner');
       const btn = document.getElementById('checkoutBtn');
-      if (!banner) return;
-      if (!isStoreOpen()) {
-        const note = storeHours.note || '';
-        const msg = currentLang==='zh'
-          ? ('🔴 已打烊（可浏览，不可下单）<br><span class="font-normal">营业时间 ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
-          : currentLang==='en'
-          ? ('🔴 Store closed (browse only)<br><span class="font-normal">Hours ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
-          : ('🔴 ហាងបិទ — មើលបាន តែមិនអាចទិញ<br><span class="font-normal">ម៉ោងបើក ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>');
-        banner.innerHTML = msg;
-        banner.classList.remove('hidden');
-        if (btn) { btn.disabled = true; btn.classList.add('opacity-60'); btn.innerText = currentLang==='zh'?'已打烊':(currentLang==='en'?'Store Closed':'ហាងបិទ'); }
-      } else {
-        banner.classList.add('hidden');
-        if (btn) { btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerText = t('checkoutBtn'); }
+      const closed = !isStoreOpen();
+      if (banner) {
+        if (closed) {
+          const note = storeHours.note || '';
+          const msg = currentLang==='zh'
+            ? ('🔴 已打烊（可浏览，不可下单）<br><span class="font-normal">营业时间 ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
+            : currentLang==='en'
+            ? ('🔴 Store closed (browse only)<br><span class="font-normal">Hours ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
+            : ('🔴 ហាងបិទ — មើលបាន តែមិនអាចទិញ<br><span class="font-normal">ម៉ោងបើក ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>');
+          banner.innerHTML = msg;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
       }
+      if (btn) {
+        if (closed) {
+          btn.disabled = true;
+          btn.classList.add('opacity-60');
+          btn.innerText = currentLang==='zh'?'已打烊':(currentLang==='en'?'Store Closed':'ហាងបិទ');
+        } else {
+          btn.disabled = false;
+          btn.classList.remove('opacity-60');
+          btn.innerText = t('checkoutBtn');
+        }
+      }
+      // disable product buy buttons in grid
+      document.querySelectorAll('#productGrid button[onclick*="addToCart"]').forEach(b => {
+        if (closed) { b.disabled = true; b.classList.add('opacity-50'); }
+        else if (!b.classList.contains('cursor-not-allowed')) { b.disabled = false; b.classList.remove('opacity-50'); }
+      });
     }
-    async function loadStoreHours() {
+    function loadStoreHours() {
       try {
-        const snap = await getDoc(doc(db, 'settings', 'storeHours'));
-        if (snap.exists()) storeHours = { enabled: false, open: '08:00', close: '21:00', note: '', ...snap.data() };
-        updateStoreClosedUI();
+        onSnapshot(doc(db, 'settings', 'storeHours'), (snap) => {
+          if (snap.exists()) {
+            storeHours = { enabled: false, open: '08:00', close: '21:00', note: '', ...snap.data() };
+            // normalize boolean (Firestore may store as string)
+            storeHours.enabled = storeHours.enabled === true || storeHours.enabled === 'true' || storeHours.enabled === 1;
+          }
+          updateStoreClosedUI();
+        }, (err) => console.warn('storeHours', err));
       } catch (e) { console.warn('storeHours', e); }
     }
+    // refresh closed state every 30s
+    setInterval(function() { try { updateStoreClosedUI(); } catch(e) {} }, 30000);
+    loadStoreHours();
 
     window.setSaleType = function(type) {
       currentSaleType = type;
@@ -1191,7 +1235,7 @@
     };
     window.addFromDetail = function() {
       if (!pdCurrentId) return;
-      if (!isStoreOpen()) return alert(t('storeClosedBuy') || 'ហាងបិទហើយ');
+      if (!isStoreOpen()) return alert(storeClosedMsg());
       const p = products.find(x => x.id === pdCurrentId);
       if (!p || p.stock <= 0) return alert(t('outOfStock'));
       for (let i = 0; i < pdQty; i++) {
@@ -1210,7 +1254,7 @@
     };
 
     window.addToCart = function(id) {
-      if (!isStoreOpen()) return alert(t('storeClosedBuy') || 'ហាងបិទហើយ');
+      if (!isStoreOpen()) return alert(storeClosedMsg());
       const p = products.find(x => x.id === id);
       if (!p || p.stock <= 0) return alert(t('outOfStock'));
       const item = cart.find(x => x.id === id);
@@ -1273,6 +1317,10 @@
     }
 
     window.openCart = function() {
+      updateStoreClosedUI();
+      if (!isStoreOpen()) {
+        // still allow opening cart to view items, but checkout disabled
+      }
       document.getElementById('cartModal').classList.remove('opacity-0', 'pointer-events-none');
       const selected = document.querySelector('input[name="payMethod"]:checked');
       if (selected && selected.value === 'khqr') document.getElementById('khqrBox').classList.remove('hidden');
@@ -1338,7 +1386,11 @@
       const btn = document.getElementById('checkoutBtn');
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
-      if (!isStoreOpen()) return alert(currentLang==='zh'?'商店已打烊，请在营业时间下单':(currentLang==='en'?'Store is closed. Please order during opening hours.':'ហាងបិទហើយ សូមបញ្ជាទិញក្នុងម៉ោងបើក'));
+      updateStoreClosedUI();
+      if (!isStoreOpen()) {
+        alert(storeClosedMsg());
+        return;
+      }
       btn.disabled = true; btn.innerText = 'កំពុងដំណើរការ...';
 
       let textItems = cart.map(i => {
