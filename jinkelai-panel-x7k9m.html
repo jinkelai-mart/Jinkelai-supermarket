@@ -284,6 +284,29 @@
         </div>
 
 
+
+        <!-- Contact -->
+        <div class="section-card p-4 space-y-3">
+          <h3 class="font-bold text-sm text-gray-800">📞 ទំនាក់ទំនង (ទំព័រគណនី)</h3>
+          <p class="text-[10px] text-gray-400">បង្ហាញលើទំព័រ «គណនី» — អតិថិជនចុចទាក់ទងបាន</p>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">Telegram (username គ្មាន @)</label>
+              <input type="text" id="contactTelegram" placeholder="ឧ. myshop_admin" class="input-field">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">លេខទូរស័ព្ទ 1</label>
+              <input type="text" id="contactPhone1" placeholder="098624824" class="input-field">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">លេខទូរស័ព្ទ 2 (ស្រេចចិត្ត)</label>
+              <input type="text" id="contactPhone2" placeholder="085624824" class="input-field">
+            </div>
+            <button type="button" onclick="saveContactSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុកទំនាក់ទំនង</button>
+            <p id="contactStatus" class="text-center text-[11px] text-gray-500"></p>
+          </div>
+        </div>
+
         <!-- Store Hours -->
         <div class="section-card p-4 space-y-3">
           <h3 class="font-bold text-sm text-gray-800">🕐 ម៉ោងបើក / បិទហាង</h3>
@@ -707,6 +730,7 @@
 
     // ========== TABS ==========
     window.switchTab = function(tab) {
+      if (tab === 'settings') { try { loadContactSettingsAdmin(); } catch (e) {} }
       if (tab !== 'stock') { try { stopStockScan(); } catch(e){} }
       ['orders', 'products', 'add', 'stock', 'settings'].forEach(t => {
         const sec = document.getElementById('section-' + t);

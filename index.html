@@ -199,26 +199,26 @@
           <p class="font-bold text-sm" id="helpTitle">ត្រូវការជំនួយ?</p>
           <p class="text-xs opacity-90 mt-1" id="helpSub">ទាក់ទង Admin តាមខាងក្រោម</p>
         </div>
-        <div class="space-y-2">
-          <a href="https://t.me/ABCD12345168" target="_blank" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+        <div class="space-y-2" id="helpContactBox">
+          <a id="helpTgLink" href="https://t.me/ABCD12345168" target="_blank" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
             <span class="text-lg">✈️</span>
             <div>
               <p class="text-xs font-bold">Telegram</p>
-              <p class="text-[11px] opacity-90">@ABCD12345168</p>
+              <p class="text-[11px] opacity-90" id="helpTgText">@ABCD12345168</p>
             </div>
           </a>
-          <a href="tel:098624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+          <a id="helpPhone1Link" href="tel:098624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
             <span class="text-lg">📞</span>
             <div>
               <p class="text-xs font-bold" id="helpCall">ហៅទូរស័ព្ទ</p>
-              <p class="text-[11px] opacity-90">098 624 824</p>
+              <p class="text-[11px] opacity-90" id="helpPhone1Text">098 624 824</p>
             </div>
           </a>
-          <a href="tel:085624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
+          <a id="helpPhone2Link" href="tel:085624824" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
             <span class="text-lg">📞</span>
             <div>
               <p class="text-xs font-bold" id="helpCall2">ហៅទូរស័ព្ទ</p>
-              <p class="text-[11px] opacity-90">085 624 824</p>
+              <p class="text-[11px] opacity-90" id="helpPhone2Text">085 624 824</p>
             </div>
           </a>
         </div>
@@ -1046,6 +1046,40 @@
     // refresh closed state every 30s
     setInterval(function() { try { updateStoreClosedUI(); } catch(e) {} }, 30000);
     loadStoreHours();
+
+    function applyContactUI(c) {
+      c = c || {};
+      var tg = String(c.telegram || 'ABCD12345168').replace(/^@/, '').trim();
+      var p1 = String(c.phone1 || '098624824').replace(/\s/g, '');
+      var p2 = String(c.phone2 || '085624824').replace(/\s/g, '');
+      var p1d = c.phone1Display || c.phone1 || '098 624 824';
+      var p2d = c.phone2Display || c.phone2 || '085 624 824';
+      var tgEl = document.getElementById('helpTgLink');
+      var tgTx = document.getElementById('helpTgText');
+      var p1El = document.getElementById('helpPhone1Link');
+      var p1Tx = document.getElementById('helpPhone1Text');
+      var p2El = document.getElementById('helpPhone2Link');
+      var p2Tx = document.getElementById('helpPhone2Text');
+      if (tgEl) tgEl.href = tg ? ('https://t.me/' + tg) : '#';
+      if (tgTx) tgTx.innerText = tg ? ('@' + tg) : '—';
+      if (p1El) p1El.href = p1 ? ('tel:' + p1) : '#';
+      if (p1Tx) p1Tx.innerText = p1d || p1 || '—';
+      if (p2El) {
+        if (p2) { p2El.href = 'tel:' + p2; p2El.classList.remove('hidden'); }
+        else { p2El.classList.add('hidden'); }
+      }
+      if (p2Tx) p2Tx.innerText = p2d || p2 || '—';
+    }
+    function loadContactSettings() {
+      try {
+        onSnapshot(doc(db, 'settings', 'contact'), function(snap) {
+          if (snap.exists()) applyContactUI(snap.data());
+          else applyContactUI({});
+        }, function(e) { console.warn('contact', e); });
+      } catch (e) { console.warn('contact', e); }
+    }
+    loadContactSettings();
+
 
     window.setSaleType = function(type) {
       currentSaleType = type;
