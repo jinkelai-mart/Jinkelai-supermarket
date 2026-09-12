@@ -774,32 +774,87 @@
     };
     window.closeAuth = function() { document.getElementById('authModal').classList.add('opacity-0', 'pointer-events-none'); };
 
+    function authFriendlyError(code, message) {
+      const c = (code || '') + ' ' + (message || '');
+      if (/invalid-credential|wrong-password|user-not-found|INVALID_LOGIN/i.test(c)) {
+        return currentLang === 'zh'
+          ? '邮箱或密码不正确。若没有账号，请先点「注册」。'
+          : currentLang === 'en'
+          ? 'Wrong email or password. If you have no account, tap Register first.'
+          : 'Email ឬ Password មិនត្រឹមត្រូវ។ បើមិនទាន់មានគណនី សូមចុច «ចុះឈ្មោះ» មុន។';
+      }
+      if (/email-already-in-use/i.test(c)) {
+        return currentLang === 'zh' ? '该邮箱已注册，请直接登录。' : currentLang === 'en' ? 'Email already registered. Please login.' : 'Email នេះមានរួចហើយ — សូមចូល (Login)។';
+      }
+      if (/weak-password/i.test(c)) {
+        return currentLang === 'zh' ? '密码至少 6 位。' : currentLang === 'en' ? 'Password must be at least 6 characters.' : 'Password ត្រូវមានយ៉ាងហោច 6 តួ។';
+      }
+      if (/invalid-email/i.test(c)) {
+        return currentLang === 'zh' ? '邮箱格式不正确。' : currentLang === 'en' ? 'Invalid email format.' : 'ទម្រង់ Email មិនត្រឹមត្រូវ។';
+      }
+      if (/too-many-requests/i.test(c)) {
+        return currentLang === 'zh' ? '尝试过多，请稍后再试。' : currentLang === 'en' ? 'Too many attempts. Try again later.' : 'ព្យាយាមច្រើនពេក សូមរង់ចាំបន្តិច។';
+      }
+      return message || code || 'Error';
+    }
+
     window.toggleAuthMode = function() {
       isRegisterMode = !isRegisterMode;
-      document.getElementById('authName').classList.toggle('hidden', !isRegisterMode);
-      document.getElementById('authPhone').classList.toggle('hidden', !isRegisterMode);
+      const nameWrap = document.getElementById('authNameWrap');
+      const phoneWrap = document.getElementById('authPhoneWrap');
+      if (nameWrap) nameWrap.classList.toggle('hidden', !isRegisterMode);
+      if (phoneWrap) phoneWrap.classList.toggle('hidden', !isRegisterMode);
+      // legacy fallback
+      const nameEl = document.getElementById('authName');
+      const phoneEl = document.getElementById('authPhone');
+      if (nameEl && !nameWrap) nameEl.classList.toggle('hidden', !isRegisterMode);
+      if (phoneEl && !phoneWrap) phoneEl.classList.toggle('hidden', !isRegisterMode);
       document.getElementById('authTitle').innerText = isRegisterMode ? t('authRegister') : t('authLogin');
       document.getElementById('authSubmitBtn').innerText = isRegisterMode ? t('authRegister') : t('login');
       document.getElementById('authSwitchText').innerText = isRegisterMode ? t('authHasAccount') : t('authNoAccount');
       document.getElementById('authSwitchBtn').innerText = isRegisterMode ? t('login') : t('authRegister');
+      const sub = document.getElementById('authSubtitle');
+      if (sub) sub.innerText = isRegisterMode
+        ? (currentLang==='zh'?'创建新账户':currentLang==='en'?'Create a new account':t('authSubtitle') || 'បង្កើតគណនីថ្មី')
+        : (t('authSubtitle') || 'សូមបញ្ចូលព័ត៌មានដើម្បីបន្ត');
+      document.getElementById('authError').classList.add('hidden');
     };
 
     window.doAuth = async function() {
       const email = document.getElementById('authEmail').value.trim();
       const pass = document.getElementById('authPass').value.trim();
       const name = document.getElementById('authName').value.trim();
+      const phone = (document.getElementById('authPhone') || {}).value || '';
       const errEl = document.getElementById('authError');
       errEl.classList.add('hidden');
-      if (!email || !pass) { errEl.innerText = 'សូមបំពេញ Email និង Password'; errEl.classList.remove('hidden'); return; }
+      if (!email || !pass) {
+        errEl.innerText = currentLang==='zh'?'请填写邮箱和密码':currentLang==='en'?'Please enter email and password':'សូមបំពេញ Email និង Password';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isRegisterMode && pass.length < 6) {
+        errEl.innerText = authFriendlyError('weak-password', '');
+        errEl.classList.remove('hidden');
+        return;
+      }
       try {
         if (isRegisterMode) {
           const cred = await createUserWithEmailAndPassword(auth, email, pass);
-          if (name) await updateProfile(cred.user, { displayName: name });
+          const profile = {};
+          if (name) profile.displayName = name;
+          if (Object.keys(profile).length) await updateProfile(cred.user, profile);
+          // optional: save phone on customer profile later
+          if (phone && phone.trim()) {
+            try { localStorage.setItem('jk_phone_' + cred.user.uid, phone.trim()); } catch (e) {}
+          }
         } else {
           await signInWithEmailAndPassword(auth, email, pass);
         }
         closeAuth();
-      } catch (e) { errEl.innerText = e.message || 'Error'; errEl.classList.remove('hidden'); }
+      } catch (e) {
+        errEl.innerText = authFriendlyError(e.code, e.message);
+        errEl.classList.remove('hidden');
+      }
     };
 
     window.loginWithGoogle = async function() {
