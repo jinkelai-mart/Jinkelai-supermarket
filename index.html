@@ -198,6 +198,7 @@
         <div>
           <p class="font-bold text-sm" id="helpTitle">ត្រូវការជំនួយ?</p>
           <p class="text-xs opacity-90 mt-1" id="helpSub">ទាក់ទង Admin តាមខាងក្រោម</p>
+          <button type="button" onclick="shareShop()" class="mt-2 px-3 py-1.5 bg-white/20 rounded-lg text-[11px] font-bold">📤 <span data-i18n-share>ចែករំលែកហាង</span></button>
         </div>
         <div class="space-y-2" id="helpContactBox">
           <a id="helpTgLink" href="https://t.me/ABCD12345168" target="_blank" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-xl px-3 py-2.5 transition">
@@ -248,19 +249,35 @@
   </nav>
 
   <!-- AUTH MODAL -->
-  <div id="authModal" class="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-xl space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm" id="authTitle">ចូលគណនី</h3>
-        <button onclick="closeAuth()" class="text-gray-500 font-bold">✕</button>
+  <div id="authModal" class="fixed inset-0 z-[110] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 opacity-0 pointer-events-none transition-all">
+    <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-2xl mb-2">🛒</div>
+          <h3 class="font-bold text-base text-gray-900" id="authTitle">ចូលគណនី</h3>
+          <p class="text-[11px] text-gray-500 mt-0.5" id="authSubtitle">សូមបញ្ចូលព័ត៌មានដើម្បីបន្ត</p>
+        </div>
+        <button onclick="closeAuth()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 font-bold">✕</button>
       </div>
-      <div id="authLoginForm" class="space-y-2 text-xs">
-        <input type="email" id="authEmail" placeholder="Email *" class="w-full p-2.5 border rounded-xl">
-        <input type="password" id="authPass" placeholder="Password *" class="w-full p-2.5 border rounded-xl">
-        <input type="text" id="authName" placeholder="ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)" class="w-full p-2.5 border rounded-xl hidden">
-        <input type="text" id="authPhone" placeholder="លេខទូរស័ព្ទ" class="w-full p-2.5 border rounded-xl hidden">
+      <div id="authLoginForm" class="space-y-3 text-xs">
+        <div>
+          <label class="text-[11px] font-semibold text-gray-600 mb-1 block">Email</label>
+          <input type="email" id="authEmail" placeholder="name@email.com" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-gray-600 mb-1 block">Password</label>
+          <input type="password" id="authPass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+        </div>
+        <div id="authNameWrap" class="hidden">
+          <label class="text-[11px] font-semibold text-gray-600 mb-1 block" id="authNameLabel">ឈ្មោះ</label>
+          <input type="text" id="authName" placeholder="ឈ្មោះពេញ" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+        </div>
+        <div id="authPhoneWrap" class="hidden">
+          <label class="text-[11px] font-semibold text-gray-600 mb-1 block" id="authPhoneLabel">លេខទូរស័ព្ទ</label>
+          <input type="text" id="authPhone" placeholder="098 000 000" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+        </div>
         <p id="authError" class="text-red-500 text-[11px] hidden"></p>
-        <button onclick="doAuth()" id="authSubmitBtn" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl">ចូល</button>
+        <button onclick="doAuth()" id="authSubmitBtn" class="w-full py-3 bg-emerald-700 text-white font-bold rounded-xl shadow">ចូល</button>
         <div class="relative my-2">
           <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
           <div class="relative flex justify-center text-[10px]"><span class="bg-white px-2 text-gray-400">ឬ</span></div>
@@ -335,10 +352,11 @@
         <div class="flex items-center gap-3 pt-1">
           <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-2 py-1">
             <button type="button" onclick="pdChangeQty(-1)" class="w-8 h-8 rounded-lg bg-white border font-bold text-gray-700">−</button>
-            <span id="pdQty" class="w-8 text-center font-bold">1</span>
+            <input type="number" id="pdQty" value="1" min="1" inputmode="numeric" class="w-12 text-center font-bold bg-transparent outline-none" onchange="pdSetQty(this.value)" onclick="this.select()">
             <button type="button" onclick="pdChangeQty(1)" class="w-8 h-8 rounded-lg bg-white border font-bold text-emerald-700">+</button>
           </div>
           <button onclick="addFromDetail()" id="pdAddBtn" class="flex-1 py-3 bg-emerald-700 text-white font-bold rounded-xl text-sm">+ ទិញ</button>
+          <button type="button" onclick="shareCurrentProduct()" class="w-11 h-11 flex items-center justify-center bg-gray-100 rounded-xl text-lg" title="Share">📤</button>
         </div>
         <!-- Related products -->
         <div id="pdRelatedWrap" class="pt-2 border-t hidden">
@@ -351,7 +369,7 @@
 
   <!-- CART MODAL -->
   <div id="cartModal" class="fixed inset-0 z-[100] bg-black/50 flex items-end sm:items-stretch sm:justify-end opacity-0 pointer-events-none transition-all duration-200">
-    <div class="w-full sm:max-w-md bg-gray-100 h-[95vh] sm:h-full flex flex-col shadow-xl rounded-t-2xl sm:rounded-none overflow-hidden">
+    <div id="cartSheet" class="w-full sm:max-w-md bg-gray-100 h-[95vh] sm:h-full flex flex-col shadow-xl rounded-t-2xl sm:rounded-none overflow-hidden">
       <!-- Header -->
       <div class="bg-white px-4 py-3 flex justify-between items-center border-b flex-shrink-0">
         <h3 class="font-bold text-sm flex items-center gap-2">
@@ -410,6 +428,7 @@
           <div class="flex-1 min-w-0">
             <p class="text-[11px] text-gray-500" id="totalLabel">សរុប៖</p>
             <p id="cartTotalPrice" class="text-lg font-bold text-orange-600">$0.00</p>
+            <p class="text-[10px] text-gray-400" id="minOrderHint">អប្បបរមា $4</p>
           </div>
           <button onclick="checkoutOrder()" class="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm shadow" id="checkoutBtn">បញ្ជាទិញ</button>
         </div>
@@ -485,7 +504,7 @@
         statusPending:"រង់ចាំ", statusProcessing:"កំពុងដំណើរការ", statusShipping:"កំពុងដឹក", statusDone:"បានដឹករួច",
         services:"សេវាកម្ម", trackOrder:"តាមដានការបញ្ជាទិញ", trackHint:"វាយលេខទូរស័ព្ទ",
         orderHistory:"ប្រវត្តិទិញ", historyHint:"មើលការបញ្ជាទិញមុន",
-        helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ",
+        helpTitle:"ត្រូវការជំនួយ?", helpSub:"ទាក់ទង Admin តាមខាងក្រោម", callPhone:"ហៅទូរស័ព្ទ", minOrder:"បញ្ជាទិញអប្បបរមា $4 (≈16,000៛)", shareProduct:"ចែករំលែក", shareCopied:"បានចម្លងតំណ!", authSubtitle:"សូមបញ្ចូលព័ត៌មានដើម្បីបន្ត",
         authLogin:"ចូលគណនី", authRegister:"ចុះឈ្មោះ", authNamePh:"ឈ្មោះ (សម្រាប់ចុះឈ្មោះ)", authPhonePh:"លេខទូរស័ព្ទ",
         authNoAccount:"មិនទាន់មានគណនី?", authHasAccount:"មានគណនីរួច?", authGoogle:"ចូលតាម Google",
         navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ", promoCnTitle:"ទំនិញចិន", promoCnSub:"ផលិតផលនាំចូលពីចិន", promoKhTitle:"ទំនិញខ្មែរ", promoKhSub:"ផលិតផលក្នុងស្រុក", promoShipTitle:"ដឹកជញ្ជូនរហ័ស", promoShipSub:"COD និង KHQR", a2hsTitle:"បន្ថែមទៅទំព័រដើម", a2hsSub:"ដើម្បីចូលហាងបានលឿន ដូច App", a2hsHow:"របៀបដំឡើង", a2hsLater:"ពេលក្រោយ", a2hsModalTitle:"បន្ថែមទៅ Home Screen", a2hsModalSub:"ចូលប្រើដូច App លើទូរស័ព្ទ", a2hsOk:"យល់ព្រម", a2hsIos1:"1. ចុចប៊ូតុង Share (□↑) នៅរបារក្រោម Safari", a2hsIos2:"2. រក «Add to Home Screen» / «បន្ថែមទៅអេក្រង់ដើម»", a2hsIos3:"3. ចុច Add / បន្ថែម — រូប Jinkelai នឹងលេចលើទំព័រដើម", a2hsAnd1:"1. ចុច ⋮ (ម៉ឺនុយ) នៅជ្រុង browser", a2hsAnd2:"2. ជ្រើស «Install app» ឬ «Add to Home screen»", a2hsAnd3:"3. ចុច Install / បន្ថែម — បើកពីទំព័រដើមបាន"
@@ -509,7 +528,7 @@
         statusPending:"Pending", statusProcessing:"Processing", statusShipping:"Shipping", statusDone:"Delivered",
         services:"Services", trackOrder:"Track Order", trackHint:"Enter phone number",
         orderHistory:"Order History", historyHint:"View past orders",
-        helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call",
+        helpTitle:"Need help?", helpSub:"Contact Admin below", callPhone:"Call", minOrder:"Minimum order $4 (≈16,000៛)", shareProduct:"Share", shareCopied:"Link copied!", authSubtitle:"Enter your details to continue",
         authLogin:"Login", authRegister:"Register", authNamePh:"Name (for register)", authPhonePh:"Phone",
         authNoAccount:"No account yet?", authHasAccount:"Already have account?", authGoogle:"Login with Google",
         navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering", promoCnTitle:"Chinese Products", promoCnSub:"Imported from China", promoKhTitle:"Khmer Products", promoKhSub:"Local products", promoShipTitle:"Fast Delivery", promoShipSub:"COD & KHQR", a2hsTitle:"Add to Home Screen", a2hsSub:"Open the shop faster, like an app", a2hsHow:"How to install", a2hsLater:"Later", a2hsModalTitle:"Add to Home Screen", a2hsModalSub:"Use it like an app on your phone", a2hsOk:"Got it", a2hsIos1:"1. Tap the Share button (□↑) in Safari", a2hsIos2:"2. Choose «Add to Home Screen»", a2hsIos3:"3. Tap Add — Jinkelai icon appears on home", a2hsAnd1:"1. Tap ⋮ menu in the browser", a2hsAnd2:"2. Choose «Install app» or «Add to Home screen»", a2hsAnd3:"3. Tap Install — open from home screen"
@@ -533,7 +552,7 @@
         statusPending:"待处理", statusProcessing:"处理中", statusShipping:"配送中", statusDone:"已送达",
         services:"服务", trackOrder:"追踪订单", trackHint:"输入电话号码",
         orderHistory:"订单历史", historyHint:"查看过往订单",
-        helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话",
+        helpTitle:"需要帮助？", helpSub:"通过以下方式联系管理员", callPhone:"拨打电话", minOrder:"最低订单 $4 (≈16,000៛)", shareProduct:"分享", shareCopied:"链接已复制!", authSubtitle:"请输入信息以继续",
         authLogin:"登录", authRegister:"注册", authNamePh:"姓名（注册用）", authPhonePh:"电话",
         authNoAccount:"还没有账号？", authHasAccount:"已有账号？", authGoogle:"通过 Google 登录",
         navHome:"首页", navAccount:"账户", searchBtn:"搜索", trackHintLong:"输入下单时使用的电话号码", promoCnTitle:"中国商品", promoCnSub:"中国进口产品", promoKhTitle:"高棉商品", promoKhSub:"本地产品", promoShipTitle:"快速配送", promoShipSub:"货到付款 & KHQR", a2hsTitle:"添加到主屏幕", a2hsSub:"像 App 一样快速打开商店", a2hsHow:"安装方法", a2hsLater:"稍后", a2hsModalTitle:"添加到主屏幕", a2hsModalSub:"像手机 App 一样使用", a2hsOk:"知道了", a2hsIos1:"1. 在 Safari 点击底部分享按钮 (□↑)", a2hsIos2:"2. 选择「添加到主屏幕」", a2hsIos3:"3. 点击添加 — 主屏幕会出现 Jinkelai 图标", a2hsAnd1:"1. 点击浏览器 ⋮ 菜单", a2hsAnd2:"2. 选择「安装应用」或「添加到主屏幕」", a2hsAnd3:"3. 点击安装 — 可从主屏幕打开"
@@ -1079,6 +1098,17 @@
       } catch (e) { console.warn('contact', e); }
     }
     loadContactSettings();
+    // deep link #product=id
+    function openFromHash() {
+      const h = (location.hash || '').replace(/^#/, '');
+      if (h.startsWith('product=')) {
+        const id = decodeURIComponent(h.slice(8));
+        if (id) setTimeout(function(){ try { openProductDetail(id); } catch(e){} }, 600);
+      }
+    }
+    window.addEventListener('hashchange', openFromHash);
+    setTimeout(openFromHash, 1200);
+
 
 
     window.setSaleType = function(type) {
@@ -1179,7 +1209,7 @@
       if (!p) return;
       pdCurrentId = id;
       pdQty = 1;
-      document.getElementById('pdQty').innerText = '1';
+      document.getElementById('pdQty').value = '1';
       document.getElementById('pdImage').src = p.image || 'https://via.placeholder.com/400';
       document.getElementById('pdName').innerText = getProductName(p);
       const alt = [p.name_km, p.name_en, p.name_zh].filter(Boolean).filter(n => n !== getProductName(p));
@@ -1265,7 +1295,7 @@
       const p = products.find(x => x.id === pdCurrentId);
       const max = p ? (p.stock || 99) : 99;
       pdQty = Math.max(1, Math.min(max, pdQty + delta));
-      document.getElementById('pdQty').innerText = String(pdQty);
+      document.getElementById('pdQty').value = String(pdQty);
     };
     window.addFromDetail = function() {
       if (!pdCurrentId) return;
@@ -1330,9 +1360,9 @@
                   ${i.barcode ? '<p class="text-[10px] text-gray-400 mt-0.5">🔖 ' + i.barcode + '</p>' : ''}
                   <div class="flex items-center justify-between mt-2">
                     <span class="font-bold text-sm text-orange-600">$${i.price.toFixed(2)}</span>
-                    <div class="flex items-center gap-1.5 bg-gray-50 rounded-lg px-1 py-0.5">
+                    <div class="flex items-center gap-1 bg-gray-50 rounded-lg px-1 py-0.5">
                       <button onclick="window.changeQty('${i.id}', -1)" class="w-7 h-7 rounded-md bg-white border text-gray-600 font-bold text-sm leading-none">−</button>
-                      <span class="font-bold text-sm w-6 text-center">${i.qty}</span>
+                      <input type="number" min="1" inputmode="numeric" value="${i.qty}" class="w-10 text-center font-bold text-sm bg-transparent outline-none" onchange="window.setCartQty('${i.id}', this.value)" onclick="this.select()">
                       <button onclick="window.changeQty('${i.id}', 1)" class="w-7 h-7 rounded-md bg-white border text-emerald-700 font-bold text-sm leading-none">+</button>
                     </div>
                   </div>
@@ -1412,6 +1442,96 @@
       }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
     };
 
+    
+    const MIN_ORDER_USD = 4;
+
+    window.setCartQty = function(id, val) {
+      let n = parseInt(val, 10);
+      if (isNaN(n) || n < 1) n = 1;
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+      const p = products.find(x => x.id === id);
+      const max = p ? (Number(p.stock) || 99) : 99;
+      item.qty = Math.min(max, n);
+      updateCart();
+    };
+    window.pdSetQty = function(val) {
+      let n = parseInt(val, 10);
+      if (isNaN(n) || n < 1) n = 1;
+      const p = products.find(x => x.id === pdCurrentId);
+      const max = p ? (Number(p.stock) || 99) : 99;
+      pdQty = Math.min(max, n);
+      const el = document.getElementById('pdQty');
+      if (el) el.value = String(pdQty);
+    };
+
+    window.shareCurrentProduct = async function() {
+      const p = products.find(x => x.id === pdCurrentId);
+      const name = p ? getProductName(p) : 'Jinkelai Shop';
+      const url = window.location.href.split('#')[0] + (pdCurrentId ? ('#product=' + pdCurrentId) : '');
+      const text = name + ' — Jinkelai Shop';
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: name, text: text, url: url });
+          return;
+        }
+      } catch (e) {}
+      // fallback sheet
+      const tg = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+      const fb = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+      const choice = confirm((t('shareProduct') || 'Share') + '\\n\\nOK = Telegram\\nCancel = Copy link / Facebook');
+      if (choice) {
+        window.open(tg, '_blank');
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          alert(t('shareCopied') || 'Copied');
+        } catch (e) {
+          window.open(fb, '_blank');
+        }
+      }
+    };
+    window.shareShop = async function() {
+      const url = window.location.href.split('#')[0];
+      const text = 'Jinkelai Shop';
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: text, text: text, url: url });
+          return;
+        }
+      } catch (e) {}
+      const tg = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+      const fb = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+      if (confirm('Telegram = OK · Facebook = Cancel')) window.open(tg, '_blank');
+      else window.open(fb, '_blank');
+    };
+
+    // Swipe left on cart sheet to close
+    (function setupCartSwipe() {
+      let startX = 0, startY = 0, tracking = false;
+      const modal = document.getElementById('cartModal');
+      if (!modal) return;
+      modal.addEventListener('touchstart', function(e) {
+        if (!e.touches[0]) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        tracking = true;
+      }, { passive: true });
+      modal.addEventListener('touchend', function(e) {
+        if (!tracking) return;
+        tracking = false;
+        const t = e.changedTouches[0];
+        if (!t) return;
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        // swipe left (to left) to close — or swipe down
+        if ((dx < -60 && Math.abs(dx) > Math.abs(dy)) || (dy > 80 && Math.abs(dy) > Math.abs(dx))) {
+          closeCart();
+        }
+      }, { passive: true });
+    })();
+
+
     window.checkoutOrder = async function() {
       const name = document.getElementById('custName').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
@@ -1424,6 +1544,10 @@
       if (!isStoreOpen()) {
         alert(storeClosedMsg());
         return;
+      }
+      const orderTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      if (orderTotal < MIN_ORDER_USD) {
+        return alert(t('minOrder') || ('Minimum $' + MIN_ORDER_USD));
       }
       btn.disabled = true; btn.innerText = 'កំពុងដំណើរការ...';
 
