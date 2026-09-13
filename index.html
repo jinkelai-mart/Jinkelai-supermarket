@@ -3,11 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jinkelai Shop</title>
+  <title>Jinkelai Shop — ទំនិញចិន & ខ្មែរ</title>
+  <meta name="description" content="Jinkelai Shop — ទិញទំនិញចិន និងទំនិញខ្មែរ តម្លៃសមរម្យ ដឹកជញ្ជូនរហ័ស។ COD និង KHQR។ Chinese & Khmer products online in Cambodia.">
   <meta name="theme-color" content="#047857">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Jinkelai">
+  <!-- Open Graph / Facebook / Telegram -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Jinkelai Shop">
+  <meta property="og:title" content="Jinkelai Shop — ទំនិញចិន & ខ្មែរ">
+  <meta property="og:description" content="ទិញទំនិញចិន និងទំនិញខ្មែរ តម្លៃសមរម្យ · ដឹករហ័ស · COD / KHQR · Chinese & Khmer products in Cambodia">
+  <meta property="og:url" content="https://jinkelai-mart.github.io/Jinkelai-supermarket/">
+  <meta property="og:image" content="https://jinkelai-mart.github.io/Jinkelai-supermarket/app-icon.png">
+  <meta property="og:image:secure_url" content="https://jinkelai-mart.github.io/Jinkelai-supermarket/app-icon.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="Jinkelai Shop">
+  <meta property="og:locale" content="km_KH">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Jinkelai Shop — ទំនិញចិន & ខ្មែរ">
+  <meta name="twitter:description" content="ទិញទំនិញចិន និងទំនិញខ្មែរ តម្លៃសមរម្យ · COD / KHQR">
+  <meta name="twitter:image" content="https://jinkelai-mart.github.io/Jinkelai-supermarket/app-icon.png">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="app-icon.png">
   <link rel="icon" type="image/png" href="app-icon.png">
@@ -1524,7 +1545,7 @@
       const p = products.find(x => x.id === pdCurrentId);
       const name = p ? getProductName(p) : 'Jinkelai Shop';
       const url = window.location.href.split('#')[0] + (pdCurrentId ? ('#product=' + pdCurrentId) : '');
-      const text = name + ' — Jinkelai Shop';
+      const text = name + ' — Jinkelai Shop | ទំនិញចិន & ខ្មែរ | jinkelai-mart.github.io';
       try {
         if (navigator.share) {
           await navigator.share({ title: name, text: text, url: url });
@@ -1548,7 +1569,7 @@
     };
     window.shareShop = async function() {
       const url = window.location.href.split('#')[0];
-      const text = 'Jinkelai Shop';
+      const text = 'Jinkelai Shop — ទំនិញចិន & ខ្មែរ | Chinese & Khmer products | COD & KHQR';
       try {
         if (navigator.share) {
           await navigator.share({ title: text, text: text, url: url });

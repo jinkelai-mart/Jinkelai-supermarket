@@ -524,11 +524,9 @@
     }
     window.testOrderVoice = function(lang) {
       const L = lang || adminLang || 'km';
+      window._ttsUnlocked = true;
       try {
-        // unlock / ensure voices loaded
-        if (window.speechSynthesis) {
-          window.speechSynthesis.getVoices();
-        }
+        if (window.speechSynthesis) window.speechSynthesis.getVoices();
       } catch (e) {}
       const sample = {
         lang: L,
@@ -577,105 +575,155 @@
     }
 
     window._ttsAudio = null;
+    window._ttsUnlocked = false;
+
+    // Unlock audio on first user tap (required by mobile browsers)
+    (function unlockTtsOnce() {
+      const unlock = function() {
+        window._ttsUnlocked = true;
+        try {
+          const a = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+          a.volume = 0.01;
+          a.play().catch(function(){});
+        } catch (e) {}
+        document.removeEventListener('click', unlock, true);
+        document.removeEventListener('touchstart', unlock, true);
+      };
+      document.addEventListener('click', unlock, true);
+      document.addEventListener('touchstart', unlock, true);
+    })();
+
+    window.playKhmerTts = function(text, onFail) {
+      // Multiple TTS endpoints for Khmer reliability
+      const q = encodeURIComponent(String(text).substring(0, 180));
+      const urls = [
+        'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=km&q=' + q,
+        'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=km&q=' + q,
+        'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=km&ttsspeed=0.9&q=' + q
+      ];
+      let i = 0;
+      const tryNext = function() {
+        if (i >= urls.length) {
+          if (typeof onFail === 'function') onFail();
+          return;
+        }
+        try {
+          if (window._ttsAudio) {
+            try { window._ttsAudio.pause(); window._ttsAudio.src = ''; } catch (e) {}
+          }
+          const audio = new Audio();
+          window._ttsAudio = audio;
+          audio.preload = 'auto';
+          audio.volume = 1;
+          audio.onerror = function() { i++; tryNext(); };
+          audio.onended = function() {};
+          const p = audio.play();
+          // set src after handlers
+          audio.src = urls[i];
+          if (p && p.catch) {
+            p.catch(function() { i++; tryNext(); });
+          }
+          // if still not playing after 2.5s, try next
+          setTimeout(function() {
+            if (audio.paused && !audio.ended && audio.currentTime < 0.05) {
+              try { audio.pause(); } catch (e) {}
+              i++;
+              tryNext();
+            }
+          }, 2500);
+        } catch (e) {
+          i++;
+          tryNext();
+        }
+      };
+      tryNext();
+    };
+
     window.speakNewOrder = function(order) {
       try {
-        const name = (order.customer && order.customer.name) || 'Customer';
         const total = Number(order.total || 0).toFixed(2);
-        const lang = (order && order.lang) ? order.lang : (adminLang || 'km');
+        // Prefer order language; for shop default often km
+        let lang = (order && order.lang) ? order.lang : (typeof adminLang !== 'undefined' ? adminLang : 'km');
+        if (lang !== 'zh' && lang !== 'en' && lang !== 'km') lang = 'km';
 
-        let text, locale, gLang;
+        let text;
         if (lang === 'zh') {
           text = '您有新订单，金额 ' + total + ' 美元';
-          locale = 'zh-CN';
-          gLang = 'zh-CN';
         } else if (lang === 'en') {
           text = 'You have a new order, amount ' + total + ' dollars';
-          locale = 'en-US';
-          gLang = 'en';
         } else {
           text = 'លោកអ្នកមានការបញ្ជាទិញថ្មី ចំនួន ' + total + ' ដុល្លារ';
-          locale = 'km-KH';
-          gLang = 'km';
         }
 
-        const playGoogleTts = function() {
+        // ===== KHMER: always use online TTS (system has no km voice) =====
+        if (lang === 'km') {
+          window.playKhmerTts(text, function() {
+            // Last fallback: system speech (may be silent or wrong language)
+            try {
+              if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'km-KH';
+                u.rate = 0.85;
+                u.volume = 1;
+                window.speechSynthesis.speak(u);
+              }
+            } catch (e) {}
+          });
+          return;
+        }
+
+        // ===== ZH / EN: system voice first, then Google TTS =====
+        const gLang = lang === 'zh' ? 'zh-CN' : 'en';
+        const locale = lang === 'zh' ? 'zh-CN' : 'en-US';
+
+        const playGoogle = function() {
           try {
-            if (window._ttsAudio) {
-              try { window._ttsAudio.pause(); } catch (e) {}
-            }
-            // Short text only (Google TTS limit ~200 chars)
+            if (window._ttsAudio) { try { window._ttsAudio.pause(); } catch (e) {} }
             const q = encodeURIComponent(text.substring(0, 180));
             const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=' + encodeURIComponent(gLang) + '&q=' + q;
             const audio = new Audio(url);
             window._ttsAudio = audio;
             audio.volume = 1;
-            const p = audio.play();
-            if (p && p.catch) {
-              p.catch(function(err) {
-                console.warn('Google TTS failed', err);
-                // last resort: system English announce amount
-                if (window.speechSynthesis) {
-                  const u = new SpeechSynthesisUtterance('New order, amount ' + total + ' dollars');
-                  u.lang = 'en-US';
-                  window.speechSynthesis.speak(u);
-                }
-              });
-            }
-          } catch (e) {
-            console.error('playGoogleTts', e);
-          }
-        };
-
-        const hasVoice = function(voices, langCode) {
-          if (!voices || !voices.length) return false;
-          if (langCode === 'zh') return voices.some(function(v) { return /zh|cmn|chinese/i.test((v.lang || '') + (v.name || '')); });
-          if (langCode === 'en') return voices.some(function(v) { return /^en/i.test(v.lang || ''); });
-          if (langCode === 'km') return voices.some(function(v) { return /km|khmer|cambodian/i.test((v.lang || '') + (v.name || '')); });
-          return false;
-        };
-
-        const speakSystem = function(voices) {
-          if (!window.speechSynthesis) { playGoogleTts(); return; }
-          window.speechSynthesis.cancel();
-          let voice = null;
-          if (lang === 'zh') voice = voices.find(function(v) { return /zh|cmn|chinese/i.test((v.lang || '') + (v.name || '')); });
-          else if (lang === 'en') voice = voices.find(function(v) { return /^en/i.test(v.lang || ''); });
-          else voice = voices.find(function(v) { return /km|khmer|cambodian/i.test((v.lang || '') + (v.name || '')); });
-
-          // Khmer: almost never has system voice on Windows → Google TTS
-          if (lang === 'km' && !voice) {
-            playGoogleTts();
-            return;
-          }
-          // Chinese without system voice → Google TTS
-          if (lang === 'zh' && !voice) {
-            playGoogleTts();
-            return;
-          }
-
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = voice ? voice.lang : locale;
-          if (voice) u.voice = voice;
-          u.rate = 0.9;
-          u.volume = 1;
-          u.onerror = function() { playGoogleTts(); };
-          window.speechSynthesis.speak(u);
+            audio.play().catch(function() {
+              if (window.speechSynthesis) {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = locale;
+                window.speechSynthesis.speak(u);
+              }
+            });
+          } catch (e) {}
         };
 
         if (!window.speechSynthesis) {
-          playGoogleTts();
+          playGoogle();
           return;
         }
+        const speakSys = function(voices) {
+          window.speechSynthesis.cancel();
+          let voice = null;
+          if (lang === 'zh') {
+            voice = (voices || []).find(function(v) { return /zh|cmn|chinese/i.test((v.lang || '') + (v.name || '')); });
+          } else {
+            voice = (voices || []).find(function(v) { return /^en/i.test(v.lang || ''); });
+          }
+          if (!voice && lang === 'zh') {
+            playGoogle();
+            return;
+          }
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = voice ? voice.lang : locale;
+          if (voice) u.voice = voice;
+          u.rate = 0.92;
+          u.volume = 1;
+          u.onerror = function() { playGoogle(); };
+          window.speechSynthesis.speak(u);
+        };
         let voices = window.speechSynthesis.getVoices() || [];
-        if (voices.length) {
-          setTimeout(function() { speakSystem(voices); }, 60);
-        } else {
-          window.speechSynthesis.onvoiceschanged = function() {
-            speakSystem(window.speechSynthesis.getVoices() || []);
-          };
-          setTimeout(function() {
-            speakSystem(window.speechSynthesis.getVoices() || []);
-          }, 400);
+        if (voices.length) setTimeout(function() { speakSys(voices); }, 50);
+        else {
+          window.speechSynthesis.onvoiceschanged = function() { speakSys(window.speechSynthesis.getVoices() || []); };
+          setTimeout(function() { speakSys(window.speechSynthesis.getVoices() || []); }, 400);
         }
       } catch (e) {
         console.error('speakNewOrder', e);
