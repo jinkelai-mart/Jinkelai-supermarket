@@ -487,7 +487,7 @@
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const TELEGRAM_BOT_TOKEN = '8893890936:AAGAozKmFRYbKEn9ubZnyCL5tajJE2OoTmw';
+    const TELEGRAM_BOT_TOKEN = '8807713914:AAE7eX7tzvcehSnpGNW-cQABm5WhZIYG9WI';
     const TELEGRAM_CHAT_ID = '-1003962677132';
     const IMGBB_API_KEY = '5ae4d8edc2285133fecc302b45b1b795';
 
@@ -1678,12 +1678,24 @@
             }
             bgTasks.push((async () => {
               try {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+                // Orders go ONLY to Telegram Group (not private bot chat)
+                const TG_GROUP_ID = '-1003962677132';
+                const res = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    chat_id: TG_GROUP_ID,
+                    text: msg,
+                    disable_web_page_preview: true,
+                    disable_notification: false
+                  })
                 });
                 const data = await res.json();
-                if (data.ok === true) await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
+                if (data.ok === true) {
+                  await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
+                } else {
+                  console.error('Telegram API error:', data);
+                }
               } catch (tgErr) { console.error('Telegram network error:', tgErr); }
             })());
             // stock updates in parallel
