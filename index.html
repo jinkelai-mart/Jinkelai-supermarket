@@ -1731,16 +1731,19 @@
             }
             bgTasks.push((async () => {
               try {
-                // Orders go ONLY to Telegram Group (not private bot chat)
+                // Orders go ONLY to Telegram Group — text + product photos
                 const TG_GROUP_ID = '-1003962677132';
-                const res = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
+                const botBase = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN;
+                const fullMsg = msg + '\n🆔 Order: ' + orderId;
+
+                // 1) Text order summary
+                const res = await fetch(botBase + '/sendMessage', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     chat_id: TG_GROUP_ID,
-                    text: msg,
-                    disable_web_page_preview: true,
-                    disable_notification: false
+                    text: fullMsg,
+                    disable_web_page_preview: true
                   })
                 });
                 const data = await res.json();
@@ -1748,6 +1751,54 @@
                   await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
                 } else {
                   console.error('Telegram API error:', data);
+                }
+
+                // 2) Collect product image URLs (public https)
+                const photoUrls = [];
+                const seen = {};
+                cartSnapshot.forEach(function(i) {
+                  let url = (i.image || '').trim();
+                  if (!url) {
+                    const p = products.find(function(x) { return x.id === i.id; });
+                    if (p && p.image) url = String(p.image).trim();
+                  }
+                  if (url && /^https?:\/\//i.test(url) && !seen[url]) {
+                    seen[url] = true;
+                    photoUrls.push({ url: url, caption: (i.name || '') + ' ×' + (i.qty || 1) });
+                  }
+                });
+                // location photo last
+                if (locationImageUrl && /^https?:\/\//i.test(locationImageUrl)) {
+                  photoUrls.push({ url: locationImageUrl, caption: '📍 ទីតាំងអតិថិជន / Location' });
+                }
+
+                // 3) Send photos (media group max 10; batch if more)
+                for (let start = 0; start < photoUrls.length; start += 10) {
+                  const batch = photoUrls.slice(start, start + 10);
+                  if (batch.length === 1) {
+                    await fetch(botBase + '/sendPhoto', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        chat_id: TG_GROUP_ID,
+                        photo: batch[0].url,
+                        caption: batch[0].caption.substring(0, 1000)
+                      })
+                    });
+                  } else if (batch.length > 1) {
+                    const media = batch.map(function(ph, idx) {
+                      return {
+                        type: 'photo',
+                        media: ph.url,
+                        caption: idx === 0 ? ph.caption.substring(0, 1000) : (ph.caption || '').substring(0, 200)
+                      };
+                    });
+                    await fetch(botBase + '/sendMediaGroup', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ chat_id: TG_GROUP_ID, media: media })
+                    });
+                  }
                 }
               } catch (tgErr) { console.error('Telegram network error:', tgErr); }
             })());
