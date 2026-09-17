@@ -653,6 +653,21 @@
       return catLabel(p.category || '');
     }
 
+    /** 🇨🇳 Chinese / 🇰🇭 Khmer origin flag for product card */
+    function productOriginFlag(p) {
+      if (!p) return '';
+      const g = String(p.productGroup || p.group || '').toLowerCase().trim();
+      if (g === 'chinese' || g === 'cn' || g === 'china') return '🇨🇳';
+      if (g === 'khmer' || g === 'km' || g === 'cambodia' || g === 'kh') return '🇰🇭';
+      const vals = [p.category, p.category_km, p.category_en, p.category_zh, p.name_km, p.name_en, p.name_zh]
+        .map(function(x) { return String(x || '').toLowerCase(); }).join(' ');
+      if (vals.indexOf('ចិន') >= 0 || vals.indexOf('chinese') >= 0 || vals.indexOf('中国') >= 0 || vals.indexOf('中國') >= 0)
+        return '🇨🇳';
+      if (vals.indexOf('ខ្មែ') >= 0 || vals.indexOf('khmer') >= 0 || vals.indexOf('高棉') >= 0 || vals.indexOf('柬埔寨') >= 0)
+        return '🇰🇭';
+      return '';
+    }
+
     function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || i18n.km[key] || key; }
     function getProductName(p) {
       if (currentLang === 'en' && p.name_en) return p.name_en;
@@ -1292,14 +1307,19 @@
         const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
         const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
         const catLbl = (p.category || p.category_km) ? `<span class="text-[9px] text-gray-400">${productCatLabel(p)}</span>` : '';
+        const originFlag = productOriginFlag(p);
+        const originHtml = originFlag
+          ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold ${originFlag === '🇨🇳' ? 'text-red-600' : 'text-emerald-700'}" title="${originFlag === '🇨🇳' ? 'ទំនិញចិន' : 'ទំនិញខ្មែរ'}">${originFlag}</span>`
+          : '';
         const div = document.createElement('div');
         div.className = 'product-card flex flex-col';
         div.innerHTML = `
-          <div class="w-full h-36 bg-white flex items-center justify-center overflow-hidden">
+          <div class="w-full h-36 bg-white flex items-center justify-center overflow-hidden relative">
             <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="max-w-full max-h-36 w-auto h-auto object-contain" onerror="this.src='https://via.placeholder.com/150'">
+            ${originFlag ? `<span class="absolute top-1.5 left-1.5 text-base leading-none drop-shadow-sm" title="${originFlag === '🇨🇳' ? 'ទំនិញចិន' : 'ទំនិញខ្មែរ'}">${originFlag}</span>` : ''}
           </div>
           <div class="p-2.5 flex flex-col flex-1">
-            <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLbl}</div>
+            <div class="flex items-center gap-1 mb-0.5 flex-wrap"><span class="type-badge ${typeClass}">${typeLabel}</span>${catLbl}${originHtml}</div>
             <h3 class="font-bold text-xs leading-tight line-clamp-2">${name}</h3>
             ${p.barcode ? `<p class="text-[9px] text-gray-400">Barcode: ${p.barcode}</p>` : ''}
             <p class="text-[10px] mt-0.5"><span class="font-bold ${p.stock <= 0 ? 'text-red-500' : 'text-emerald-700'}">${p.stock <= 0 ? t('outOfStock') : t('inStock')}</span></p>
@@ -1347,7 +1367,11 @@
       const saleType = (p.saleType || 'retail').toLowerCase();
       const typeLabel = saleType === 'wholesale' ? t('wholesale') : t('retail');
       const typeClass = saleType === 'wholesale' ? 'type-wholesale' : 'type-retail';
-      document.getElementById('pdBadges').innerHTML = '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>';
+      const oflag = productOriginFlag(p);
+      const originBadge = oflag
+        ? '<span class="type-badge ' + (oflag === '🇨🇳' ? 'type-wholesale' : 'type-retail') + '">' + oflag + ' ' + (oflag === '🇨🇳' ? (currentLang==='zh'?'中国商品':currentLang==='en'?'Chinese':'ទំនិញចិន') : (currentLang==='zh'?'高棉商品':currentLang==='en'?'Khmer':'ទំនិញខ្មែរ')) + '</span>'
+        : '';
+      document.getElementById('pdBadges').innerHTML = '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>' + originBadge;
       const btn = document.getElementById('pdAddBtn');
       const closed = !isStoreOpen();
       if (p.stock <= 0) {
