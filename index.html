@@ -167,10 +167,24 @@
           </div>
           <p class="warn" id="homeContactWarn">⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាហាងយើងទេ — កុំផ្ទេរប្រាក់!</p>
         </div>
-        <div class="promo-card cursor-pointer active:scale-[0.98] transition" style="background: linear-gradient(135deg,#1d4ed8,#3b82f6);" onclick="document.getElementById('productGrid').scrollIntoView({behavior:'smooth'})">
-          <div class="absolute top-3 right-3 text-3xl opacity-30">🚚</div>
-          <h3 id="promoShipTitle">ដឹកជញ្ជូនរហ័ស</h3>
-          <p id="promoShipSub">COD និង KHQR</p>
+        <div class="promo-card promo-card-contact" style="background: linear-gradient(135deg,#1d4ed8,#3b82f6);">
+          <p class="font-bold text-sm" id="deliveryContactTitle">🚚 ទំនាក់ទំនងអ្នកដឹក</p>
+          <p class="text-[10px] opacity-90" id="promoShipSub">COD និង KHQR</p>
+          <div class="space-y-1.5 mt-1" id="deliveryContactBox">
+            <a id="deliveryTgLink" href="#" target="_blank" rel="noopener">
+              <span>✈️</span>
+              <span>Telegram <span id="deliveryTgText">—</span></span>
+            </a>
+            <a id="deliveryPhone1Link" href="#">
+              <span>📞</span>
+              <span id="deliveryPhone1Text">—</span>
+            </a>
+            <a id="deliveryPhone2Link" href="#">
+              <span>📞</span>
+              <span id="deliveryPhone2Text">—</span>
+            </a>
+          </div>
+          <p class="warn" id="deliveryContactWarn">⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាអ្នកដឹករបស់ហាងទេ</p>
         </div>
       </div>
     </div>
@@ -1232,6 +1246,39 @@
         }
         if (p2Tx) p2Tx.innerText = p2d || p2 || '—';
       });
+      // Delivery driver contact
+      var dtg = String(c.deliveryTelegram || '').replace(/^@/, '').trim();
+      var dp1 = String(c.deliveryPhone1 || '').replace(/\s/g, '');
+      var dp2 = String(c.deliveryPhone2 || '').replace(/\s/g, '');
+      var dp1d = c.deliveryPhone1Display || c.deliveryPhone1 || dp1 || '—';
+      var dp2d = c.deliveryPhone2Display || c.deliveryPhone2 || dp2 || '—';
+      var dtgEl = document.getElementById('deliveryTgLink');
+      var dtgTx = document.getElementById('deliveryTgText');
+      var dp1El = document.getElementById('deliveryPhone1Link');
+      var dp1Tx = document.getElementById('deliveryPhone1Text');
+      var dp2El = document.getElementById('deliveryPhone2Link');
+      var dp2Tx = document.getElementById('deliveryPhone2Text');
+      if (dtgEl) dtgEl.href = dtg ? ('https://t.me/' + dtg) : '#';
+      if (dtgTx) dtgTx.innerText = dtg ? ('@' + dtg) : '—';
+      if (dp1El) dp1El.href = dp1 ? ('tel:' + dp1) : '#';
+      if (dp1Tx) dp1Tx.innerText = dp1d || '—';
+      if (dp2El) {
+        if (dp2) { dp2El.href = 'tel:' + dp2; dp2El.classList.remove('hidden'); }
+        else { dp2El.classList.add('hidden'); }
+      }
+      if (dp2Tx) dp2Tx.innerText = dp2d || '—';
+      var dTitle = document.getElementById('deliveryContactTitle');
+      if (dTitle) dTitle.innerText = currentLang === 'zh' ? '🚚 配送联系' : currentLang === 'en' ? '🚚 Delivery contact' : '🚚 ទំនាក់ទំនងអ្នកដឹក';
+      var dWarn = document.getElementById('deliveryContactWarn');
+      if (dWarn) {
+        dWarn.innerText = currentLang === 'zh'
+          ? '⚠️ 除以上外均非本店配送员'
+          : currentLang === 'en'
+          ? '⚠️ Contacts outside the above are NOT our delivery'
+          : '⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាអ្នកដឹករបស់ហាងទេ';
+      }
+      var shipSub = document.getElementById('promoShipSub');
+      if (shipSub) shipSub.innerText = currentLang === 'zh' ? 'COD 与 KHQR' : currentLang === 'en' ? 'COD & KHQR' : 'COD និង KHQR';
       var warn = currentLang === 'zh'
         ? '⚠️ 除以上联系方式外均非本店 — 请勿转账！'
         : currentLang === 'en'

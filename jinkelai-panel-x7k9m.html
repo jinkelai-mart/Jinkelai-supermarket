@@ -302,6 +302,20 @@
               <label class="font-semibold text-gray-600 block mb-1">លេខទូរស័ព្ទ 2 (ស្រេចចិត្ត)</label>
               <input type="text" id="contactPhone2" placeholder="085624824" class="input-field">
             </div>
+            <hr class="border-gray-200 my-1">
+            <p class="font-bold text-gray-700">🚚 ទំនាក់ទំនងអ្នកដឹក</p>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">Telegram អ្នកដឹក (គ្មាន @)</label>
+              <input type="text" id="deliveryTelegram" placeholder="ឧ. driver_jk" class="input-field">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">លេខអ្នកដឹក 1</label>
+              <input type="text" id="deliveryPhone1" placeholder="098xxxxxx" class="input-field">
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">លេខអ្នកដឹក 2 (ស្រេចចិត្ត)</label>
+              <input type="text" id="deliveryPhone2" placeholder="085xxxxxx" class="input-field">
+            </div>
             <button type="button" onclick="saveContactSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុកទំនាក់ទំនង</button>
             <p id="contactStatus" class="text-center text-[11px] text-gray-500"></p>
           </div>
@@ -1193,6 +1207,44 @@
     };
 
     
+
+    async function loadContactSettingsAdmin() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'contact'));
+        if (!snap.exists()) return;
+        const d = snap.data() || {};
+        const set = (id, v) => { const el = document.getElementById(id); if (el && v != null && v !== undefined) el.value = v; };
+        set('contactTelegram', d.telegram || '');
+        set('contactPhone1', d.phone1 || '');
+        set('contactPhone2', d.phone2 || '');
+        set('deliveryTelegram', d.deliveryTelegram || '');
+        set('deliveryPhone1', d.deliveryPhone1 || '');
+        set('deliveryPhone2', d.deliveryPhone2 || '');
+      } catch (e) { console.error(e); }
+    }
+
+    window.saveContactSettings = async function() {
+      if (!auth.currentUser) return alert('សូម Login មុន!');
+      const statusEl = document.getElementById('contactStatus');
+      if (statusEl) statusEl.innerText = 'កំពុងរក្សាទុក...';
+      try {
+        const val = (id) => (document.getElementById(id)?.value || '').trim();
+        const data = {
+          telegram: val('contactTelegram').replace(/^@/, ''),
+          phone1: val('contactPhone1').replace(/\s/g, ''),
+          phone2: val('contactPhone2').replace(/\s/g, ''),
+          deliveryTelegram: val('deliveryTelegram').replace(/^@/, ''),
+          deliveryPhone1: val('deliveryPhone1').replace(/\s/g, ''),
+          deliveryPhone2: val('deliveryPhone2').replace(/\s/g, '')
+        };
+        await setDoc(doc(db, 'settings', 'contact'), data, { merge: true });
+        if (statusEl) statusEl.innerText = '🎉 រក្សាទុកទំនាក់ទំនងជោគជ័យ!';
+      } catch (e) {
+        console.error(e);
+        if (statusEl) statusEl.innerText = '❌ ' + (e.message || e);
+      }
+    };
+
     async function loadStoreHoursAdmin() {
       try {
         const snap = await getDoc(doc(db, 'settings', 'storeHours'));
