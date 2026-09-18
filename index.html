@@ -531,7 +531,7 @@
         cartLabel:"កន្ត្រក", cartTitle:"កន្ត្រកទំនិញ", totalLabel:"សរុប៖", checkoutBtn:"បញ្ជាទិញ",
         namePh:"ឈ្មោះ *", phonePh:"លេខទូរស័ព្ទ *", addressPh:"អាសយដ្ឋាន *",
         loading:"កំពុងផ្ទុកទំនិញ...", empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
-        outOfStock:"អស់ស្តុក", inStock:"មានស្តុក", relatedTitle:"ទំនិញពាក់ព័ន្ធ", storeClosedBuy:"ហាងបិទ — មើលបាន តែមិនអាចទិញ", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
+        outOfStock:"អស់ស្តុក", inStock:"មានស្តុក", relatedTitle:"ទំនិញពាក់ព័ន្ធ", storeClosedBuy:"សូមអភ័យទោស ពេលនេះហាងត្រូវបានបិទ", stock:"ស្តុក", buy:"+ ទិញ", emptyCart:"គ្មានទំនិញ",
         orderSuccess:"ការបញ្ជាទិញបានរក្សាទុក!\nស្ថានភាព៖ រង់ចាំការទូទាត់\nAdmin នឹងបញ្ជាក់ពេលទទួលប្រាក់",
         fillInfo:"សូមបំពេញឈ្មោះ លេខទូរស័ព្ទ និងអាសយដ្ឋាន!", addFirst:"សូមចុច [+ ទិញ] លើទំនិញចូលកន្ត្រកជាមុនសិន!",
         networkError:"មានបញ្ហាបណ្តាញ ឬ Firebase!",
@@ -555,7 +555,7 @@
         cartLabel:"Cart", cartTitle:"Shopping Cart", totalLabel:"Total:", checkoutBtn:"Checkout",
         namePh:"Name *", phonePh:"Phone *", addressPh:"Address *",
         loading:"Loading products...", empty:"No products available yet",
-        outOfStock:"Out of stock", inStock:"In stock", relatedTitle:"Related products", storeClosedBuy:"Store closed — browse only", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
+        outOfStock:"Out of stock", inStock:"In stock", relatedTitle:"Related products", storeClosedBuy:"Sorry, the store is closed now", stock:"Stock", buy:"+ Buy", emptyCart:"Cart is empty",
         orderSuccess:"Order saved!\nStatus: Waiting for payment\nAdmin will confirm after receiving payment",
         fillInfo:"Please fill name, phone and address!", addFirst:"Please add items to cart first!",
         networkError:"Network or Firebase error!",
@@ -579,7 +579,7 @@
         cartLabel:"购物车", cartTitle:"购物车", totalLabel:"合计：", checkoutBtn:"下单",
         namePh:"姓名 *", phonePh:"电话 *", addressPh:"地址 *",
         loading:"正在加载商品...", empty:"暂无商品",
-        outOfStock:"缺货", inStock:"有货", relatedTitle:"相关商品", storeClosedBuy:"已打烊 — 仅可浏览", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
+        outOfStock:"缺货", inStock:"有货", relatedTitle:"相关商品", storeClosedBuy:"抱歉，本店现已打烊", stock:"库存", buy:"+ 购买", emptyCart:"购物车为空",
         orderSuccess:"订单已保存！\n状态：等待付款\n管理员确认收款后会更新",
         fillInfo:"请填写姓名、电话和地址！", addFirst:"请先添加商品到购物车！",
         networkError:"网络或Firebase错误！",
@@ -1142,10 +1142,14 @@
       // overnight e.g. 22:00 - 06:00
       return cur >= open || cur < close;
     }
-    function storeClosedMsg() {
-      return currentLang==='zh' ? '商店已打烊，请在营业时间下单'
-        : currentLang==='en' ? 'Store is closed. Please order during opening hours.'
-        : 'ហាងបិទហើយ សូមបញ្ជាទិញក្នុងម៉ោងបើក';
+        function storeClosedMsg() {
+      if (currentLang === 'zh') {
+        return '抱歉，本店现已打烊。请在营业时间下单，感谢您的支持🙏';
+      }
+      if (currentLang === 'en') {
+        return 'Sorry, the store is closed. Please place your order during opening hours. Thank you for your support🙏';
+      }
+      return 'សូមអភ័យទោស ពេលនេះហាងត្រូវបានបិទ សូមធ្វើការបញ្ជាទិញនៅម៉ោងបើកហាង សូមអរគុណសម្រាប់ការគាំទ្រយើងខ្ញុំ🙏';
     }
     function updateStoreClosedUI() {
       const banner = document.getElementById('storeClosedBanner');
@@ -1154,11 +1158,12 @@
       if (banner) {
         if (closed) {
           const note = storeHours.note || '';
+          const hours = (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '');
           const msg = currentLang==='zh'
-            ? ('🔴 已打烊（可浏览，不可下单）<br><span class="font-normal">营业时间 ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
+            ? ('🔴 抱歉，本店现已打烊<br><span class="font-normal">请在营业时间下单，感谢支持🙏<br>营业时间 ' + hours + '</span>')
             : currentLang==='en'
-            ? ('🔴 Store closed (browse only)<br><span class="font-normal">Hours ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>')
-            : ('🔴 ហាងបិទ — មើលបាន តែមិនអាចទិញ<br><span class="font-normal">ម៉ោងបើក ' + (storeHours.open||'') + ' - ' + (storeHours.close||'') + (note ? ' · ' + note : '') + '</span>');
+            ? ('🔴 Sorry, the store is closed<br><span class="font-normal">Please order during opening hours. Thank you for your support🙏<br>Hours ' + hours + '</span>')
+            : ('🔴 សូមអភ័យទោស ពេលនេះហាងត្រូវបានបិទ<br><span class="font-normal">សូមធ្វើការបញ្ជាទិញនៅម៉ោងបើកហាង សូមអរគុណសម្រាប់ការគាំទ្រយើងខ្ញុំ🙏<br>ម៉ោងបើក ' + hours + '</span>');
           banner.innerHTML = msg;
           banner.classList.remove('hidden');
         } else {
@@ -1169,7 +1174,7 @@
         if (closed) {
           btn.disabled = true;
           btn.classList.add('opacity-60');
-          btn.innerText = currentLang==='zh'?'已打烊':(currentLang==='en'?'Store Closed':'ហាងបិទ');
+          btn.innerText = currentLang==='zh'?'已打烊':(currentLang==='en'?'Store Closed':'ហាងបិទហើយ');
         } else {
           btn.disabled = false;
           btn.classList.remove('opacity-60');
