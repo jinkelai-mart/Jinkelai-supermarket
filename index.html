@@ -456,7 +456,7 @@
           </label>
           <div id="khqrBox" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-2">
             <p class="text-[11px] font-bold text-indigo-800" id="khqrTitle">ស្កែន KHQR ដើម្បីទូទាត់</p>
-            <img id="khqrImg" class="mx-auto w-36 h-36 object-contain bg-white rounded-lg border" alt="KHQR">
+            <img id="khqrImg" class="mx-auto w-36 h-36 object-contain bg-white rounded-lg border" alt="KHQR" referrerpolicy="no-referrer">
             <p id="khqrAccountText" class="text-[10px] text-gray-600"></p>
           </div>
         </div>
@@ -1023,22 +1023,42 @@
       }
     };
 
+    function applyKhqrUI() {
+      const img = document.getElementById('khqrImg');
+      const acc = document.getElementById('khqrAccountText');
+      if (!img) return;
+      if (khqrData && khqrData.image) {
+        img.src = khqrData.image;
+        img.alt = 'KHQR';
+        img.onerror = function() { img.alt = 'KHQR load failed'; };
+      } else {
+        img.removeAttribute('src');
+        img.alt = 'No KHQR image';
+      }
+      if (acc) acc.innerText = (khqrData && khqrData.account) ? khqrData.account : '';
+    }
+
     async function loadKhqr() {
       try {
         const snap = await getDoc(doc(db, 'settings', 'khqr'));
-        if (snap.exists()) {
-          khqrData = snap.data();
-          if (khqrData.image) document.getElementById('khqrImg').src = khqrData.image;
-          if (khqrData.account) document.getElementById('khqrAccountText').innerText = khqrData.account;
-        }
-      } catch (e) { console.error('Load KHQR', e); }
+        khqrData = snap.exists() ? (snap.data() || {}) : {};
+        applyKhqrUI();
+      } catch (e) {
+        console.error('Load KHQR', e);
+        khqrData = {};
+      }
     }
 
     document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
       radio.addEventListener('change', () => {
         const box = document.getElementById('khqrBox');
-        if (radio.value === 'khqr' && radio.checked) box.classList.remove('hidden');
-        else box.classList.add('hidden');
+        if (radio.value === 'khqr' && radio.checked) {
+          box.classList.remove('hidden');
+          applyKhqrUI();
+          if (!khqrData || !khqrData.image) loadKhqr();
+        } else {
+          box.classList.add('hidden');
+        }
       });
     });
 

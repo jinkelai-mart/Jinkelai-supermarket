@@ -1164,16 +1164,31 @@
       try {
         let imageUrl = '';
         if (selectedKhqrFile) {
-          statusEl.innerText = 'កំពុង Upload រូប...';
+          statusEl.innerText = 'កំពុង Upload រូបទៅ ImgBB...';
           imageUrl = await uploadToImgBB(selectedKhqrFile);
+          if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) {
+            throw new Error('Upload រូបមិនបាន URL');
+          }
         }
         const data = { account: document.getElementById('khqrAccount').value.trim() };
         if (imageUrl) data.image = imageUrl;
+        if (!imageUrl) {
+          const prev = await getDoc(doc(db, 'settings', 'khqr'));
+          const hasOld = prev.exists() && prev.data().image;
+          if (!hasOld) {
+            statusEl.innerText = '⚠️ សូមជ្រើសរូប KHQR មុនរក្សាទុក';
+            return;
+          }
+        }
         await setDoc(doc(db, 'settings', 'khqr'), data, { merge: true });
         statusEl.innerText = '🎉 រក្សាទុក KHQR ជោគជ័យ!';
         selectedKhqrFile = null;
+        const fileInput = document.getElementById('khqrImageFile');
+        if (fileInput) fileInput.value = '';
+        await loadKhqrSettings();
       } catch (e) {
-        statusEl.innerText = '❌ បរាជ័យ: ' + e.message;
+        console.error(e);
+        statusEl.innerText = '❌ បរាជ័យ: ' + (e.message || e);
       }
     };
 
