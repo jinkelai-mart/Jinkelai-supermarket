@@ -222,17 +222,28 @@
         </div>
         <button onclick="openAuthOrOrders()" id="accountActionBtn" class="bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl">ចូល</button>
       </div>
+      <div id="savedAddressCard" class="bg-white rounded-2xl p-4 border shadow-sm hidden">
+        <div class="flex justify-between items-start gap-2">
+          <div class="min-w-0">
+            <p class="font-bold text-sm text-gray-800" id="savedAddrTitle">📍 អាសយដ្ឋានរក្សាទុក</p>
+            <p class="text-xs text-gray-600 mt-1 break-words" id="savedAddrText">—</p>
+            <p class="text-[11px] text-gray-400 mt-0.5" id="savedPhoneText"></p>
+          </div>
+          <button type="button" onclick="editSavedAddress()" class="text-emerald-700 text-[11px] font-bold flex-shrink-0">កែ</button>
+        </div>
+      </div>
       <div>
         <div class="flex justify-between items-center mb-3">
           <h3 class="font-bold text-sm text-gray-800" id="myOrdersTitle">ការបញ្ជាទិញរបស់ខ្ញុំ</h3>
           <button onclick="openMyOrders()" class="text-emerald-700 text-xs font-bold" id="viewAllBtn">មើលទាំងអស់ ></button>
         </div>
-        <div class="grid grid-cols-4 gap-2">
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-amber-100">⏳</div><p class="text-[11px] font-semibold text-gray-700" id="stPending">រង់ចាំ</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-blue-100">🔄</div><p class="text-[11px] font-semibold text-gray-700" id="stProcessing">កំពុងដំណើរការ</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-sky-100">🚚</div><p class="text-[11px] font-semibold text-gray-700" id="stShipping">កំពុងដឹក</p></button>
-          <button onclick="openTrack()" class="status-card"><div class="icon bg-emerald-100">✅</div><p class="text-[11px] font-semibold text-gray-700" id="stDone">បានដឹករួច</p></button>
+        <div class="grid grid-cols-4 gap-2 mb-3">
+          <button onclick="openMyOrders()" class="status-card"><div class="icon bg-amber-100">⏳</div><p class="text-[11px] font-semibold text-gray-700" id="stPending">រង់ចាំ</p></button>
+          <button onclick="openMyOrders()" class="status-card"><div class="icon bg-blue-100">🔄</div><p class="text-[11px] font-semibold text-gray-700" id="stProcessing">កំពុងដំណើរការ</p></button>
+          <button onclick="openMyOrders()" class="status-card"><div class="icon bg-sky-100">🚚</div><p class="text-[11px] font-semibold text-gray-700" id="stShipping">កំពុងដឹក</p></button>
+          <button onclick="openMyOrders()" class="status-card"><div class="icon bg-emerald-100">✅</div><p class="text-[11px] font-semibold text-gray-700" id="stDone">បានដឹករួច</p></button>
         </div>
+        <div id="myOrdersList" class="space-y-2 text-xs"></div>
       </div>
       <div>
         <h3 class="font-bold text-sm text-gray-800 mb-3" id="servicesTitle">សេវាកម្ម</h3>
@@ -504,7 +515,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDoc, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, setDoc, serverTimestamp, getDoc, query, where, orderBy, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
@@ -538,6 +549,173 @@
     let currentLang = localStorage.getItem('jk_lang') || 'km';
     let currentCategory = 'all', currentGroup = 'all', currentSaleType = 'all', searchQuery = '';
     let selectedLocFile = null, khqrData = {}, mapInstance = null, isRegisterMode = false;
+    let userProfile = null;
+
+    async function loadUserProfile(uid) {
+      if (!uid) { userProfile = null; return null; }
+      try {
+        const snap = await getDoc(doc(db, 'users', uid));
+        userProfile = snap.exists() ? snap.data() : {};
+        // merge localStorage fallbacks
+        try {
+          if (!userProfile.phone) {
+            const lp = localStorage.getItem('jk_phone_' + uid);
+            if (lp) userProfile.phone = lp;
+          }
+          if (!userProfile.address) {
+            const la = localStorage.getItem('jk_addr_' + uid);
+            if (la) userProfile.address = la;
+          }
+        } catch (e) {}
+        applyProfileToCheckout();
+        applySavedAddressCard();
+        return userProfile;
+      } catch (e) {
+        console.warn('loadUserProfile', e);
+        userProfile = {};
+        return userProfile;
+      }
+    }
+
+    function applyProfileToCheckout() {
+      const p = userProfile || {};
+      const nameEl = document.getElementById('custName');
+      const phoneEl = document.getElementById('custPhone');
+      const addrEl = document.getElementById('custAddress');
+      if (!nameEl) return;
+      // only fill empty fields so user edits are not wiped mid-typing
+      if (nameEl && !nameEl.value.trim()) {
+        nameEl.value = p.name || (currentUser && currentUser.displayName) || '';
+      }
+      if (phoneEl && !phoneEl.value.trim()) {
+        phoneEl.value = p.phone || '';
+      }
+      if (addrEl && !addrEl.value.trim()) {
+        addrEl.value = p.address || '';
+      }
+    }
+
+    function applySavedAddressCard() {
+      const card = document.getElementById('savedAddressCard');
+      const txt = document.getElementById('savedAddrText');
+      const ph = document.getElementById('savedPhoneText');
+      if (!card) return;
+      if (!currentUser) {
+        card.classList.add('hidden');
+        return;
+      }
+      const p = userProfile || {};
+      const addr = p.address || '';
+      const phone = p.phone || '';
+      const name = p.name || (currentUser.displayName || '');
+      if (!addr && !phone) {
+        card.classList.add('hidden');
+        return;
+      }
+      card.classList.remove('hidden');
+      if (txt) txt.innerText = [name, addr].filter(Boolean).join(' · ') || '—';
+      if (ph) ph.innerText = phone ? ('📞 ' + phone) : '';
+      const title = document.getElementById('savedAddrTitle');
+      if (title) {
+        title.innerText = currentLang === 'zh' ? '📍 已保存地址' : currentLang === 'en' ? '📍 Saved address' : '📍 អាសយដ្ឋានរក្សាទុក';
+      }
+    }
+
+    async function saveUserProfile(partial) {
+      if (!currentUser) return;
+      const uid = currentUser.uid;
+      const data = Object.assign({}, partial || {}, { updatedAt: serverTimestamp() });
+      try {
+        await setDoc(doc(db, 'users', uid), data, { merge: true });
+        userProfile = Object.assign({}, userProfile || {}, partial || {});
+        try {
+          if (partial && partial.phone) localStorage.setItem('jk_phone_' + uid, partial.phone);
+          if (partial && partial.address) localStorage.setItem('jk_addr_' + uid, partial.address);
+        } catch (e) {}
+        applySavedAddressCard();
+      } catch (e) {
+        console.warn('saveUserProfile', e);
+        // still keep localStorage
+        try {
+          if (partial && partial.phone) localStorage.setItem('jk_phone_' + uid, partial.phone);
+          if (partial && partial.address) localStorage.setItem('jk_addr_' + uid, partial.address);
+        } catch (e2) {}
+      }
+    }
+
+    window.editSavedAddress = function() {
+      openCart();
+      const p = userProfile || {};
+      const nameEl = document.getElementById('custName');
+      const phoneEl = document.getElementById('custPhone');
+      const addrEl = document.getElementById('custAddress');
+      if (nameEl) nameEl.value = p.name || (currentUser && currentUser.displayName) || nameEl.value;
+      if (phoneEl) phoneEl.value = p.phone || phoneEl.value;
+      if (addrEl) {
+        addrEl.value = p.address || addrEl.value;
+        addrEl.focus();
+      }
+    };
+
+    function statusLabelShort(st) {
+      const s = st || 'pending_payment';
+      if (s.includes('pending') || s === 'new') return currentLang==='zh'?'待处理':currentLang==='en'?'Pending':'រង់ចាំ';
+      if (s === 'confirmed' || s === 'paid') return currentLang==='zh'?'已确认':currentLang==='en'?'Confirmed':'បានបញ្ជាក់';
+      if (s === 'processing') return currentLang==='zh'?'处理中':currentLang==='en'?'Processing':'កំពុងដំណើរការ';
+      if (s === 'shipping' || s === 'delivering') return currentLang==='zh'?'配送中':currentLang==='en'?'Shipping':'កំពុងដឹក';
+      if (s === 'done' || s === 'completed' || s === 'delivered') return currentLang==='zh'?'已完成':currentLang==='en'?'Done':'បានដឹករួច';
+      if (s === 'cancelled') return currentLang==='zh'?'已取消':currentLang==='en'?'Cancelled':'បោះបង់';
+      return s;
+    }
+
+    window.openMyOrders = async function() {
+      if (!currentUser) {
+        openAuthOrOrders();
+        return;
+      }
+      const box = document.getElementById('myOrdersList');
+      if (!box) return;
+      box.innerHTML = '<p class="text-center text-gray-400 py-3">' + (currentLang==='zh'?'加载中...':currentLang==='en'?'Loading...':'កំពុងផ្ទុក...') + '</p>';
+      try {
+        let list = [];
+        try {
+          const q1 = query(collection(db, 'orders'), where('userId', '==', currentUser.uid), limit(30));
+          const snap = await getDocs(q1);
+          snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        } catch (e1) {
+          // fallback: by phone if index missing
+          const phone = (userProfile && userProfile.phone) || document.getElementById('custPhone')?.value || '';
+          if (phone) {
+            const q2 = query(collection(db, 'orders'), where('customer.phone', '==', phone), limit(30));
+            const snap2 = await getDocs(q2);
+            snap2.forEach(d => list.push({ id: d.id, ...d.data() }));
+          }
+        }
+        list.sort((a, b) => {
+          const ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+          const tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+          return tb - ta;
+        });
+        if (!list.length) {
+          box.innerHTML = '<p class="text-center text-gray-400 py-3">' + (currentLang==='zh'?'暂无订单':currentLang==='en'?'No orders yet':'មិនទាន់មានការបញ្ជាទិញ') + '</p>';
+          return;
+        }
+        box.innerHTML = list.map(o => {
+          const total = Number(o.total || 0).toFixed(2);
+          const st = statusLabelShort(o.status);
+          const items = (o.items || []).slice(0, 3).map(i => (i.name || '') + ' ×' + (i.qty || 1)).join(', ');
+          const more = (o.items || []).length > 3 ? '…' : '';
+          return '<div class="bg-white rounded-xl border p-3 shadow-sm">' +
+            '<div class="flex justify-between gap-2"><span class="font-bold text-gray-800">$' + total + '</span><span class="text-[10px] font-semibold text-emerald-700">' + st + '</span></div>' +
+            '<p class="text-gray-500 mt-1 line-clamp-2">' + (items || '—') + more + '</p>' +
+            '<p class="text-[10px] text-gray-400 mt-1">#' + o.id.slice(0, 8) + '</p></div>';
+        }).join('');
+      } catch (e) {
+        console.error(e);
+        box.innerHTML = '<p class="text-center text-red-400 py-3">Error</p>';
+      }
+    };
+
 
     const i18n = {
       km: {
@@ -802,17 +980,31 @@
       updateAccountUI();
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       currentUser = user; updateAccountUI();
       if (user) {
         document.getElementById('authLoginForm').classList.add('hidden');
         document.getElementById('authLoggedIn').classList.remove('hidden');
         document.getElementById('authUserName').innerText = user.displayName || 'User';
         document.getElementById('authUserEmail').innerText = user.email || '';
-        document.getElementById('custName').value = user.displayName || '';
+        await loadUserProfile(user.uid);
+        // force-fill checkout from profile when login
+        const p = userProfile || {};
+        const nameEl = document.getElementById('custName');
+        const phoneEl = document.getElementById('custPhone');
+        const addrEl = document.getElementById('custAddress');
+        if (nameEl) nameEl.value = p.name || user.displayName || nameEl.value || '';
+        if (phoneEl) phoneEl.value = p.phone || phoneEl.value || '';
+        if (addrEl) addrEl.value = p.address || addrEl.value || '';
+        applySavedAddressCard();
+        try { openMyOrders(); } catch (e) {}
       } else {
+        userProfile = null;
         document.getElementById('authLoginForm').classList.remove('hidden');
         document.getElementById('authLoggedIn').classList.add('hidden');
+        applySavedAddressCard();
+        const box = document.getElementById('myOrdersList');
+        if (box) box.innerHTML = '';
       }
     });
 
@@ -914,9 +1106,19 @@
           const profile = {};
           if (name) profile.displayName = name;
           if (Object.keys(profile).length) await updateProfile(cred.user, profile);
-          // optional: save phone on customer profile later
-          if (phone && phone.trim()) {
-            try { localStorage.setItem('jk_phone_' + cred.user.uid, phone.trim()); } catch (e) {}
+          const phoneClean = (phone || '').trim();
+          try {
+            await setDoc(doc(db, 'users', cred.user.uid), {
+              name: name || '',
+              phone: phoneClean,
+              email: email,
+              address: '',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          } catch (pe) { console.warn(pe); }
+          if (phoneClean) {
+            try { localStorage.setItem('jk_phone_' + cred.user.uid, phoneClean); } catch (e) {}
           }
         } else {
           await signInWithEmailAndPassword(auth, email, pass);
@@ -1593,6 +1795,8 @@
     }
 
     window.openCart = function() {
+      try { applyProfileToCheckout(); } catch(e) {}
+
       updateStoreClosedUI();
       if (!isStoreOpen()) {
         // still allow opening cart to view items, but checkout disabled
@@ -1790,10 +1994,27 @@
         const orderRef = await addDoc(collection(db, 'orders'), orderData);
         const orderId = orderRef.id;
 
-        // 2) Clear UI fast
+                // 2) Save profile for next order (logged-in) + localStorage
+        if (currentUser) {
+          saveUserProfile({
+            name: name,
+            phone: phone,
+            address: address,
+            email: currentUser.email || ''
+          });
+        } else {
+          try {
+            localStorage.setItem('jk_guest_name', name);
+            localStorage.setItem('jk_guest_phone', phone);
+            localStorage.setItem('jk_guest_address', address);
+          } catch (e) {}
+        }
+
+        // 3) Clear cart UI fast (keep name/phone/address for next order)
         cart = []; updateCart(); closeCart();
-        document.getElementById('custName').value = currentUser?.displayName || '';
-        document.getElementById('custPhone').value = ''; document.getElementById('custAddress').value = '';
+        document.getElementById('custName').value = name;
+        document.getElementById('custPhone').value = phone;
+        document.getElementById('custAddress').value = address; document.getElementById('custAddress').value = '';
         document.getElementById('locImageFile').value = ''; document.getElementById('locPreview').classList.add('hidden');
         selectedLocFile = null;
         document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
