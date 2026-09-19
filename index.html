@@ -243,7 +243,7 @@
           <button onclick="openMyOrders()" class="status-card"><div class="icon bg-sky-100">🚚</div><p class="text-[11px] font-semibold text-gray-700" id="stShipping">កំពុងដឹក</p></button>
           <button onclick="openMyOrders()" class="status-card"><div class="icon bg-emerald-100">✅</div><p class="text-[11px] font-semibold text-gray-700" id="stDone">បានដឹករួច</p></button>
         </div>
-        <div id="myOrdersList" class="space-y-2 text-xs"></div>
+        <div id="accountOrdersPreview" class="space-y-2 text-xs"></div>
       </div>
       <div>
         <h3 class="font-bold text-sm text-gray-800 mb-3" id="servicesTitle">សេវាកម្ម</h3>
@@ -668,53 +668,164 @@
       return s;
     }
 
+    function orderStatusStep(st) {
+      const s = (st || 'pending_payment').toLowerCase();
+      if (s === 'cancelled') return -1;
+      if (s.includes('pending') || s === 'new') return 0;
+      if (s === 'confirmed' || s === 'paid' || s === 'processing') return 1;
+      if (s === 'shipping' || s === 'delivering') return 2;
+      if (s === 'done' || s === 'completed' || s === 'delivered') return 3;
+      return 0;
+    }
+
+    function formatOrderTime(ts) {
+      try {
+        let d = null;
+        if (ts && ts.seconds) d = new Date(ts.seconds * 1000);
+        else if (ts instanceof Date) d = ts;
+        if (!d || isNaN(d.getTime())) return '';
+        const pad = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+      } catch (e) { return ''; }
+    }
+
+    function resolveItemImage(item) {
+      if (item && item.image && /^https?:\/\//i.test(item.image)) return item.image;
+      if (item && item.id && Array.isArray(products)) {
+        const p = products.find(x => x.id === item.id);
+        if (p && p.image) return p.image;
+      }
+      return 'https://via.placeholder.com/80';
+    }
+
+    function renderOrderCard(o) {
+      const total = Number(o.total || 0).toFixed(2);
+      const items = o.items || [];
+      const qtySum = items.reduce((s, i) => s + (Number(i.qty) || 1), 0);
+      const step = orderStatusStep(o.status);
+      const timeStr = formatOrderTime(o.createdAt);
+      const pay = o.paymentMethod === 'khqr' ? 'KHQR' : 'COD';
+      const stText = statusLabelShort(o.status);
+      const title = currentLang === 'zh' ? '订单' : currentLang === 'en' ? 'Order' : 'ការបញ្ជាទិញ';
+      const reorderLbl = currentLang === 'zh' ? '再买一单' : currentLang === 'en' ? 'Buy again' : 'ទិញម្តងទៀត';
+      // status dots
+      let dots = '';
+      for (let i = 0; i < 4; i++) {
+        const on = step >= i && step >= 0;
+        dots += '<span class="inline-block w-2.5 h-2.5 rounded-full ' + (on ? 'bg-orange-500' : 'bg-gray-200') + '"></span>';
+      }
+      const imgs = items.slice(0, 4).map(it => {
+        const img = resolveItemImage(it);
+        const q = Number(it.qty) || 1;
+        return '<div class="relative flex-shrink-0 w-16 h-16 rounded-lg border bg-white overflow-hidden">' +
+          '<img src="' + img + '" class="w-full h-full object-contain" onerror="this.src=\\'https://via.placeholder.com/80\\'">' +
+          '<span class="absolute bottom-0 left-0 text-[9px] bg-black/60 text-white px-1 rounded-tr">x' + q + '</span></div>';
+      }).join('');
+      const more = items.length > 4 ? '<div class="flex-shrink-0 w-16 h-16 rounded-lg border bg-gray-50 flex items-center justify-center text-gray-400 text-xs">+' + (items.length-4) + '</div>' : '';
+      return '<div class="bg-white rounded-2xl border shadow-sm p-3 space-y-2">' +
+        '<div class="flex justify-between items-start gap-2">' +
+          '<div><p class="font-bold text-sm text-gray-800">' + title + '</p>' +
+          (timeStr ? '<p class="text-[10px] text-gray-400 mt-0.5">' + timeStr + '</p>' : '') +
+          '</div>' +
+          '<div class="text-right"><p class="font-bold text-sm text-gray-900">$' + total + '</p>' +
+          '<p class="text-[10px] text-gray-400">x' + qtySum + ' · ' + pay + '</p></div>' +
+        '</div>' +
+        '<div class="flex items-center justify-between gap-2">' +
+          '<p class="text-[11px] text-orange-600 font-semibold">' + stText + '</p>' +
+          '<div class="flex gap-1.5">' + dots + '</div>' +
+        '</div>' +
+        '<div class="flex gap-2 overflow-x-auto py-1">' + imgs + more + '</div>' +
+        '<div class="flex justify-end pt-1">' +
+          '<button type="button" onclick="reorderFromOrder(\\'' + o.id + '\\')" class="px-4 py-1.5 rounded-lg bg-orange-50 text-orange-600 text-[11px] font-bold border border-orange-200">' + reorderLbl + '</button>' +
+        '</div></div>';
+    }
+
+    async function fetchMyOrdersList() {
+      let list = [];
+      if (!currentUser) return list;
+      try {
+        const q1 = query(collection(db, 'orders'), where('userId', '==', currentUser.uid), limit(40));
+        const snap = await getDocs(q1);
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+      } catch (e1) {
+        const phone = (userProfile && userProfile.phone) || document.getElementById('custPhone')?.value || '';
+        if (phone) {
+          try {
+            const q2 = query(collection(db, 'orders'), where('customer.phone', '==', phone), limit(40));
+            const snap2 = await getDocs(q2);
+            snap2.forEach(d => list.push({ id: d.id, ...d.data() }));
+          } catch (e2) { console.warn(e2); }
+        }
+      }
+      list.sort((a, b) => {
+        const ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+        const tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+        return tb - ta;
+      });
+      return list;
+    }
+
+    window._myOrdersCache = [];
+
     window.openMyOrders = async function() {
       if (!currentUser) {
         openAuthOrOrders();
         return;
       }
+      const modal = document.getElementById('ordersModal');
       const box = document.getElementById('myOrdersList');
-      if (!box) return;
-      box.innerHTML = '<p class="text-center text-gray-400 py-3">' + (currentLang==='zh'?'加载中...':currentLang==='en'?'Loading...':'កំពុងផ្ទុក...') + '</p>';
+      const preview = document.getElementById('accountOrdersPreview');
+      if (modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+      const loading = currentLang==='zh'?'加载中...':currentLang==='en'?'Loading...':'កំពុងផ្ទុក...';
+      if (box) box.innerHTML = '<p class="text-center text-gray-400 py-6">' + loading + '</p>';
       try {
-        let list = [];
-        try {
-          const q1 = query(collection(db, 'orders'), where('userId', '==', currentUser.uid), limit(30));
-          const snap = await getDocs(q1);
-          snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-        } catch (e1) {
-          // fallback: by phone if index missing
-          const phone = (userProfile && userProfile.phone) || document.getElementById('custPhone')?.value || '';
-          if (phone) {
-            const q2 = query(collection(db, 'orders'), where('customer.phone', '==', phone), limit(30));
-            const snap2 = await getDocs(q2);
-            snap2.forEach(d => list.push({ id: d.id, ...d.data() }));
-          }
-        }
-        list.sort((a, b) => {
-          const ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
-          const tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
-          return tb - ta;
-        });
+        const list = await fetchMyOrdersList();
+        window._myOrdersCache = list;
+        const empty = currentLang==='zh'?'暂无订单':currentLang==='en'?'No orders yet':'មិនទាន់មានការបញ្ជាទិញ';
         if (!list.length) {
-          box.innerHTML = '<p class="text-center text-gray-400 py-3">' + (currentLang==='zh'?'暂无订单':currentLang==='en'?'No orders yet':'មិនទាន់មានការបញ្ជាទិញ') + '</p>';
+          if (box) box.innerHTML = '<p class="text-center text-gray-400 py-6">' + empty + '</p>';
+          if (preview) preview.innerHTML = '<p class="text-center text-gray-400 py-2">' + empty + '</p>';
           return;
         }
-        box.innerHTML = list.map(o => {
-          const total = Number(o.total || 0).toFixed(2);
-          const st = statusLabelShort(o.status);
-          const items = (o.items || []).slice(0, 3).map(i => (i.name || '') + ' ×' + (i.qty || 1)).join(', ');
-          const more = (o.items || []).length > 3 ? '…' : '';
-          return '<div class="bg-white rounded-xl border p-3 shadow-sm">' +
-            '<div class="flex justify-between gap-2"><span class="font-bold text-gray-800">$' + total + '</span><span class="text-[10px] font-semibold text-emerald-700">' + st + '</span></div>' +
-            '<p class="text-gray-500 mt-1 line-clamp-2">' + (items || '—') + more + '</p>' +
-            '<p class="text-[10px] text-gray-400 mt-1">#' + o.id.slice(0, 8) + '</p></div>';
-        }).join('');
+        const htmlCards = list.map(renderOrderCard).join('');
+        if (box) box.innerHTML = htmlCards;
+        if (preview) preview.innerHTML = list.slice(0, 2).map(renderOrderCard).join('');
       } catch (e) {
         console.error(e);
-        box.innerHTML = '<p class="text-center text-red-400 py-3">Error</p>';
+        if (box) box.innerHTML = '<p class="text-center text-red-400 py-6">Error</p>';
       }
     };
+
+    window.closeMyOrders = function() {
+      const modal = document.getElementById('ordersModal');
+      if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+    };
+
+    window.reorderFromOrder = function(orderId) {
+      const o = (window._myOrdersCache || []).find(x => x.id === orderId);
+      if (!o || !o.items || !o.items.length) {
+        alert(currentLang==='zh'?'无法再买':currentLang==='en'?'Cannot reorder':'មិនអាចទិញម្តងទៀត');
+        return;
+      }
+      o.items.forEach(it => {
+        const id = it.id;
+        const name = it.name || 'Item';
+        const price = Number(it.price) || 0;
+        const qty = Number(it.qty) || 1;
+        const barcode = it.barcode || '';
+        const image = resolveItemImage(it);
+        const existing = cart.find(c => c.id === id);
+        if (existing) {
+          existing.qty += qty;
+        } else {
+          cart.push({ id: id || ('tmp_' + Math.random().toString(36).slice(2)), name, price, qty, barcode, image });
+        }
+      });
+      try { updateCart(); } catch (e) {}
+      try { closeMyOrders(); } catch (e) {}
+      try { openCart(); } catch (e) {}
+    };
+
 
 
     const i18n = {
@@ -1161,39 +1272,7 @@
       </div>`;
     }
 
-    window.openMyOrders = async function() {
-      closeAuth();
-      const modal = document.getElementById('ordersModal');
-      const list = document.getElementById('myOrdersList');
-      list.innerHTML = '<p class="text-center text-gray-400 py-6">កំពុងផ្ទុក...</p>';
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      if (!currentUser) {
-        list.innerHTML = '<p class="text-center text-gray-500 py-4 text-sm">សូម Login ជាមុនសិន<br><button onclick="closeMyOrders(); openAuthOrOrders();" class="mt-3 px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold">ចូលគណនី</button><br><span class="text-[11px] text-gray-400 mt-2 inline-block">ឬប្រើ «តាមដានការបញ្ជាទិញ» ដោយលេខទូរស័ព្ទ</span></p>';
-        return;
-      }
-      try {
-        let docs = [];
-        try {
-          const q1 = query(collection(db, 'orders'), where('userId', '==', currentUser.uid));
-          const snap1 = await getDocs(q1);
-          snap1.forEach(d => docs.push({ id: d.id, ...d.data() }));
-        } catch (e1) { console.warn('orders by userId', e1); }
-        // sort client-side
-        docs.sort((a, b) => {
-          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-          return tb - ta;
-        });
-        if (!docs.length) {
-          list.innerHTML = '<p class="text-center text-gray-400 py-6 text-sm">មិនទាន់មានការបញ្ជាទិញភ្ជាប់គណនី<br><span class="text-[11px]">បញ្ជាទិញពេល Login រួច ឬតាមដានតាមលេខទូរស័ព្ទ</span></p>';
-          return;
-        }
-        list.innerHTML = docs.map(renderOrderCard).join('');
-      } catch (e) {
-        console.error(e);
-        list.innerHTML = '<p class="text-center text-red-400 py-6 text-sm">មិនអាចផ្ទុកបាន<br><span class="text-[11px]">' + (e.message || '') + '</span></p>';
-      }
-    };
+    
     window.closeMyOrders = function() { document.getElementById('ordersModal').classList.add('opacity-0', 'pointer-events-none'); };
     window.openTrack = function() {
       document.getElementById('trackModal').classList.remove('opacity-0', 'pointer-events-none');
