@@ -533,23 +533,49 @@
     const db = getFirestore(app);
     // Load products ASAP (do not block on other UI code)
     function wireProductsListener() {
+      function applyProducts(list) {
+        products = list || [];
+        const msg = document.getElementById('loadingMsg');
+        if (msg) {
+          if (products.length === 0) {
+            msg.style.display = 'block';
+            msg.innerText = (typeof t === 'function' ? t('empty') : 'Empty');
+          } else {
+            msg.style.display = 'none';
+          }
+        }
+        try { if (typeof renderCategoryBar === 'function') renderCategoryBar(); } catch (e) {}
+        try { if (typeof renderProducts === 'function') renderProducts(); } catch (e) {}
+        // refresh order history images once catalog is ready
+        try {
+          if (currentUser && typeof openMyOrders === 'function') openMyOrders(true);
+        } catch (e) {}
+      }
       try {
         onSnapshot(collection(db, 'products'), (snapshot) => {
-          products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          const msg = document.getElementById('loadingMsg');
-          if (msg) {
-            if (products.length === 0) { msg.style.display = 'block'; msg.innerText = (typeof t === 'function' ? t('empty') : 'Empty'); }
-            else { msg.style.display = 'none'; }
+          applyProducts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, async (error) => {
+          console.error('products snapshot', error);
+          // fallback one-shot read
+          try {
+            const snap = await getDocs(collection(db, 'products'));
+            applyProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          } catch (e2) {
+            console.error('products getDocs', e2);
+            const msg = document.getElementById('loadingMsg');
+            if (msg) {
+              msg.style.display = 'block';
+              msg.innerText = 'Firebase Error / Rules';
+            }
           }
-          try { if (typeof renderCategoryBar === 'function') renderCategoryBar(); } catch(e) {}
-          try { if (typeof renderProducts === 'function') renderProducts(); } catch(e) {}
-        }, (error) => {
-          console.error(error);
-          const msg = document.getElementById('loadingMsg');
-          if (msg) msg.innerText = 'Firebase Error / Rules';
         });
-      } catch (e) { console.error('wireProducts', e); }
+      } catch (e) {
+        console.error('wireProducts', e);
+        const msg = document.getElementById('loadingMsg');
+        if (msg) msg.innerText = 'Firebase Error / Rules';
+      }
     }
+
 
     // Telegram via Cloudflare Worker (token is NOT in this file)
     const TELEGRAM_WORKER_URL = 'https://jinkelai-telegram.9v6jdnwt7k.workers.dev';
@@ -710,12 +736,19 @@
     }
 
     function resolveItemImage(item) {
-      if (item && item.image && /^https?:\/\//i.test(item.image)) return item.image;
-      if (item && item.id && Array.isArray(products)) {
-        const p = products.find(x => x.id === item.id);
-        if (p && p.image) return p.image;
-      }
-      return 'https://via.placeholder.com/80';
+      try {
+        if (item && item.image && String(item.image).indexOf('http') === 0) return item.image;
+        if (item && item.id && Array.isArray(products) && products.length) {
+          var p = products.find(function(x) { return x.id === item.id; });
+          if (p && p.image) return p.image;
+          // match by barcode if id missing/changed
+          if (item.barcode) {
+            p = products.find(function(x) { return String(x.barcode || '') === String(item.barcode); });
+            if (p && p.image) return p.image;
+          }
+        }
+      } catch (e) {}
+      return 'https://via.placeholder.com/80?text=%20';
     }
 
     function renderOrderCard(o) {
