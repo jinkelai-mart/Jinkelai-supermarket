@@ -767,7 +767,7 @@
 
     window._myOrdersCache = [];
 
-    window.openMyOrders = async function() {
+    window.openMyOrders = async function(silent) {
       if (!currentUser) {
         openAuthOrOrders();
         return;
@@ -775,7 +775,7 @@
       const modal = document.getElementById('ordersModal');
       const box = document.getElementById('myOrdersList');
       const preview = document.getElementById('accountOrdersPreview');
-      if (modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+      if (!silent && modal) modal.classList.remove('opacity-0', 'pointer-events-none');
       const loading = currentLang==='zh'?'加载中...':currentLang==='en'?'Loading...':'កំពុងផ្ទុក...';
       if (box) box.innerHTML = '<p class="text-center text-gray-400 py-6">' + loading + '</p>';
       try {
@@ -1108,7 +1108,7 @@
         if (phoneEl) phoneEl.value = p.phone || phoneEl.value || '';
         if (addrEl) addrEl.value = p.address || addrEl.value || '';
         applySavedAddressCard();
-        try { openMyOrders(); } catch (e) {}
+        try { openMyOrders(true); } catch (e) {}
       } else {
         userProfile = null;
         document.getElementById('authLoginForm').classList.remove('hidden');
@@ -1256,24 +1256,9 @@
       if (s === 'cancelled') return { text: '❌ cancelled', cls: 'status-cancelled' };
       return { text: s, cls: 'status-pending' };
     }
-    function renderOrderCard(o) {
-      const st = statusLabel(o.status);
-      const items = (o.items || []).map(i => i.name + ' x' + i.qty + (i.barcode ? ' [' + i.barcode + ']' : '')).join(', ');
-      const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : '';
-      return `<div class="border rounded-xl p-3 bg-gray-50 mb-2">
-        <div class="flex justify-between items-start gap-2">
-          <div class="min-w-0 flex-1">
-            <p class="font-bold text-gray-800">$${Number(o.total || 0).toFixed(2)}</p>
-            <p class="text-[11px] text-gray-500 mt-0.5">${items}</p>
-            ${dateStr ? '<p class="text-[10px] text-gray-400 mt-1">' + dateStr + '</p>' : ''}
-          </div>
-          <span class="text-[10px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap ${st.cls}">${st.text}</span>
-        </div>
-      </div>`;
-    }
+    // (old plain renderOrderCard removed — using rich card UI above)
 
-    
-    window.closeMyOrders = function() { document.getElementById('ordersModal').classList.add('opacity-0', 'pointer-events-none'); };
+
     window.openTrack = function() {
       document.getElementById('trackModal').classList.remove('opacity-0', 'pointer-events-none');
       document.getElementById('trackResults').innerHTML = '';
@@ -2062,7 +2047,7 @@
 
         // 1) Save order immediately (no waiting for image/telegram)
         const orderData = {
-          items: cartSnapshot.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '' })),
+          items: cartSnapshot.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '', image: i.image || '' })),
           total: parseFloat(total), customer: { name, phone, address }, paymentMethod: payMethod,
           locationImage: null,
           location: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
