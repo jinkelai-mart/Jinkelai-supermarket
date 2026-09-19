@@ -528,14 +528,16 @@
       measurementId: "G-P0G4RNKKMG"
     };
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    let analytics = null;
+    try { analytics = getAnalytics(app); } catch (e) { console.warn('analytics', e); }
     const auth = getAuth(app);
     const db = getFirestore(app);
     // Load products ASAP (do not block on other UI code)
     function wireProductsListener() {
-      function applyProducts(list) {
-        products = list || [];
-        const msg = document.getElementById('loadingMsg');
+      function applyProducts(list, source) {
+        products = Array.isArray(list) ? list : [];
+        console.log('products loaded', products.length, source || '');
+        var msg = document.getElementById('loadingMsg');
         if (msg) {
           if (products.length === 0) {
             msg.style.display = 'block';
@@ -544,37 +546,37 @@
             msg.style.display = 'none';
           }
         }
-        try { if (typeof renderCategoryBar === 'function') renderCategoryBar(); } catch (e) {}
-        try { if (typeof renderProducts === 'function') renderProducts(); } catch (e) {}
-        // refresh order history images once catalog is ready
+        try { if (typeof renderCategoryBar === 'function') renderCategoryBar(); } catch (e) { console.warn(e); }
+        try { if (typeof renderProducts === 'function') renderProducts(); } catch (e) { console.warn(e); }
         try {
           if (currentUser && typeof openMyOrders === 'function') openMyOrders(true);
         } catch (e) {}
       }
+
+      // 1) Immediate one-shot load (more reliable on mobile)
+      getDocs(collection(db, 'products')).then(function(snap) {
+        applyProducts(snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }), 'getDocs');
+      }).catch(function(err) {
+        console.error('getDocs products', err);
+        var msg = document.getElementById('loadingMsg');
+        if (msg) {
+          msg.style.display = 'block';
+          msg.innerText = 'Firebase Error / Rules';
+        }
+      });
+
+      // 2) Live updates
       try {
-        onSnapshot(collection(db, 'products'), (snapshot) => {
-          applyProducts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-        }, async (error) => {
+        onSnapshot(collection(db, 'products'), function(snapshot) {
+          applyProducts(snapshot.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }), 'onSnapshot');
+        }, function(error) {
           console.error('products snapshot', error);
-          // fallback one-shot read
-          try {
-            const snap = await getDocs(collection(db, 'products'));
-            applyProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-          } catch (e2) {
-            console.error('products getDocs', e2);
-            const msg = document.getElementById('loadingMsg');
-            if (msg) {
-              msg.style.display = 'block';
-              msg.innerText = 'Firebase Error / Rules';
-            }
-          }
         });
       } catch (e) {
-        console.error('wireProducts', e);
-        const msg = document.getElementById('loadingMsg');
-        if (msg) msg.innerText = 'Firebase Error / Rules';
+        console.error('wireProducts snapshot', e);
       }
     }
+
 
 
     // Telegram via Cloudflare Worker (token is NOT in this file)
@@ -2220,7 +2222,13 @@
       }
     };
 
+    try { wireProductsListener(); } catch (e) { console.error('wireProducts', e); }
     applyLang(); loadKhqr(); updateAccountUI();
+    setTimeout(function() {
+      if (!products || products.length === 0) {
+        try { wireProductsListener(); } catch (e2) { console.error(e2); }
+      }
+    }, 2500);
   
     function isStandalone() {
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
