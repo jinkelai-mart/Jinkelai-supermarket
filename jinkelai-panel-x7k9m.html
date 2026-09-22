@@ -285,38 +285,26 @@
 
 
 
-        <!-- Contact -->
+        <!-- Social contact (Follow Us) -->
         <div class="section-card p-4 space-y-3">
-          <h3 class="font-bold text-sm text-gray-800">📞 ទំនាក់ទំនង (ទំព័រគណនី)</h3>
-          <p class="text-[10px] text-gray-400">បង្ហាញលើទំព័រ «គណនី» — អតិថិជនចុចទាក់ទងបាន</p>
+          <h3 class="font-bold text-sm text-gray-800">💬 Follow Us (Messenger · Telegram · WeChat)</h3>
+          <p class="text-[10px] text-gray-400">បង្ហាញជារូប logo លើទំព័រដើម — មិនបង្ហាញ ID ជាអក្សរ</p>
           <div class="space-y-3 text-xs">
             <div>
-              <label class="font-semibold text-gray-600 block mb-1">Telegram (username គ្មាន @)</label>
+              <label class="font-semibold text-gray-600 block mb-1">Telegram username (គ្មាន @)</label>
               <input type="text" id="contactTelegram" placeholder="ឧ. myshop_admin" class="input-field">
             </div>
             <div>
-              <label class="font-semibold text-gray-600 block mb-1">លេខទូរស័ព្ទ 1</label>
-              <input type="text" id="contactPhone1" placeholder="098624824" class="input-field">
+              <label class="font-semibold text-gray-600 block mb-1">Messenger ID / Page username</label>
+              <input type="text" id="contactMessenger" placeholder="ឧ. jinkelai.shop ឬ m.me/..." class="input-field">
+              <p class="text-[10px] text-gray-400 mt-1">→ បើក https://m.me/…</p>
             </div>
             <div>
-              <label class="font-semibold text-gray-600 block mb-1">លេខទូរស័ព្ទ 2 (ស្រេចចិត្ត)</label>
-              <input type="text" id="contactPhone2" placeholder="085624824" class="input-field">
+              <label class="font-semibold text-gray-600 block mb-1">WeChat ID</label>
+              <input type="text" id="contactWechat" placeholder="ឧ. wxid_xxxxx ឬ WeChat number" class="input-field">
+              <p class="text-[10px] text-gray-400 mt-1">→ អតិថិជនចុច logo នឹងចម្លង ID</p>
             </div>
-            <hr class="border-gray-200 my-1">
-            <p class="font-bold text-gray-700">🚚 ទំនាក់ទំនងអ្នកដឹក</p>
-            <div>
-              <label class="font-semibold text-gray-600 block mb-1">Telegram អ្នកដឹក (គ្មាន @)</label>
-              <input type="text" id="deliveryTelegram" placeholder="ឧ. driver_jk" class="input-field">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600 block mb-1">លេខអ្នកដឹក 1</label>
-              <input type="text" id="deliveryPhone1" placeholder="098xxxxxx" class="input-field">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600 block mb-1">លេខអ្នកដឹក 2 (ស្រេចចិត្ត)</label>
-              <input type="text" id="deliveryPhone2" placeholder="085xxxxxx" class="input-field">
-            </div>
-            <button type="button" onclick="saveContactSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុកទំនាក់ទំនង</button>
+            <button type="button" onclick="saveContactSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុក Follow Us</button>
             <p id="contactStatus" class="text-center text-[11px] text-gray-500"></p>
           </div>
         </div>
@@ -1215,11 +1203,8 @@
         const d = snap.data() || {};
         const set = (id, v) => { const el = document.getElementById(id); if (el && v != null && v !== undefined) el.value = v; };
         set('contactTelegram', d.telegram || '');
-        set('contactPhone1', d.phone1 || '');
-        set('contactPhone2', d.phone2 || '');
-        set('deliveryTelegram', d.deliveryTelegram || '');
-        set('deliveryPhone1', d.deliveryPhone1 || '');
-        set('deliveryPhone2', d.deliveryPhone2 || '');
+        set('contactMessenger', d.messenger || '');
+        set('contactWechat', d.wechat || '');
       } catch (e) { console.error(e); }
     }
 
@@ -1231,11 +1216,8 @@
         const val = (id) => (document.getElementById(id)?.value || '').trim();
         const data = {
           telegram: val('contactTelegram').replace(/^@/, ''),
-          phone1: val('contactPhone1').replace(/\s/g, ''),
-          phone2: val('contactPhone2').replace(/\s/g, ''),
-          deliveryTelegram: val('deliveryTelegram').replace(/^@/, ''),
-          deliveryPhone1: val('deliveryPhone1').replace(/\s/g, ''),
-          deliveryPhone2: val('deliveryPhone2').replace(/\s/g, '')
+          messenger: val('contactMessenger').replace(/^@/, ''),
+          wechat: val('contactWechat').replace(/^@/, '')
         };
         await setDoc(doc(db, 'settings', 'contact'), data, { merge: true });
         if (statusEl) statusEl.innerText = '🎉 រក្សាទុកទំនាក់ទំនងជោគជ័យ!';
