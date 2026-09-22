@@ -97,19 +97,25 @@
     }
     .promo-card h3 { font-size: 15px; font-weight: 700; line-height: 1.3; }
     .promo-card p { font-size: 11px; opacity: 0.9; margin-top: 2px; }
-    .promo-card-contact {
-      flex: 0 0 min(92vw, 340px); height: auto; min-height: 150px;
-      justify-content: flex-start; padding: 12px 14px; gap: 6px;
+    .social-follow {
+      display: flex; align-items: center; justify-content: center; gap: 18px;
+      padding: 10px 12px; margin: 0 0 4px;
     }
-    .promo-card-contact a {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.18); border-radius: 10px;
-      padding: 6px 10px; font-size: 11px; font-weight: 600;
+    .social-follow .label {
+      font-size: 12px; font-weight: 600; color: #6b7280; margin-right: 4px;
     }
-    .promo-card-contact .warn {
-      font-size: 10px; line-height: 1.35; background: rgba(0,0,0,0.25);
-      border-radius: 8px; padding: 6px 8px; margin-top: 2px;
+    .social-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: transform .15s ease;
     }
+    .social-btn:active { transform: scale(0.94); }
+    .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .social-fb { background: #1877F2; }
+    .social-tg { background: #229ED9; }
+    .social-ig { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+
     .product-card {
       background: white; border-radius: 14px; border: 1px solid #f3f4f6;
       overflow: hidden; transition: transform 0.15s;
@@ -147,45 +153,17 @@
 
     <div class="max-w-4xl mx-auto px-4 pt-3">
       <div id="storeClosedBanner" class="hidden mx-4 mt-3 mb-1 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-center"></div>
-      <div class="promo-scroll">
-        <!-- Contact FIRST (leftmost) -->
-        <div class="promo-card promo-card-contact" style="background: linear-gradient(135deg,#0f766e,#14b8a6);">
-          <p class="font-bold text-sm" id="homeContactTitle">📞 ទំនាក់ទំនងហាង</p>
-          <div class="space-y-1.5 mt-1" id="homeContactBox">
-            <a id="homeTgLink" href="https://t.me/ABCD12345168" target="_blank" rel="noopener">
-              <span>✈️</span>
-              <span>Telegram <span id="homeTgText">@ABCD12345168</span></span>
-            </a>
-            <a id="homePhone1Link" href="tel:098624824">
-              <span>📞</span>
-              <span id="homePhone1Text">098 624 824</span>
-            </a>
-            <a id="homePhone2Link" href="tel:085624824">
-              <span>📞</span>
-              <span id="homePhone2Text">085 624 824</span>
-            </a>
-          </div>
-          <p class="warn" id="homeContactWarn">⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាហាងយើងទេ — កុំផ្ទេរប្រាក់!</p>
-        </div>
-        <div class="promo-card promo-card-contact" style="background: linear-gradient(135deg,#1d4ed8,#3b82f6);">
-          <p class="font-bold text-sm" id="deliveryContactTitle">🚚 ទំនាក់ទំនងអ្នកដឹក</p>
-          <p class="text-[10px] opacity-90" id="promoShipSub">COD និង KHQR</p>
-          <div class="space-y-1.5 mt-1" id="deliveryContactBox">
-            <a id="deliveryTgLink" href="#" target="_blank" rel="noopener">
-              <span>✈️</span>
-              <span>Telegram <span id="deliveryTgText">—</span></span>
-            </a>
-            <a id="deliveryPhone1Link" href="#">
-              <span>📞</span>
-              <span id="deliveryPhone1Text">—</span>
-            </a>
-            <a id="deliveryPhone2Link" href="#">
-              <span>📞</span>
-              <span id="deliveryPhone2Text">—</span>
-            </a>
-          </div>
-          <p class="warn" id="deliveryContactWarn">⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាអ្នកដឹករបស់ហាងទេ</p>
-        </div>
+      <div class="social-follow" id="socialFollowBar">
+        <span class="label" id="followUsLabel">Follow Us</span>
+        <a id="socialFb" class="social-btn social-fb" href="https://facebook.com/" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">
+          <svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.62 23.09 24 18.1 24 12.07z"/></svg>
+        </a>
+        <a id="socialTg" class="social-btn social-tg" href="https://t.me/ABCD12345168" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">
+          <svg viewBox="0 0 24 24"><path d="M11.94 15.18l-.39 5.51c.56 0 .8-.24 1.09-.53l2.62-2.5 5.44 3.98c1 .55 1.72.26 1.99-.92L24 3.32c.33-1.39-.5-1.93-1.46-1.6L1.12 9.1C-.24 9.6-.22 10.34 1 10.68l5.45 1.7L18.84 4.3c.6-.39 1.14-.18.69.25"/></svg>
+        </a>
+        <a id="socialIg" class="social-btn social-ig" href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zm0-2.16C8.74 0 8.33.01 7.05.07 2.7.27.27 2.69.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.2 4.36 2.62 6.78 6.98 6.98C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c4.35-.2 6.78-2.62 6.98-6.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95C23.73 2.69 21.31.27 16.95.07 15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zM12 16a4 4 0 110-8 4 4 0 010 8zm6.41-11.85a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg>
+        </a>
       </div>
     </div>
 
@@ -487,7 +465,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, setDoc, serverTimestamp, getDoc, query, where, orderBy, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, setDoc, serverTimestamp, getDoc, query, where, orderBy, getDocs, limit, runTransaction, increment } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
     const firebaseConfig = {
@@ -757,7 +735,8 @@
         var html = '';
         html += '<div class="bg-white rounded-2xl border shadow-sm p-3 space-y-2">';
         html += '<div class="flex justify-between items-start gap-2">';
-        html += '<div><p class="font-bold text-sm text-gray-800">' + title + '</p>';
+        var inv = o.invoiceNo ? String(o.invoiceNo) : ('#' + String(o.id || '').slice(0, 8));
+        html += '<div><p class="font-bold text-sm text-gray-800">' + inv + '</p>';
         if (timeStr) html += '<p class="text-[10px] text-gray-400 mt-0.5">' + timeStr + '</p>';
         html += '</div>';
         html += '<div class="text-right"><p class="font-bold text-sm text-gray-900">$' + total + '</p>';
@@ -1528,77 +1507,37 @@
 
     function applyContactUI(c) {
       c = c || {};
-      var tg = String(c.telegram || 'ABCD12345168').replace(/^@/, '').trim();
-      var p1 = String(c.phone1 || '098624824').replace(/\s/g, '');
-      var p2 = String(c.phone2 || '085624824').replace(/\s/g, '');
-      var p1d = c.phone1Display || c.phone1 || '098 624 824';
-      var p2d = c.phone2Display || c.phone2 || '085 624 824';
-      var tgFull = tg ? ('@' + tg) : '—';
-      var pairs = [
-        ['helpTgLink', 'helpTgText', 'helpPhone1Link', 'helpPhone1Text', 'helpPhone2Link', 'helpPhone2Text'],
-        ['homeTgLink', 'homeTgText', 'homePhone1Link', 'homePhone1Text', 'homePhone2Link', 'homePhone2Text']
-      ];
-      pairs.forEach(function(ids) {
-        var tgEl = document.getElementById(ids[0]);
-        var tgTx = document.getElementById(ids[1]);
-        var p1El = document.getElementById(ids[2]);
-        var p1Tx = document.getElementById(ids[3]);
-        var p2El = document.getElementById(ids[4]);
-        var p2Tx = document.getElementById(ids[5]);
-        if (tgEl) tgEl.href = tg ? ('https://t.me/' + tg) : '#';
-        if (tgTx) tgTx.innerText = tgFull;
-        if (p1El) p1El.href = p1 ? ('tel:' + p1) : '#';
-        if (p1Tx) p1Tx.innerText = p1d || p1 || '—';
-        if (p2El) {
-          if (p2) { p2El.href = 'tel:' + p2; p2El.classList.remove('hidden'); }
-          else { p2El.classList.add('hidden'); }
+      // Social icons only — logo, no username text
+      var tg = (c.telegram || c.tg || '').replace(/^@/, '').trim();
+      var fb = (c.facebook || c.fb || '').trim();
+      var ig = (c.instagram || c.ig || '').trim();
+      var tgEl = document.getElementById('socialTg');
+      var fbEl = document.getElementById('socialFb');
+      var igEl = document.getElementById('socialIg');
+      if (tgEl) {
+        if (tg) {
+          tgEl.href = tg.indexOf('http') === 0 ? tg : ('https://t.me/' + tg);
+          tgEl.style.display = '';
+        } else {
+          tgEl.href = 'https://t.me/';
         }
-        if (p2Tx) p2Tx.innerText = p2d || p2 || '—';
-      });
-      // Delivery driver contact
-      var dtg = String(c.deliveryTelegram || '').replace(/^@/, '').trim();
-      var dp1 = String(c.deliveryPhone1 || '').replace(/\s/g, '');
-      var dp2 = String(c.deliveryPhone2 || '').replace(/\s/g, '');
-      var dp1d = c.deliveryPhone1Display || c.deliveryPhone1 || dp1 || '—';
-      var dp2d = c.deliveryPhone2Display || c.deliveryPhone2 || dp2 || '—';
-      var dtgEl = document.getElementById('deliveryTgLink');
-      var dtgTx = document.getElementById('deliveryTgText');
-      var dp1El = document.getElementById('deliveryPhone1Link');
-      var dp1Tx = document.getElementById('deliveryPhone1Text');
-      var dp2El = document.getElementById('deliveryPhone2Link');
-      var dp2Tx = document.getElementById('deliveryPhone2Text');
-      if (dtgEl) dtgEl.href = dtg ? ('https://t.me/' + dtg) : '#';
-      if (dtgTx) dtgTx.innerText = dtg ? ('@' + dtg) : '—';
-      if (dp1El) dp1El.href = dp1 ? ('tel:' + dp1) : '#';
-      if (dp1Tx) dp1Tx.innerText = dp1d || '—';
-      if (dp2El) {
-        if (dp2) { dp2El.href = 'tel:' + dp2; dp2El.classList.remove('hidden'); }
-        else { dp2El.classList.add('hidden'); }
       }
-      if (dp2Tx) dp2Tx.innerText = dp2d || '—';
-      var dTitle = document.getElementById('deliveryContactTitle');
-      if (dTitle) dTitle.innerText = currentLang === 'zh' ? '🚚 配送联系' : currentLang === 'en' ? '🚚 Delivery contact' : '🚚 ទំនាក់ទំនងអ្នកដឹក';
-      var dWarn = document.getElementById('deliveryContactWarn');
-      if (dWarn) {
-        dWarn.innerText = currentLang === 'zh'
-          ? '⚠️ 除以上外均非本店配送员'
-          : currentLang === 'en'
-          ? '⚠️ Contacts outside the above are NOT our delivery'
-          : '⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាអ្នកដឹករបស់ហាងទេ';
+      if (fbEl) {
+        if (fb) {
+          fbEl.href = fb.indexOf('http') === 0 ? fb : ('https://facebook.com/' + fb);
+          fbEl.style.display = '';
+        }
       }
-      var shipSub = document.getElementById('promoShipSub');
-      if (shipSub) shipSub.innerText = currentLang === 'zh' ? 'COD 与 KHQR' : currentLang === 'en' ? 'COD & KHQR' : 'COD និង KHQR';
-      var warn = currentLang === 'zh'
-        ? '⚠️ 除以上联系方式外均非本店 — 请勿转账！'
-        : currentLang === 'en'
-        ? '⚠️ Any contact outside the numbers above is NOT our shop — do not transfer money!'
-        : '⚠️ លេខ/Telegram ក្រៅពីខាងលើ មិនមែនជាហាងយើងទេ — កុំផ្ទេរប្រាក់!';
-      var w1 = document.getElementById('homeContactWarn');
-      var w2 = document.getElementById('helpContactWarn');
-      if (w1) w1.innerText = warn;
-      if (w2) w2.innerText = warn;
-      var ht = document.getElementById('homeContactTitle');
-      if (ht) ht.innerText = currentLang === 'zh' ? '📞 店铺联系' : currentLang === 'en' ? '📞 Shop contact' : '📞 ទំនាក់ទំនងហាង';
+      if (igEl) {
+        if (ig) {
+          igEl.href = ig.indexOf('http') === 0 ? ig : ('https://instagram.com/' + ig);
+          igEl.style.display = '';
+        }
+      }
+      var lab = document.getElementById('followUsLabel');
+      if (lab) {
+        lab.innerText = currentLang === 'zh' ? '关注我们' : currentLang === 'en' ? 'Follow Us' : 'តាមដានយើង';
+      }
     }
     function loadContactSettings() {
       try {
@@ -1913,7 +1852,11 @@
       document.getElementById('resultIcon').innerText = '⏳';
       document.getElementById('resultTitle').innerText = currentLang === 'zh' ? '订单已提交' : (currentLang === 'en' ? 'Order Submitted' : 'ការបញ្ជាទិញបានដាក់');
       document.getElementById('resultMsg').innerText = message;
-      document.getElementById('resultOrderId').innerText = orderId ? 'Order ID: ' + orderId.slice(0, 10) + '...' : '';
+      document.getElementById('resultOrderId').innerText = orderId
+        ? ((typeof orderId === 'string' && orderId.indexOf('JK-') === 0)
+            ? ((currentLang==='zh'?'发票号: ':currentLang==='en'?'Invoice: ':'លេខវិក្កយបត្រ: ') + orderId)
+            : ('ID: ' + String(orderId).slice(0, 10) + '…'))
+        : '';
       modal.classList.remove('opacity-0', 'pointer-events-none');
     };
     window.closeResultModal = function() { document.getElementById('resultModal').classList.add('opacity-0', 'pointer-events-none'); };
@@ -1960,6 +1903,30 @@
     };
 
     
+
+    async function nextInvoiceNo() {
+      const ref = doc(db, 'settings', 'counters');
+      try {
+        const n = await runTransaction(db, async (tx) => {
+          const snap = await tx.get(ref);
+          let cur = 1000;
+          if (snap.exists()) {
+            const v = snap.data().orderSeq;
+            cur = (typeof v === 'number' && v >= 0) ? v : 1000;
+          }
+          const next = cur + 1;
+          tx.set(ref, { orderSeq: next }, { merge: true });
+          return next;
+        });
+        return 'JK-' + String(n).padStart(5, '0');
+      } catch (e) {
+        console.warn('invoice counter', e);
+        // fallback: time-based so order still works
+        const t = Date.now().toString().slice(-8);
+        return 'JK-T' + t;
+      }
+    }
+
     const MIN_ORDER_USD = 4;
 
     window.setCartQty = function(id, val) {
@@ -2083,13 +2050,15 @@
         const locFile = selectedLocFile;
 
         // 1) Save order immediately (no waiting for image/telegram)
+        const invoiceNo = await nextInvoiceNo();
         const orderData = {
           items: cartSnapshot.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, barcode: i.barcode || '', image: i.image || '' })),
           total: parseFloat(total), customer: { name, phone, address }, paymentMethod: payMethod,
           locationImage: null,
           location: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
           status: 'pending_payment', telegramSent: false, createdAt: serverTimestamp(),
-          lang: currentLang || 'km'
+          lang: currentLang || 'km',
+          invoiceNo: invoiceNo
         };
         if (currentUser) orderData.userId = currentUser.uid;
         const orderRef = await addDoc(collection(db, 'orders'), orderData);
@@ -2115,13 +2084,13 @@
         cart = []; updateCart(); closeCart();
         document.getElementById('custName').value = name;
         document.getElementById('custPhone').value = phone;
-        document.getElementById('custAddress').value = address; document.getElementById('custAddress').value = '';
+        document.getElementById('custAddress').value = address;
         document.getElementById('locImageFile').value = ''; document.getElementById('locPreview').classList.add('hidden');
         selectedLocFile = null;
         document.querySelector('input[name="payMethod"][value="cod"]').checked = true;
         document.getElementById('khqrBox').classList.add('hidden');
         btn.disabled = false; btn.innerText = t('checkoutBtn');
-        showResultModal(true, t('orderSuccess'), orderId);
+        showResultModal(true, t('orderSuccess'), invoiceNo || orderId);
 
         // 3) Background: image + telegram + stock (parallel, non-blocking)
         (async () => {
@@ -2137,7 +2106,7 @@
             bgTasks.push((async () => {
               try {
                 // Orders → Cloudflare Worker → Telegram Group (token never in browser)
-                const fullMsg = msg + '\n🆔 Order: ' + orderId;
+                const fullMsg = msg + '\n🧾 Invoice: ' + (invoiceNo || '') + '\n🆔 Order: ' + orderId;
 
                 // Collect product image URLs
                 const photos = [];

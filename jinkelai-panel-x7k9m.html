@@ -938,7 +938,7 @@
           <div class="p-3.5 rounded-xl ${borderCls}">
             <div class="flex justify-between items-start gap-2">
               <div class="flex-1 min-w-0">
-                <p class="font-bold text-gray-800 text-sm">${o.customer?.name || '—'} · <a href="tel:${o.customer?.phone || ''}" class="text-blue-600">${o.customer?.phone || ''}</a></p>
+                <p class="font-bold text-gray-800 text-sm">${o.invoiceNo ? o.invoiceNo + ' · ' : ''}${o.customer?.name || '—'} · <a href="tel:${o.customer?.phone || ''}" class="text-blue-600">${o.customer?.phone || ''}</a></p>
                 <p class="text-[11px] text-gray-500 mt-0.5">${o.customer?.address || ''}</p>
                 <p class="text-[11px] mt-1.5 font-medium text-gray-700">${itemsText}</p>
                 <p class="text-[10px] text-gray-400 mt-1">${dateStr} · ${payMethod}</p>
