@@ -352,7 +352,7 @@
   <div id="productDetailModal" class="fixed inset-0 z-[105] bg-black/50 flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-all duration-200">
     <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
       <div class="relative bg-white sticky top-0 z-10">
-        <img id="pdImage" src="" class="w-full max-h-[50vh] h-auto object-contain bg-white mx-auto" style="min-height:220px;" onerror="this.src='https://via.placeholder.com/400'">
+        <img id="pdImage" src="" class="w-full max-h-[50vh] h-auto object-contain bg-white mx-auto" style="min-height:220px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E'">
         <button onclick="closeProductDetail()" class="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-full font-bold shadow">✕</button>
       </div>
       <div class="p-4 space-y-3">
@@ -705,7 +705,7 @@
           }
         }
       } catch (e) {}
-      return 'https://via.placeholder.com/80?text=%20';
+      return 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E?text=%20';
     }
 
     function renderOrderCard(o) {
@@ -1649,7 +1649,7 @@
         div.className = 'product-card flex flex-col';
         div.innerHTML = `
           <div class="w-full h-36 bg-white flex items-center justify-center overflow-hidden relative">
-            <img src="${p.image || 'https://via.placeholder.com/150'}" loading="lazy" class="max-w-full max-h-36 w-auto h-auto object-contain" onerror="this.src='https://via.placeholder.com/150'">
+            <img src="${p.image || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E'}" loading="lazy" class="max-w-full max-h-36 w-auto h-auto object-contain" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E'">
             ${originFlag ? `<span class="absolute top-1.5 left-1.5 text-base leading-none drop-shadow-sm" title="${originFlag === '🇨🇳' ? 'ទំនិញចិន' : 'ទំនិញខ្មែរ'}">${originFlag}</span>` : ''}
           </div>
           <div class="p-2.5 flex flex-col flex-1">
@@ -1679,7 +1679,7 @@
       pdCurrentId = id;
       pdQty = 1;
       document.getElementById('pdQty').value = '1';
-      document.getElementById('pdImage').src = p.image || 'https://via.placeholder.com/400';
+      document.getElementById('pdImage').src = p.image || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E';
       document.getElementById('pdName').innerText = getProductName(p);
       const alt = [p.name_km, p.name_en, p.name_zh].filter(Boolean).filter(n => n !== getProductName(p));
       const altEl = document.getElementById('pdNameAlt');
@@ -1752,9 +1752,9 @@
       box.innerHTML = related.map(p => {
         const price = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
         const name = getProductName(p);
-        const img = p.image || 'https://via.placeholder.com/80';
+        const img = p.image || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E';
         return `<button type="button" onclick="openProductDetail('${p.id}')" class="flex-shrink-0 w-28 bg-gray-50 border rounded-xl p-1.5 text-left">
-          <img src="${img}" class="w-full h-20 object-contain bg-white rounded-lg" onerror="this.src='https://via.placeholder.com/80'">
+          <img src="${img}" class="w-full h-20 object-contain bg-white rounded-lg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E'">
           <p class="text-[10px] font-semibold text-gray-800 mt-1 line-clamp-2 leading-tight">${name}</p>
           <p class="text-[11px] font-bold text-emerald-700 mt-0.5">$${price}</p>
         </button>`;
@@ -1820,11 +1820,11 @@
         container.innerHTML = '';
         cart.forEach(i => {
           total += i.price * i.qty; count += i.qty;
-          const img = i.image || 'https://via.placeholder.com/80';
+          const img = i.image || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E';
           container.innerHTML += `
             <div class="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
               <div class="flex gap-3">
-                <img src="${img}" class="w-16 h-16 rounded-lg object-contain bg-white flex-shrink-0 border" onerror="this.src='https://via.placeholder.com/80'">
+                <img src="${img}" class="w-16 h-16 rounded-lg object-contain bg-white flex-shrink-0 border" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3C/svg%3E'">
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between gap-2">
                     <b class="text-xs leading-snug text-gray-800 line-clamp-2">${i.name}</b>

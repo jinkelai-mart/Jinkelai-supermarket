@@ -220,14 +220,33 @@
               </div>
             </div>
 
-            <!-- Image -->
+            <!-- Image - easy upload -->
             <div>
               <label class="font-semibold text-gray-600 block mb-1">រូបភាពទំនិញ</label>
-              <input type="file" id="pImageFile" accept="image/*" class="input-field text-xs">
-              <div id="imagePreview" class="mt-2 hidden">
-                <img id="previewImg" class="w-24 h-24 object-cover rounded-xl border">
+              <div id="dropZone" class="relative border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-2xl p-4 text-center cursor-pointer hover:bg-emerald-50 transition active:scale-[0.99]">
+                <input type="file" id="pImageFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                <div id="dropZoneEmpty" class="pointer-events-none">
+                  <p class="text-3xl mb-1">📷</p>
+                  <p class="text-xs font-bold text-gray-700">ចុច · អូសដាក់ · ឬបិទភ្ជាប់រូប</p>
+                  <p class="text-[10px] text-gray-500 mt-1">ថតកាមេរ៉ា / ជ្រើសពី Gallery</p>
+                </div>
+                <div id="imagePreview" class="hidden relative z-20">
+                  <img id="previewImg" class="w-28 h-28 object-cover rounded-xl border-2 border-white shadow mx-auto">
+                  <p class="text-[10px] text-emerald-700 font-semibold mt-1">✅ រូបរួច — ចុចដើម្បីប្តូរ</p>
+                  <button type="button" id="clearImageBtn" class="mt-1 text-[10px] text-red-600 font-bold px-2 py-0.5 bg-red-50 rounded-lg">✕ លុបរូប</button>
+                </div>
               </div>
-              <p class="text-[10px] text-emerald-600 mt-1">✅ Upload តាម ImgBB</p>
+              <div class="flex gap-2 mt-2">
+                <label class="flex-1 py-2 bg-sky-600 text-white text-xs font-bold rounded-xl text-center cursor-pointer active:opacity-90">
+                  📸 ថតរូប
+                  <input type="file" id="pImageCamera" accept="image/*" capture="environment" class="hidden">
+                </label>
+                <label class="flex-1 py-2 bg-gray-700 text-white text-xs font-bold rounded-xl text-center cursor-pointer active:opacity-90">
+                  🖼️ Gallery
+                  <input type="file" id="pImageGallery" accept="image/*" class="hidden">
+                </label>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1">រូបនឹងបង្រួមស្វ័យប្រវត្តិ មុន upload (លឿនជាង)</p>
             </div>
 
             <input type="hidden" id="editId" value="">
@@ -393,7 +412,44 @@
     let html5QrCode = null;
 
     // ========== UPLOAD ==========
+    function compressImage(file, maxSide, quality) {
+      maxSide = maxSide || 1200;
+      quality = quality || 0.82;
+      return new Promise(function(resolve, reject) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+          resolve(file);
+          return;
+        }
+        var reader = new FileReader();
+        reader.onerror = function() { resolve(file); };
+        reader.onload = function() {
+          var img = new Image();
+          img.onload = function() {
+            try {
+              var w = img.width, h = img.height;
+              if (w > maxSide || h > maxSide) {
+                if (w >= h) { h = Math.round(h * maxSide / w); w = maxSide; }
+                else { w = Math.round(w * maxSide / h); h = maxSide; }
+              }
+              var canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              var ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              canvas.toBlob(function(blob) {
+                if (!blob) { resolve(file); return; }
+                var name = (file.name || 'photo').replace(/\.\w+$/, '') + '.jpg';
+                resolve(new File([blob], name, { type: 'image/jpeg' }));
+              }, 'image/jpeg', quality);
+            } catch (e) { resolve(file); }
+          };
+          img.onerror = function() { resolve(file); };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     async function uploadToImgBB(file) {
+      file = await compressImage(file, 1200, 0.82);
       const formData = new FormData();
       formData.append('image', file);
       const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, { method: 'POST', body: formData });
@@ -976,7 +1032,7 @@
         container.innerHTML += `
           <div class="flex flex-col sm:flex-row items-start justify-between p-3.5 border rounded-xl gap-2 ${p.active !== false ? 'bg-white' : 'bg-gray-100 opacity-60'}">
             <div class="flex items-start gap-3 w-full">
-              <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-14 h-14 object-cover rounded-xl border flex-shrink-0" onerror="this.src='https://via.placeholder.com/150'">
+              <img src="${p.image || ''}" alt="" class="w-14 h-14 object-cover rounded-xl border flex-shrink-0 bg-gray-100" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27150%27 height=%27150%27/%3E%3Ctext x=%2775%27 y=%2780%27 text-anchor=%27middle%27 fill=%27%239ca3af%27 font-size=%2712%27%3ENo Img%3C/text%3E%3C/svg%3E'">
               <div class="flex-1 min-w-0">
                 <h4 class="font-bold text-gray-800 text-sm">${nameKm}</h4>
                 ${nameEn ? '<p class="text-[11px] text-gray-500">' + nameEn + '</p>' : ''}
@@ -1059,7 +1115,7 @@
           await updateDoc(doc(db, 'products', editId), data);
           alert("🎉 កែប្រែទំនិញជោគជ័យ!");
         } else {
-          data.image = imageUrl || 'https://via.placeholder.com/300?text=No+Image';
+          data.image = imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27%3E%3Crect fill=%27%23f3f4f6%27 width=%27300%27 height=%27300%27/%3E%3C/svg%3E';
           data.createdAt = serverTimestamp();
           await addDoc(collection(db, 'products'), data);
           alert("🎉 បន្ថែមទំនិញជោគជ័យ!");
@@ -1097,8 +1153,10 @@
       if (p.image) {
         document.getElementById('previewImg').src = p.image;
         document.getElementById('imagePreview').classList.remove('hidden');
+        const _dz = document.getElementById('dropZoneEmpty'); if (_dz) _dz.classList.add('hidden');
       } else {
         document.getElementById('imagePreview').classList.add('hidden');
+        const _dz3 = document.getElementById('dropZoneEmpty'); if (_dz3) _dz3.classList.remove('hidden');
       }
       selectedFile = null;
       document.getElementById('pImageFile').value = '';
@@ -1122,6 +1180,7 @@
       document.getElementById('pSaleType').value = 'retail';
       document.getElementById('pImageFile').value = '';
       document.getElementById('imagePreview').classList.add('hidden');
+      const _dz2 = document.getElementById('dropZoneEmpty'); if (_dz2) _dz2.classList.remove('hidden');
       selectedFile = null;
       document.getElementById('formTitle').innerText = at('formTitle');
       document.getElementById('saveBtn').innerText = 'រក្សាទុកទំនិញ';
@@ -1528,18 +1587,88 @@
       }
     });
 
-    // ========== FILE PREVIEWS ==========
-    document.getElementById('pImageFile')?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          document.getElementById('previewImg').src = ev.target.result;
-          document.getElementById('imagePreview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
+    // ========== FILE PREVIEWS (easy upload) ==========
+    function showProductImagePreview(file) {
+      if (!file) return;
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const prev = document.getElementById('previewImg');
+        const box = document.getElementById('imagePreview');
+        const empty = document.getElementById('dropZoneEmpty');
+        if (prev) prev.src = ev.target.result;
+        if (box) box.classList.remove('hidden');
+        if (empty) empty.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+    function clearProductImage() {
+      selectedFile = null;
+      ['pImageFile', 'pImageCamera', 'pImageGallery'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const prev = document.getElementById('previewImg');
+      const box = document.getElementById('imagePreview');
+      const empty = document.getElementById('dropZoneEmpty');
+      if (prev) prev.src = '';
+      if (box) box.classList.add('hidden');
+      if (empty) empty.classList.remove('hidden');
+    }
+    function bindImageInput(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('change', function(e) {
+        const file = e.target.files && e.target.files[0];
+        if (file) showProductImagePreview(file);
+      });
+    }
+    bindImageInput('pImageFile');
+    bindImageInput('pImageCamera');
+    bindImageInput('pImageGallery');
+
+    // Drag & drop
+    (function() {
+      const zone = document.getElementById('dropZone');
+      if (!zone) return;
+      ['dragenter', 'dragover'].forEach(function(ev) {
+        zone.addEventListener(ev, function(e) {
+          e.preventDefault(); e.stopPropagation();
+          zone.classList.add('ring-2', 'ring-emerald-400');
+        });
+      });
+      ['dragleave', 'drop'].forEach(function(ev) {
+        zone.addEventListener(ev, function(e) {
+          e.preventDefault(); e.stopPropagation();
+          zone.classList.remove('ring-2', 'ring-emerald-400');
+        });
+      });
+      zone.addEventListener('drop', function(e) {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file && file.type.indexOf('image/') === 0) showProductImagePreview(file);
+      });
+    })();
+
+    // Paste image (Ctrl+V / long-press paste)
+    document.addEventListener('paste', function(e) {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image/') === 0) {
+          const file = items[i].getAsFile();
+          if (file) {
+            showProductImagePreview(file);
+            e.preventDefault();
+          }
+          break;
+        }
       }
+    });
+
+    document.getElementById('clearImageBtn')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      clearProductImage();
     });
 
     document.getElementById('khqrImageFile')?.addEventListener('change', (e) => {
