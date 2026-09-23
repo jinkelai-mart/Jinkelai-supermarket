@@ -1,11 +1,11 @@
 {
   "name": "Jinkelai Admin",
   "short_name": "JK Admin",
-  "description": "Jinkelai Admin Panel",
+  "description": "金客来超市 Admin",
   "start_url": "./jinkelai-panel-x7k9m.html",
   "display": "standalone",
-  "background_color": "#065f46",
-  "theme_color": "#065f46",
+  "background_color": "#E31C23",
+  "theme_color": "#E31C23",
   "orientation": "portrait-primary",
   "icons": [
     {
