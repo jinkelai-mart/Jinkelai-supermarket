@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jinkelai Shop — ទំនិញចិន & ខ្មែរ</title>
+  <title>ជិន គីឡៃ ម៉ាត · 金客来超市</title>
   <meta name="description" content="Jinkelai Shop — ទិញទំនិញចិន និងទំនិញខ្មែរ តម្លៃសមរម្យ ដឹកជញ្ជូនរហ័ស។ COD និង KHQR។ Chinese & Khmer products online in Cambodia.">
   <meta name="theme-color" content="#047857">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -129,24 +129,27 @@
 
   <!-- HOME PAGE -->
   <div id="page-home" class="page active fade-in">
-    <header class="bg-emerald-700 text-white sticky top-0 z-30 shadow-md">
+    <header class="sticky top-0 z-30 shadow-md" style="background:#E31C23;">
       <div class="max-w-4xl mx-auto px-4 py-3">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <img src="logo.png" alt="logo" class="w-9 h-9 rounded-full object-cover border-2 border-white/60 shadow bg-teal-400" onerror="this.style.display='none'">
-            <h1 class="font-bold text-base text-white" id="shopTitle">Jinkelai Shop</h1>
+        <div class="flex justify-between items-center gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="logo.png" alt="logo" class="w-10 h-10 rounded-xl object-cover border-2 border-white/50 shadow flex-shrink-0 bg-white/20" onerror="this.style.display='none'">
+            <div class="min-w-0 leading-tight">
+              <h1 class="font-bold text-[15px] sm:text-base text-white truncate" id="shopTitle">ជិន គីឡៃ ម៉ាត</h1>
+              <p class="text-[10px] text-white/85 truncate" id="shopTitleSub">金客来超市 · Jinkelai</p>
+            </div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="setLang('km')" id="btn-km" class="lang-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/20">ខ្មែរ</button>
-            <button onclick="setLang('en')" id="btn-en" class="lang-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/20">EN</button>
-            <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/20">中文</button>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="setLang('km')" id="btn-km" class="lang-btn px-2 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white">ខ្មែរ</button>
+            <button onclick="setLang('en')" id="btn-en" class="lang-btn px-2 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white">EN</button>
+            <button onclick="setLang('zh')" id="btn-zh" class="lang-btn px-2 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white">中文</button>
           </div>
         </div>
         <div class="relative mt-2.5">
           <input type="text" id="searchInput"
-            class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25"
+            class="w-full p-2.5 pl-9 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/40 focus:bg-white/25"
             placeholder="ស្វែងរកទំនិញ..." oninput="filterProducts()">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200 text-sm pointer-events-none">🔍</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/70 text-sm pointer-events-none">🔍</span>
         </div>
       </div>
     </header>
@@ -852,7 +855,7 @@
 
     const i18n = {
       km: {
-        shopTitle:"Jinkelai Shop", sectionTitle:"ទំនិញគ្រប់មុខមាននៅទីនេះ",
+        shopTitle:"ជិន គីឡៃ ម៉ាត", shopTitleSub:"金客来超市 · Jinkelai", sectionTitle:"ទំនិញគ្រប់មុខមាននៅទីនេះ",
         cartLabel:"កន្ត្រក", cartTitle:"កន្ត្រកទំនិញ", totalLabel:"សរុប៖", checkoutBtn:"បញ្ជាទិញ",
         namePh:"ឈ្មោះ *", phonePh:"លេខទូរស័ព្ទ *", addressPh:"អាសយដ្ឋាន *",
         loading:"កំពុងផ្ទុកទំនិញ...", empty:"គ្មានទំនិញនៅក្នុងហាងនៅឡើយទេ",
@@ -876,7 +879,7 @@
         navHome:"ទំព័រដើម", navAccount:"គណនី", searchBtn:"ស្វែងរក", trackHintLong:"វាយលេខទូរស័ព្ទដែលប្រើពេលបញ្ជាទិញ", promoCnTitle:"ទំនិញចិន", promoCnSub:"ផលិតផលនាំចូលពីចិន", promoKhTitle:"ទំនិញខ្មែរ", promoKhSub:"ផលិតផលក្នុងស្រុក", promoShipTitle:"ដឹកជញ្ជូនរហ័ស", promoShipSub:"COD និង KHQR", a2hsTitle:"បន្ថែមទៅទំព័រដើម", a2hsSub:"ដើម្បីចូលហាងបានលឿន ដូច App", a2hsHow:"របៀបដំឡើង", a2hsLater:"ពេលក្រោយ", a2hsModalTitle:"បន្ថែមទៅ Home Screen", a2hsModalSub:"ចូលប្រើដូច App លើទូរស័ព្ទ", a2hsOk:"យល់ព្រម", a2hsIos1:"1. ចុចប៊ូតុង Share (□↑) នៅរបារក្រោម Safari", a2hsIos2:"2. រក «Add to Home Screen» / «បន្ថែមទៅអេក្រង់ដើម»", a2hsIos3:"3. ចុច Add / បន្ថែម — រូប Jinkelai នឹងលេចលើទំព័រដើម", a2hsAnd1:"1. ចុច ⋮ (ម៉ឺនុយ) នៅជ្រុង browser", a2hsAnd2:"2. ជ្រើស «Install app» ឬ «Add to Home screen»", a2hsAnd3:"3. ចុច Install / បន្ថែម — បើកពីទំព័រដើមបាន"
       },
       en: {
-        shopTitle:"Jinkelai Shop", sectionTitle:"All products available here",
+        shopTitle:"Jinkelai supermarket", shopTitleSub:"ជិន គីឡៃ ម៉ាត · 金客来超市", sectionTitle:"All products available here",
         cartLabel:"Cart", cartTitle:"Shopping Cart", totalLabel:"Total:", checkoutBtn:"Checkout",
         namePh:"Name *", phonePh:"Phone *", addressPh:"Address *",
         loading:"Loading products...", empty:"No products available yet",
@@ -900,7 +903,7 @@
         navHome:"Home", navAccount:"Account", searchBtn:"Search", trackHintLong:"Enter the phone number used when ordering", promoCnTitle:"Chinese Products", promoCnSub:"Imported from China", promoKhTitle:"Khmer Products", promoKhSub:"Local products", promoShipTitle:"Fast Delivery", promoShipSub:"COD & KHQR", a2hsTitle:"Add to Home Screen", a2hsSub:"Open the shop faster, like an app", a2hsHow:"How to install", a2hsLater:"Later", a2hsModalTitle:"Add to Home Screen", a2hsModalSub:"Use it like an app on your phone", a2hsOk:"Got it", a2hsIos1:"1. Tap the Share button (□↑) in Safari", a2hsIos2:"2. Choose «Add to Home Screen»", a2hsIos3:"3. Tap Add — Jinkelai icon appears on home", a2hsAnd1:"1. Tap ⋮ menu in the browser", a2hsAnd2:"2. Choose «Install app» or «Add to Home screen»", a2hsAnd3:"3. Tap Install — open from home screen"
       },
       zh: {
-        shopTitle:"金克莱超市", sectionTitle:"这里有所有商品",
+        shopTitle:"金客来超市", shopTitleSub:"ជិន គីឡៃ ម៉ាត · Jinkelai", sectionTitle:"这里有所有商品",
         cartLabel:"购物车", cartTitle:"购物车", totalLabel:"合计：", checkoutBtn:"下单",
         namePh:"姓名 *", phonePh:"电话 *", addressPh:"地址 *",
         loading:"正在加载商品...", empty:"暂无商品",
@@ -1019,6 +1022,9 @@
 
     function applyLang() {
       document.getElementById('shopTitle').innerText = t('shopTitle');
+      const sub = document.getElementById('shopTitleSub');
+      if (sub) sub.innerText = t('shopTitleSub') || '';
+      document.title = t('shopTitle') + ' · Jinkelai';
       document.getElementById('sectionTitle').innerText = t('sectionTitle');
       document.getElementById('cartLabel').innerText = t('cartLabel');
       document.getElementById('cartTitleText').innerText = t('cartTitle');
