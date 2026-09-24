@@ -2164,37 +2164,40 @@
                     ph.caption = (idx + 1) + '. ' + ph.caption;
                   }
                 });
-                // Telegram media group max 10 photos — send in batches
+                // Worker requires non-empty text. Telegram media group max 10 photos.
                 var okAny = false;
-                // 1) text only first (always)
-                try {
-                  var r0 = await fetch(TELEGRAM_WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: fullMsg, photos: [] })
-                  });
-                  var d0 = await r0.json();
-                  if (d0 && d0.ok === true) okAny = true;
-                } catch (e0) { console.error('tg text', e0); }
-                // 2) photos in chunks of 10
-                for (var pi = 0; pi < photos.length; pi += 10) {
-                  var chunk = photos.slice(pi, pi + 10);
-                  var batchNote = photos.length > 10
-                    ? ('\n📷 Photos ' + (pi + 1) + '-' + Math.min(pi + 10, photos.length) + ' / ' + photos.length)
-                    : '';
+                if (!photos.length) {
                   try {
-                    var r1 = await fetch(TELEGRAM_WORKER_URL, {
+                    var r0 = await fetch(TELEGRAM_WORKER_URL, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        text: (pi === 0 ? '' : '🧾 ' + (invoiceNo || orderId) + batchNote),
-                        photos: chunk
-                      })
+                      body: JSON.stringify({ text: fullMsg, photos: [] })
                     });
-                    var d1 = await r1.json();
-                    if (d1 && d1.ok === true) okAny = true;
-                    else console.error('Telegram batch error:', d1);
-                  } catch (e1) { console.error('tg photos', e1); }
+                    var d0 = await r0.json();
+                    if (d0 && d0.ok === true) okAny = true;
+                    else console.error('Telegram text error:', d0);
+                  } catch (e0) { console.error('tg text', e0); }
+                } else {
+                  for (var pi = 0; pi < photos.length; pi += 10) {
+                    var chunk = photos.slice(pi, pi + 10);
+                    var batchLabel = photos.length > 10
+                      ? ('\n📷 រូប ' + (pi + 1) + '-' + Math.min(pi + 10, photos.length) + ' / ' + photos.length)
+                      : ('\n📷 រូបទំនិញ ' + photos.length + ' សន្លឹក');
+                    // First batch includes full order text; later batches short label (never empty)
+                    var batchText = (pi === 0)
+                      ? (fullMsg + batchLabel)
+                      : ('🧾 Invoice: ' + (invoiceNo || '') + '\n🆔 ' + orderId + batchLabel);
+                    try {
+                      var r1 = await fetch(TELEGRAM_WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: batchText, photos: chunk })
+                      });
+                      var d1 = await r1.json();
+                      if (d1 && d1.ok === true) okAny = true;
+                      else console.error('Telegram batch error:', d1);
+                    } catch (e1) { console.error('tg photos', e1); }
+                  }
                 }
                 if (okAny) {
                   await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
