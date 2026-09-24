@@ -2067,9 +2067,9 @@
       }
       btn.disabled = true; btn.innerText = 'កំពុងដំណើរការ...';
 
-      let textItems = cart.map(i => {
+      let textItems = cart.map((i, idx) => {
         const bc = i.barcode ? ` | 🔖 ${i.barcode}` : '';
-        return `• ${i.name} (${i.qty}x)${bc}`;
+        return `${idx + 1}. ${i.name} ×${i.qty}${bc}`;
       }).join('\n');
       let total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
       const payText = payMethod === 'khqr' ? '📱 KHQR' : '💵 COD';
@@ -2151,23 +2151,53 @@
                   }
                   if (url && /^https?:\/\//i.test(url) && !seen[url]) {
                     seen[url] = true;
-                    photos.push({ url: url, caption: (i.name || '') + ' ×' + (i.qty || 1) });
+                    photos.push({ url: url, caption: (i.name || '') + ' ×' + (i.qty || 1), _order: photos.length });
                   }
                 });
                 if (locationImageUrl && /^https?:\/\//i.test(locationImageUrl)) {
                   photos.push({ url: locationImageUrl, caption: '📍 ទីតាំងអតិថិជន / Location' });
                 }
 
-                const res = await fetch(TELEGRAM_WORKER_URL, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ text: fullMsg, photos: photos })
+                // Number captions 1..N
+                photos.forEach(function(ph, idx) {
+                  if (ph.caption && ph.caption.indexOf('📍') !== 0) {
+                    ph.caption = (idx + 1) + '. ' + ph.caption;
+                  }
                 });
-                const data = await res.json();
-                if (data && data.ok === true) {
+                // Telegram media group max 10 photos — send in batches
+                var okAny = false;
+                // 1) text only first (always)
+                try {
+                  var r0 = await fetch(TELEGRAM_WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: fullMsg, photos: [] })
+                  });
+                  var d0 = await r0.json();
+                  if (d0 && d0.ok === true) okAny = true;
+                } catch (e0) { console.error('tg text', e0); }
+                // 2) photos in chunks of 10
+                for (var pi = 0; pi < photos.length; pi += 10) {
+                  var chunk = photos.slice(pi, pi + 10);
+                  var batchNote = photos.length > 10
+                    ? ('\n📷 Photos ' + (pi + 1) + '-' + Math.min(pi + 10, photos.length) + ' / ' + photos.length)
+                    : '';
+                  try {
+                    var r1 = await fetch(TELEGRAM_WORKER_URL, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        text: (pi === 0 ? '' : '🧾 ' + (invoiceNo || orderId) + batchNote),
+                        photos: chunk
+                      })
+                    });
+                    var d1 = await r1.json();
+                    if (d1 && d1.ok === true) okAny = true;
+                    else console.error('Telegram batch error:', d1);
+                  } catch (e1) { console.error('tg photos', e1); }
+                }
+                if (okAny) {
                   await updateDoc(doc(db, 'orders', orderId), { telegramSent: true });
-                } else {
-                  console.error('Telegram Worker error:', data);
                 }
               } catch (tgErr) { console.error('Telegram network error:', tgErr); }
             })());
