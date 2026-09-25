@@ -159,7 +159,6 @@
     <div class="max-w-4xl mx-auto px-4 pt-3">
       <div id="storeClosedBanner" class="hidden mx-4 mt-3 mb-1 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-center"></div>
       <div class="social-follow" id="socialFollowBar">
-        <span class="label" id="followUsLabel">Follow Us</span>
         <a id="socialMs" class="social-btn social-ms" href="#" target="_blank" rel="noopener" aria-label="Messenger" title="Messenger">
           <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 4.97 0 11.11c0 3.5 1.72 6.62 4.41 8.65V24l4.04-2.22c1.1.3 2.27.47 3.49.47 6.63 0 12-4.97 12-11.1C24 4.97 18.63 0 12 0zm1.2 14.94l-3.06-3.26-5.98 3.26 6.58-6.98 3.14 3.26 5.9-3.26-6.58 6.98z"/></svg>
         </a>
@@ -1519,6 +1518,7 @@
       var ms = (c.messenger || c.ms || '').replace(/^@/, '').trim();
       var wx = (c.wechat || c.wx || '').replace(/^@/, '').trim();
       window._wechatId = wx;
+      window._wechatQrUrl = (c.wechatQr || c.wechat_qr || '').trim();
       var tgEl = document.getElementById('socialTg');
       var msEl = document.getElementById('socialMs');
       var wxEl = document.getElementById('socialWx');
@@ -1537,27 +1537,62 @@
       if (wxEl) {
         wxEl.onclick = function(e) {
           e.preventDefault();
-          var id = window._wechatId || '';
-          if (!id) {
-            alert(currentLang === 'zh' ? '暂未设置微信' : currentLang === 'en' ? 'WeChat not set' : 'មិនទាន់កំណត់ WeChat');
-            return;
-          }
-          try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(id);
-            }
-          } catch (err) {}
-          alert(
-            (currentLang === 'zh' ? '微信 ID：' : currentLang === 'en' ? 'WeChat ID: ' : 'WeChat ID: ') + id +
-            (currentLang === 'zh' ? '\n（已复制，请打开微信添加）' : currentLang === 'en' ? '\n(Copied — open WeChat to add)' : '\n(បានចម្លង — បើក WeChat ដើម្បីបន្ថែម)')
-          );
+          openWechatQr();
         };
       }
-      var lab = document.getElementById('followUsLabel');
-      if (lab) {
-        lab.innerText = currentLang === 'zh' ? '关注我们' : currentLang === 'en' ? 'Follow Us' : 'តាមដានយើង';
-      }
     }
+    window._wechatQrUrl = window._wechatQrUrl || '';
+    window.openWechatQr = function() {
+      var id = window._wechatId || '';
+      var qr = window._wechatQrUrl || '';
+      var c = window._lastContact || {};
+      if (!qr) qr = c.wechatQr || c.wechat_qr || '';
+      if (!id && !qr) {
+        alert(currentLang === 'zh' ? '暂未设置微信' : currentLang === 'en' ? 'WeChat not set' : 'មិនទាន់កំណត់ WeChat');
+        return;
+      }
+      var title = document.getElementById('wechatQrTitle');
+      var hint = document.getElementById('wechatQrHint');
+      var img = document.getElementById('wechatQrImg');
+      var idEl = document.getElementById('wechatQrId');
+      if (title) title.innerText = currentLang === 'zh' ? '微信' : 'WeChat';
+      if (hint) {
+        hint.innerText = currentLang === 'zh' ? '请用微信扫描二维码添加' : currentLang === 'en' ? 'Scan QR with WeChat to add' : 'ស្កេន QR ក្នុង WeChat ដើម្បីបន្ថែម';
+      }
+      if (img) {
+        if (qr) {
+          img.src = qr;
+          img.style.display = '';
+        } else {
+          img.removeAttribute('src');
+          img.style.display = 'none';
+        }
+      }
+      if (idEl) idEl.innerText = id ? ('ID: ' + id) : '';
+      var m = document.getElementById('wechatQrModal');
+      if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+      }
+    };
+    window.closeWechatQr = function() {
+      var m = document.getElementById('wechatQrModal');
+      if (m) {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      }
+    };
+    window.copyWechatId = function() {
+      var id = window._wechatId || '';
+      if (!id) {
+        alert(currentLang === 'zh' ? '没有微信 ID' : currentLang === 'en' ? 'No WeChat ID' : 'គ្មាន WeChat ID');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(id);
+      } catch (err) {}
+      alert(currentLang === 'zh' ? '已复制微信 ID' : currentLang === 'en' ? 'WeChat ID copied' : 'បានចម្លង WeChat ID');
+    };
     function loadContactSettings() {
       try {
         onSnapshot(doc(db, 'settings', 'contact'), function(snap) {
@@ -2304,6 +2339,21 @@
       </div>
       <div id="a2hsSteps" class="space-y-3 text-sm text-gray-700"></div>
       <button onclick="closeA2HSGuide()" class="w-full py-3 bg-emerald-700 text-white font-bold rounded-xl text-sm" id="a2hsOkBtn">យល់ព្រម</button>
+    </div>
+  </div>
+
+
+  <!-- WeChat QR Modal -->
+  <div id="wechatQrModal" class="fixed inset-0 z-[180] bg-black/50 hidden items-center justify-center p-4" onclick="if(event.target===this)closeWechatQr()">
+    <div class="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl text-center">
+      <h3 class="font-bold text-gray-800 text-sm mb-1" id="wechatQrTitle">WeChat</h3>
+      <p class="text-[11px] text-gray-500 mb-3" id="wechatQrHint">ស្កេន QR ដើម្បីបន្ថែម</p>
+      <img id="wechatQrImg" src="" alt="WeChat QR" class="mx-auto w-48 h-48 object-contain bg-white rounded-lg border mb-3" referrerpolicy="no-referrer">
+      <p id="wechatQrId" class="text-xs text-gray-600 font-mono mb-3 break-all"></p>
+      <div class="flex gap-2">
+        <button type="button" onclick="copyWechatId()" class="flex-1 bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-xl">ចម្លង ID</button>
+        <button type="button" onclick="closeWechatQr()" class="flex-1 bg-gray-100 text-gray-700 text-xs font-bold py-2.5 rounded-xl">បិទ</button>
+      </div>
     </div>
   </div>
 

@@ -323,7 +323,16 @@
             <div>
               <label class="font-semibold text-gray-600 block mb-1">WeChat ID</label>
               <input type="text" id="contactWechat" placeholder="ឧ. wxid_xxxxx ឬ WeChat number" class="input-field">
-              <p class="text-[10px] text-gray-400 mt-1">→ អតិថិជនចុច logo នឹងចម្លង ID</p>
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">WeChat QR Code</label>
+              <input type="file" id="contactWechatQrFile" accept="image/*" class="input-field text-xs">
+              <input type="hidden" id="contactWechatQrUrl" value="">
+              <div id="contactWechatQrPreviewWrap" class="mt-2 hidden">
+                <img id="contactWechatQrPreview" src="" alt="WeChat QR" class="w-28 h-28 object-contain border rounded-lg bg-white mx-auto">
+                <button type="button" onclick="clearWechatQr()" class="mt-1 text-[10px] text-red-500 underline w-full">លុប QR</button>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1">→ អតិថិជនចុច logo WeChat នឹងឃើញ QR</p>
             </div>
             <button type="button" onclick="saveContactSettings()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl transition">រក្សាទុក Follow Us</button>
             <p id="contactStatus" class="text-center text-[11px] text-gray-500"></p>
@@ -1266,6 +1275,20 @@
         set('contactTelegram', d.telegram || '');
         set('contactMessenger', d.messenger || '');
         set('contactWechat', d.wechat || '');
+        var qrUrl = d.wechatQr || d.wechat_qr || '';
+        var qrHidden = document.getElementById('contactWechatQrUrl');
+        if (qrHidden) qrHidden.value = qrUrl;
+        var prev = document.getElementById('contactWechatQrPreview');
+        var wrap = document.getElementById('contactWechatQrPreviewWrap');
+        if (prev && wrap) {
+          if (qrUrl) {
+            prev.src = qrUrl;
+            wrap.classList.remove('hidden');
+          } else {
+            prev.removeAttribute('src');
+            wrap.classList.add('hidden');
+          }
+        }
       } catch (e) { console.error(e); }
     }
 
@@ -1278,7 +1301,8 @@
         const data = {
           telegram: val('contactTelegram').replace(/^@/, ''),
           messenger: val('contactMessenger').replace(/^@/, ''),
-          wechat: val('contactWechat').replace(/^@/, '')
+          wechat: val('contactWechat').replace(/^@/, ''),
+          wechatQr: (document.getElementById('contactWechatQrUrl') || {}).value || 
         };
         await setDoc(doc(db, 'settings', 'contact'), data, { merge: true });
         if (statusEl) statusEl.innerText = '🎉 រក្សាទុកទំនាក់ទំនងជោគជ័យ!';
