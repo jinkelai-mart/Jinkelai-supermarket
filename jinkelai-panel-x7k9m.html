@@ -1302,7 +1302,7 @@
           telegram: val('contactTelegram').replace(/^@/, ''),
           messenger: val('contactMessenger').replace(/^@/, ''),
           wechat: val('contactWechat').replace(/^@/, ''),
-          wechatQr: (document.getElementById('contactWechatQrUrl') || {}).value || 
+          wechatQr: ((document.getElementById('contactWechatQrUrl') || {}).value || '').trim()
         };
         await setDoc(doc(db, 'settings', 'contact'), data, { merge: true });
         if (statusEl) statusEl.innerText = '🎉 រក្សាទុកទំនាក់ទំនងជោគជ័យ!';
