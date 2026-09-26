@@ -1681,6 +1681,17 @@
       if (list.length === 0 && products.length > 0) noResult.classList.remove('hidden');
       else noResult.classList.add('hidden');
 
+      // Group same category together (then name)
+      list = list.slice().sort(function(a, b) {
+        var ca = String(a.category || a.category_km || a.category_zh || a.category_en || '').trim();
+        var cb = String(b.category || b.category_km || b.category_zh || b.category_en || '').trim();
+        var c = ca.localeCompare(cb, 'km');
+        if (c !== 0) return c;
+        var na = String(a.name_km || a.name_zh || a.name_en || a.name || '').trim();
+        var nb = String(b.name_km || b.name_zh || b.name_en || b.name || '').trim();
+        return na.localeCompare(nb, 'km');
+      });
+
       const frag = document.createDocumentFragment();
       list.forEach(p => {
         const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : Number(p.price).toFixed(2);
