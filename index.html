@@ -231,16 +231,6 @@
         <div id="categoryBar" class="hidden"></div>
       </section>
 
-      <!-- Promo banner -->
-      <section class="promo-banner">
-        <div class="relative z-10 max-w-[55%]">
-          <h3 class="text-[16px] font-bold text-gray-900 leading-snug mb-1" id="heroTitle">ទំនិញចិន &amp; ខ្មែរ<br>តម្លៃសមរម្យ</h3>
-          <p class="text-[11px] text-gray-700 mb-3" id="heroDesc">COD · KHQR · ដឹកជញ្ជូនរហ័ស</p>
-          <button type="button" class="shop-btn" id="heroCta" onclick="document.getElementById('productGrid')?.scrollIntoView({behavior:'smooth'})">ទិញឥឡូវ</button>
-        </div>
-        <div class="absolute right-2 bottom-2 text-[64px] opacity-90 leading-none select-none">🛒</div>
-      </section>
-
       <!-- Social row compact -->
       <div class="social-follow justify-start gap-3" id="socialFollowBar">
         <a id="socialMs" class="social-btn social-ms" href="#" target="_blank" rel="noopener" aria-label="Messenger" title="Messenger">
@@ -1735,6 +1725,7 @@
       if (/ភេសជ្ជៈ|drink|饮料|soft/.test(s)) return '🥤';
       if (/ខ្មែរ|khmer|高棉/.test(s)) return '🇰🇭';
       if (/ចិន|chinese|中国/.test(s)) return '🇨🇳';
+      if (/ឱសថ|pharmacy|药|藥|medicine|drug/.test(s)) return '💊';
       if (/ផ្លែ|fruit|水果/.test(s)) return '🍎';
       if (/បន្លែ|veg|蔬菜/.test(s)) return '🥬';
       if (/សាច់|meat|肉/.test(s)) return '🥩';
@@ -1763,9 +1754,9 @@
       if (grid) {
         let ghtml = '';
         // fixed order preference for shop categories
-        const preferred = ['បារី','ស្រា','បៀរ','អាហារស្ងួត','គ្រឿងទេស','ទំនិញប្រើប្រាស់','ភេសជ្ជៈ'];
+        const preferred = ['បារី','ស្រា','បៀរ','អាហារស្ងួត','គ្រឿងទេស','ទំនិញប្រើប្រាស់','ភេសជ្ជៈ','ឱសថស្ថាន'];
         const ordered = preferred.filter(c => sorted.includes(c)).concat(sorted.filter(c => !preferred.includes(c)));
-        ordered.slice(0, 8).forEach(c => {
+        ordered.slice(0, 12).forEach(c => {
           const label = catLabel(c);
           const safe = c.replace(/'/g, "\\'");
           const active = currentCategory === c ? ' active' : '';
