@@ -369,9 +369,18 @@
           <label class="text-[11px] font-semibold text-gray-600 mb-1 block" id="authNameLabel">ឈ្មោះ</label>
           <input type="text" id="authName" placeholder="ឈ្មោះពេញ" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
         </div>
-        <div id="authPhoneWrap" class="hidden">
+        <div id="authPhoneWrap" class="hidden space-y-2">
           <label class="text-[11px] font-semibold text-gray-600 mb-1 block" id="authPhoneLabel">លេខទូរស័ព្ទ</label>
-          <input type="text" id="authPhone" placeholder="098 000 000" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+          <div class="flex gap-2">
+            <span class="px-3 py-3 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600 flex items-center">+855</span>
+            <input type="tel" id="authPhone" placeholder="98 000 000" class="flex-1 p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
+          </div>
+          <button type="button" id="sendOtpBtn" onclick="sendPhoneOtp()" class="w-full py-2.5 bg-sky-600 text-white font-bold rounded-xl text-xs">ផ្ញើកូដ SMS</button>
+          <div id="otpWrap" class="hidden space-y-2">
+            <input type="text" id="authOtp" placeholder="កូដ 6 ខ្ទង់" maxlength="6" class="w-full p-3 border border-gray-200 rounded-xl text-center tracking-widest text-lg font-bold">
+            <button type="button" id="verifyOtpBtn" onclick="verifyPhoneOtp()" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl text-xs">បញ្ជាក់កូដ</button>
+          </div>
+          <div id="recaptcha-container"></div>
         </div>
         <p id="authError" class="text-red-500 text-[11px] hidden"></p>
         <button onclick="doAuth()" id="authSubmitBtn" class="w-full py-3 bg-emerald-700 text-white font-bold rounded-xl shadow">ចូល</button>
@@ -546,7 +555,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
     import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, setDoc, serverTimestamp, getDoc, query, where, orderBy, getDocs, limit, runTransaction, increment } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
 
@@ -1317,6 +1326,75 @@
         ? (currentLang==='zh'?'创建新账户':currentLang==='en'?'Create a new account':t('authSubtitle') || 'បង្កើតគណនីថ្មី')
         : (t('authSubtitle') || 'សូមបញ្ចូលព័ត៌មានដើម្បីបន្ត');
       document.getElementById('authError').classList.add('hidden');
+    };
+
+
+    var phoneConfirmation = null;
+    function toE164(phone) {
+      var d = String(phone || '').replace(/\D/g, '');
+      if (d.startsWith('855')) return '+' + d;
+      if (d.startsWith('0')) d = d.slice(1);
+      if (d.length < 8) return '';
+      return '+855' + d;
+    }
+    window.sendPhoneOtp = async function() {
+      var phoneEl = document.getElementById('authPhone');
+      var errEl = document.getElementById('authError');
+      var btn = document.getElementById('sendOtpBtn');
+      errEl.classList.add('hidden');
+      var e164 = toE164(phoneEl && phoneEl.value);
+      if (!e164) {
+        errEl.innerText = 'សូមបំពេញលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      btn.disabled = true;
+      btn.innerText = 'កំពុងផ្ញើ...';
+      try {
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+        }
+        phoneConfirmation = await signInWithPhoneNumber(auth, e164, window.recaptchaVerifier);
+        document.getElementById('otpWrap').classList.remove('hidden');
+        btn.innerText = 'ផ្ញើកូដម្ដងទៀត';
+        errEl.innerText = 'បានផ្ញើកូដទៅ ' + e164;
+        errEl.className = 'text-emerald-600 text-[11px]';
+        errEl.classList.remove('hidden');
+      } catch (e) {
+        console.error(e);
+        errEl.innerText = (e.code || '') + ' ' + (e.message || 'ផ្ញើកូដបរាជ័យ');
+        errEl.className = 'text-red-500 text-[11px]';
+        errEl.classList.remove('hidden');
+        if (window.recaptchaVerifier) {
+          try { window.recaptchaVerifier.clear(); } catch(_) {}
+          window.recaptchaVerifier = null;
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    };
+    window.verifyPhoneOtp = async function() {
+      var code = (document.getElementById('authOtp').value || '').trim();
+      var errEl = document.getElementById('authError');
+      if (!phoneConfirmation || code.length < 4) {
+        errEl.innerText = 'សូមបញ្ចូលកូដ';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      try {
+        var cred = await phoneConfirmation.confirm(code);
+        var uid = cred.user.uid;
+        var ph = document.getElementById('authPhone').value.trim();
+        try {
+          await setDoc(doc(db, 'users', uid), { phone: ph, phoneE164: toE164(ph) }, { merge: true });
+          localStorage.setItem('jk_phone_' + uid, ph);
+          if (userProfile) userProfile.phone = ph;
+        } catch(e) {}
+        closeAuth();
+      } catch (e) {
+        errEl.innerText = 'កូដមិនត្រឹមត្រូវ';
+        errEl.classList.remove('hidden');
+      }
     };
 
     var authMethod = 'email';
