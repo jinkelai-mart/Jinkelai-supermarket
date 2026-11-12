@@ -342,6 +342,29 @@
   </nav>
 
   <!-- AUTH MODAL -->
+
+  <!-- COMPLETE PROFILE (phone + map) -->
+  <div id="completeProfileModal" class="fixed inset-0 z-[125] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-2xl p-5 space-y-3 max-h-[90vh] overflow-y-auto">
+      <h3 class="font-bold text-base">បំពេញព័ត៌មានដើម្បីបញ្ជាទិញ</h3>
+      <p class="text-[11px] text-gray-500">លេខទូរស័ព្ទ និងទីតាំង (Google Maps)</p>
+      <div>
+        <label class="text-[11px] font-semibold text-gray-600">លេខទូរស័ព្ទ *</label>
+        <input id="completePhone" type="tel" placeholder="098 000 000" class="w-full p-3 border rounded-xl mt-1 text-sm">
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-gray-600">អាសយដ្ឋាន *</label>
+        <input id="completeAddress" type="text" placeholder="អាសយដ្ឋាន" class="w-full p-3 border rounded-xl mt-1 text-sm">
+      </div>
+      <button type="button" onclick="openCompleteMap()" class="w-full py-2.5 bg-sky-600 text-white font-bold rounded-xl text-xs">📍 ជ្រើសទីតាំងលើផែនទី</button>
+      <div id="completeMap" class="hidden border rounded-xl overflow-hidden" style="height:180px;"></div>
+      <input type="hidden" id="completeLat">
+      <input type="hidden" id="completeLng">
+      <p id="completeStatus" class="text-[11px] text-gray-500"></p>
+      <button type="button" onclick="saveCompleteProfile()" class="w-full py-3 bg-emerald-700 text-white font-bold rounded-xl">រក្សាទុក និងបញ្ជាទិញបាន</button>
+    </div>
+  </div>
+
   <div id="authModal" class="fixed inset-0 z-[110] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 opacity-0 pointer-events-none transition-all">
     <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-start">
@@ -1491,6 +1514,7 @@
           await signInWithEmailAndPassword(auth, email, pass);
         }
         closeAuth();
+        setTimeout(function(){ if (needsCompleteProfile()) openCompleteProfile(); }, 300);
       } catch (e) {
         errEl.innerText = authFriendlyError(e.code, e.message);
         errEl.classList.remove('hidden');
@@ -1507,13 +1531,95 @@
           var uid = cred.user && cred.user.uid;
           var hasPhone = false;
           try { hasPhone = !!(localStorage.getItem('jk_phone_' + uid) || (userProfile && userProfile.phone)); } catch(e) {}
-          if (!hasPhone) promptGooglePhone();
+          if (needsCompleteProfile()) openCompleteProfile();
         }, 400);
       } catch (e) {
         document.getElementById('authError').innerText = e.message || e.code;
         document.getElementById('authError').classList.remove('hidden');
       }
     };
+
+    var completeMap = null;
+    window.openCompleteProfile = function() {
+      var m = document.getElementById('completeProfileModal');
+      if (m) m.classList.remove('hidden');
+      var ph = document.getElementById('completePhone');
+      try {
+        var uid = auth.currentUser && auth.currentUser.uid;
+        var saved = (userProfile && userProfile.phone) || (uid && localStorage.getItem('jk_phone_' + uid)) || '';
+        if (ph && saved) ph.value = saved;
+        var addr = (userProfile && userProfile.address) || '';
+        var aEl = document.getElementById('completeAddress');
+        if (aEl && addr) aEl.value = addr;
+      } catch(e) {}
+    };
+    window.openCompleteMap = function() {
+      var el = document.getElementById('completeMap');
+      el.classList.remove('hidden');
+      if (completeMap) { setTimeout(function(){ completeMap.invalidateSize(); }, 200); return; }
+      completeMap = L.map('completeMap').setView([11.5564, 104.9282], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(completeMap);
+      var marker = null;
+      function setPos(lat, lng) {
+        document.getElementById('completeLat').value = lat;
+        document.getElementById('completeLng').value = lng;
+        if (marker) marker.setLatLng([lat, lng]);
+        else marker = L.marker([lat, lng]).addTo(completeMap);
+      }
+      completeMap.on('click', function(e) { setPos(e.latlng.lat, e.latlng.lng); });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          completeMap.setView([pos.coords.latitude, pos.coords.longitude], 16);
+          setPos(pos.coords.latitude, pos.coords.longitude);
+        });
+      }
+      setTimeout(function(){ completeMap.invalidateSize(); }, 300);
+    };
+    window.saveCompleteProfile = async function() {
+      var phone = (document.getElementById('completePhone').value || '').trim();
+      var address = (document.getElementById('completeAddress').value || '').trim();
+      var lat = document.getElementById('completeLat').value;
+      var lng = document.getElementById('completeLng').value;
+      var st = document.getElementById('completeStatus');
+      if (!phone || phone.replace(/\D/g,'').length < 8) {
+        if (st) st.innerText = 'សូមបំពេញលេខទូរស័ព្ទ';
+        return;
+      }
+      if (!lat || !lng) {
+        if (st) st.innerText = 'សូមជ្រើសទីតាំងលើផែនទី';
+        return;
+      }
+      var uid = auth.currentUser && auth.currentUser.uid;
+      if (!uid) return;
+      try {
+        await setDoc(doc(db, 'users', uid), { phone: phone, address: address, lat: lat, lng: lng }, { merge: true });
+        localStorage.setItem('jk_phone_' + uid, phone);
+        localStorage.setItem('jk_addr_' + uid, address);
+        localStorage.setItem('jk_lat_' + uid, lat);
+        localStorage.setItem('jk_lng_' + uid, lng);
+        if (userProfile) { userProfile.phone = phone; userProfile.address = address; }
+        document.getElementById('completeProfileModal').classList.add('hidden');
+        // fill cart form if open
+        var cp = document.getElementById('custPhone'); if (cp) cp.value = phone;
+        var ca = document.getElementById('custAddress'); if (ca) ca.value = address;
+        var clat = document.getElementById('custLat'); if (clat) clat.value = lat;
+        var clng = document.getElementById('custLng'); if (clng) clng.value = lng;
+      } catch(e) {
+        if (st) st.innerText = 'រក្សាទុកបរាជ័យ';
+      }
+    };
+    function needsCompleteProfile() {
+      if (!auth.currentUser) return false;
+      var uid = auth.currentUser.uid;
+      var ph = '';
+      var lat = '';
+      try {
+        ph = (userProfile && userProfile.phone) || localStorage.getItem('jk_phone_' + uid) || '';
+        lat = (userProfile && userProfile.lat) || localStorage.getItem('jk_lat_' + uid) || '';
+      } catch(e) {}
+      return !ph || !lat;
+    }
+
     window.promptGooglePhone = function() {
       var existing = document.getElementById('googlePhoneModal');
       if (existing) existing.remove();
@@ -2443,6 +2549,16 @@
       const btn = document.getElementById('checkoutBtn');
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
+      if (auth.currentUser && needsCompleteProfile()) {
+        alert('សូមបំពេញលេខទូរស័ព្ទ និងទីតាំងមុនបញ្ជាទិញ');
+        openCompleteProfile();
+        return;
+      }
+      var latReq = document.getElementById('custLat') && document.getElementById('custLat').value;
+      if (!latReq) {
+        alert('សូមជ្រើសទីតាំងលើផែនទី');
+        return;
+      }
       if (auth.currentUser) {
         var uid = auth.currentUser.uid;
         var savedPh = '';
