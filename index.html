@@ -353,7 +353,11 @@
         <button onclick="closeAuth()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 font-bold">✕</button>
       </div>
       <div id="authLoginForm" class="space-y-3 text-xs">
-        <div>
+        <div class="flex bg-gray-100 rounded-full p-1 text-[11px] font-bold">
+          <button type="button" id="authMethodEmail" onclick="setAuthMethod('email')" class="flex-1 py-1.5 rounded-full bg-white text-gray-800 shadow-sm">Email</button>
+          <button type="button" id="authMethodPhone" onclick="setAuthMethod('phone')" class="flex-1 py-1.5 rounded-full text-gray-500">លេខទូរស័ព្ទ</button>
+        </div>
+        <div id="authEmailWrap">
           <label class="text-[11px] font-semibold text-gray-600 mb-1 block">Email</label>
           <input type="email" id="authEmail" placeholder="name@email.com" class="w-full p-3 border border-gray-200 rounded-xl focus:border-emerald-600 outline-none">
         </div>
@@ -1315,15 +1319,50 @@
       document.getElementById('authError').classList.add('hidden');
     };
 
+    var authMethod = 'email';
+    window.setAuthMethod = function(m) {
+      authMethod = m === 'phone' ? 'phone' : 'email';
+      var em = document.getElementById('authMethodEmail');
+      var ph = document.getElementById('authMethodPhone');
+      var emailWrap = document.getElementById('authEmailWrap');
+      var phoneWrap = document.getElementById('authPhoneWrap');
+      if (em) {
+        em.className = 'flex-1 py-1.5 rounded-full ' + (authMethod==='email' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500');
+      }
+      if (ph) {
+        ph.className = 'flex-1 py-1.5 rounded-full ' + (authMethod==='phone' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500');
+      }
+      if (emailWrap) emailWrap.classList.toggle('hidden', authMethod === 'phone');
+      if (phoneWrap) phoneWrap.classList.toggle('hidden', authMethod === 'email' && !window.isRegisterMode);
+      if (authMethod === 'phone' && phoneWrap) phoneWrap.classList.remove('hidden');
+    };
+    function phoneToEmail(phone) {
+      var d = String(phone || '').replace(/\D/g, '');
+      if (d.length < 8) return '';
+      return d + '@phone.jinkelai.shop';
+    }
     window.doAuth = async function() {
-      const email = document.getElementById('authEmail').value.trim();
+      const emailRaw = document.getElementById('authEmail').value.trim();
       const pass = document.getElementById('authPass').value.trim();
       const name = document.getElementById('authName').value.trim();
       const phone = (document.getElementById('authPhone') || {}).value || '';
       const errEl = document.getElementById('authError');
       errEl.classList.add('hidden');
-      if (!email || !pass) {
+      let email = emailRaw;
+      if (authMethod === 'phone') {
+        email = phoneToEmail(phone);
+        if (!email) {
+          errEl.innerText = currentLang==='zh'?'请填写有效电话号码':currentLang==='en'?'Please enter a valid phone number':'សូមបំពេញលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ';
+          errEl.classList.remove('hidden');
+          return;
+        }
+      } else if (!email) {
         errEl.innerText = currentLang==='zh'?'请填写邮箱和密码':currentLang==='en'?'Please enter email and password':'សូមបំពេញ Email និង Password';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (!pass) {
+        errEl.innerText = currentLang==='zh'?'请填写密码':currentLang==='en'?'Please enter password':'សូមបំពេញ Password';
         errEl.classList.remove('hidden');
         return;
       }
@@ -1363,8 +1402,48 @@
     };
 
     window.loginWithGoogle = async function() {
-      try { const provider = new GoogleAuthProvider(); await signInWithPopup(auth, provider); closeAuth(); }
-      catch (e) { document.getElementById('authError').innerText = e.message; document.getElementById('authError').classList.remove('hidden'); }
+      try {
+        const provider = new GoogleAuthProvider();
+        const cred = await signInWithPopup(auth, provider);
+        closeAuth();
+        // require phone for Google users before ordering
+        setTimeout(function() {
+          var uid = cred.user && cred.user.uid;
+          var hasPhone = false;
+          try { hasPhone = !!(localStorage.getItem('jk_phone_' + uid) || (userProfile && userProfile.phone)); } catch(e) {}
+          if (!hasPhone) promptGooglePhone();
+        }, 400);
+      } catch (e) {
+        document.getElementById('authError').innerText = e.message || e.code;
+        document.getElementById('authError').classList.remove('hidden');
+      }
+    };
+    window.promptGooglePhone = function() {
+      var existing = document.getElementById('googlePhoneModal');
+      if (existing) existing.remove();
+      var wrap = document.createElement('div');
+      wrap.id = 'googlePhoneModal';
+      wrap.className = 'fixed inset-0 z-[120] bg-black/50 flex items-center justify-center p-4';
+      wrap.innerHTML = '<div class="bg-white w-full max-w-xs rounded-2xl p-5 space-y-3">' +
+        '<h3 class="font-bold text-sm">លេខទូរស័ព្ទ</h3>' +
+        '<p class="text-[11px] text-gray-500">សូមបំពេញលេខទូរស័ព្ទដើម្បីអាចបញ្ជាទិញបាន</p>' +
+        '<input id="gPhoneInput" type="tel" placeholder="098 000 000" class="w-full p-3 border rounded-xl text-sm">' +
+        '<button id="gPhoneSave" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl text-sm">រក្សាទុក</button>' +
+        '</div>';
+      document.body.appendChild(wrap);
+      document.getElementById('gPhoneSave').onclick = async function() {
+        var ph = (document.getElementById('gPhoneInput').value || '').trim();
+        if (ph.replace(/\D/g,'').length < 8) return alert('សូមបំពេញលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ');
+        var uid = auth.currentUser && auth.currentUser.uid;
+        if (uid) {
+          try {
+            await setDoc(doc(db, 'users', uid), { phone: ph }, { merge: true });
+            localStorage.setItem('jk_phone_' + uid, ph);
+            if (userProfile) userProfile.phone = ph;
+          } catch(e) {}
+        }
+        wrap.remove();
+      };
     };
     window.doLogout = async function() { await signOut(auth); closeAuth(); updateAccountUI(); };
 
@@ -2268,6 +2347,16 @@
       const btn = document.getElementById('checkoutBtn');
       if (!cart.length) return alert(t('addFirst'));
       if (!name || !phone || !address) return alert(t('fillInfo'));
+      if (auth.currentUser) {
+        var uid = auth.currentUser.uid;
+        var savedPh = '';
+        try { savedPh = localStorage.getItem('jk_phone_' + uid) || (userProfile && userProfile.phone) || ''; } catch(e) {}
+        if (!savedPh && !phone) {
+          alert(currentLang==='zh'?'请先填写电话号码':currentLang==='en'?'Please enter your phone number first':'សូមបំពេញលេខទូរស័ព្ទមុនបញ្ជាទិញ');
+          if (typeof promptGooglePhone === 'function') promptGooglePhone();
+          return;
+        }
+      }
       updateStoreClosedUI();
       if (!isStoreOpen()) {
         alert(storeClosedMsg());
