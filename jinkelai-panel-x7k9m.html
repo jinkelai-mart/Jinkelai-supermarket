@@ -15,28 +15,63 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-    body { font-family: 'Kantumruy Pro', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg: #061018;
+      --bg2: #0c1a2a;
+      --card: #0f1c2e;
+      --card-border: rgba(255,255,255,0.08);
+      --text: #e8eef4;
+      --muted: #9aa8b8;
+      --accent: #f0f4f8;
+      --gold: #d4af37;
+    }
+    body {
+      font-family: 'Kantumruy Pro', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      background: linear-gradient(180deg, #0a1a2e 0%, #061018 40%, #040c14 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
     .tab-btn { transition: all 0.15s; }
-    .tab-btn.active { background: #047857; color: white; }
-    .tab-btn:not(.active) { background: #f3f4f6; color: #4b5563; }
-    .section-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .order-filter.active { background: #047857; color: white; }
+    .tab-btn.active { background: #ffffff; color: #0a1628; }
+    .tab-btn:not(.active) { background: rgba(255,255,255,0.08); color: #c5d0dc; }
+    .section-card {
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+    .order-filter.active { background: #ffffff; color: #0a1628; }
     .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 700; }
-    .input-field { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 12px; font-size: 13px; outline: none; transition: border 0.15s; }
-    .input-field:focus { border-color: #047857; box-shadow: 0 0 0 3px rgba(4,120,87,0.1); }
-    .btn-primary { background: #047857; color: white; font-weight: 700; border-radius: 12px; padding: 10px 16px; transition: background 0.15s; }
-    .btn-primary:hover { background: #065f46; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .input-field {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; font-size: 13px; outline: none;
+      background: rgba(0,0,0,0.35); color: #e8eef4;
+      transition: border 0.15s;
+    }
+    .input-field:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.15); }
+    .btn-primary { background: #ffffff; color: #0a1628; font-weight: 700; border-radius: 9999px; padding: 10px 16px; transition: opacity 0.15s; }
+    .btn-primary:hover { opacity: 0.92; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .hidden-section { display: none; }
     .fade-in { animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    /* Dark overrides for common light classes */
+    .text-gray-800, .text-gray-700, .text-gray-600 { color: var(--text) !important; }
+    .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
+    .bg-white { background: var(--card) !important; }
+    .bg-gray-50, .bg-gray-100 { background: rgba(255,255,255,0.04) !important; }
+    .border-gray-200, .border { border-color: var(--card-border) !important; }
+    header.bg-emerald-800 { background: rgba(6,16,24,0.95) !important; backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); }
+    .bg-emerald-900\/95 { background: linear-gradient(180deg, #0a1a2e, #061018) !important; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
+<body class="min-h-screen">
 
   <!-- LOGIN -->
-  <div id="loginSection" class="fixed inset-0 bg-emerald-900/95 z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-5">
+  <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:linear-gradient(180deg,#0a1a2e,#061018);">
+    <div class="w-full max-w-sm p-6 rounded-3xl space-y-5" style="background:#0f1c2e;border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 60px rgba(0,0,0,0.5);">
       <div class="text-center">
         <img src="admin-logo.jpg" alt="logo" class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-emerald-100 shadow mb-3 bg-white">
         <h2 class="text-lg font-bold text-gray-800">Jinkelai Admin</h2>
@@ -61,7 +96,7 @@
   <div id="adminDashboard" class="hidden min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="bg-emerald-800 text-white sticky top-0 z-30 shadow-md">
+    <header class="sticky top-0 z-30" style="background:rgba(6,16,24,0.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-2">
@@ -79,14 +114,14 @@
               🧾 <span data-i18n="tabOrdersShort">Order</span>
               <span id="pendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center">0</span>
             </button>
-            <button onclick="doLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1.5 text-xs rounded-lg font-bold transition" data-i18n="logout">ចាកចេញ</button>
+            <button onclick="doLogout()" class="bg-red-500/90 hover:bg-red-500 px-3 py-1.5 text-xs rounded-full font-bold transition" data-i18n="logout">ចាកចេញ</button>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Tab Navigation -->
-    <div class="bg-white border-b sticky top-[52px] z-20 shadow-sm">
+    <div class="sticky top-[52px] z-20" style="background:rgba(6,16,24,0.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);">
       <div class="max-w-4xl mx-auto px-4 py-2 flex gap-2 overflow-x-auto">
         <button onclick="switchTab('orders')" id="tab-orders" class="tab-btn active px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">🧾 <span data-i18n="tabOrders">ការបញ្ជាទិញ</span></button>
         <button onclick="switchTab('products')" id="tab-products" class="tab-btn px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap">📦 <span data-i18n="tabProducts">ទំនិញ</span></button>
