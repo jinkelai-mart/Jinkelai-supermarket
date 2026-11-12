@@ -1258,8 +1258,21 @@
       const subEl = document.getElementById('accountSub');
       const btnEl = document.getElementById('accountActionBtn');
       if (currentUser) {
-        nameEl.innerText = currentUser.displayName || currentUser.email || 'User';
-        subEl.innerText = currentUser.email || '';
+        var showName = currentUser.displayName || '';
+        var email = currentUser.email || '';
+        var phoneShow = '';
+        try {
+          phoneShow = (userProfile && userProfile.phone) || localStorage.getItem('jk_phone_' + currentUser.uid) || '';
+        } catch(e) {}
+        if (email.indexOf('@phone.jinkelai.shop') >= 0) {
+          showName = showName || phoneShow || email.split('@')[0];
+        }
+        nameEl.innerText = showName || email || 'User';
+        if (email.indexOf('@phone.jinkelai.shop') >= 0) {
+          subEl.innerText = phoneShow || email.split('@')[0];
+        } else {
+          subEl.innerText = email || '';
+        }
         btnEl.innerText = t('logout');
         btnEl.onclick = () => doLogout();
       } else {
@@ -1413,6 +1426,11 @@
       if (emailWrap) emailWrap.classList.toggle('hidden', authMethod === 'phone');
       if (phoneWrap) phoneWrap.classList.toggle('hidden', authMethod === 'email' && !window.isRegisterMode);
       if (authMethod === 'phone' && phoneWrap) phoneWrap.classList.remove('hidden');
+      var passEl = document.getElementById('authPass');
+      var passLabel = passEl && passEl.parentElement;
+      if (passLabel) passLabel.classList.toggle('hidden', authMethod === 'phone');
+      var submitBtn = document.getElementById('authSubmitBtn');
+      if (submitBtn) submitBtn.classList.toggle('hidden', authMethod === 'phone');
     };
     function phoneToEmail(phone) {
       var d = String(phone || '').replace(/\D/g, '');
