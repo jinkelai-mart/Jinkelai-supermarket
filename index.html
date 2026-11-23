@@ -188,6 +188,102 @@
     .nav-item.active { color: #111827 !important; }
     .fade-in { animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  
+    /* === Glass side menu (fixed layout) === */
+    #glassMenuOverlay.glass-menu-overlay {
+      position: fixed !important; inset: 0 !important; z-index: 200 !important;
+      background: rgba(12, 8, 28, 0.55) !important;
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #glassMenuOverlay.glass-menu-overlay.open {
+      opacity: 1 !important; pointer-events: auto !important;
+    }
+    #glassMenu.glass-menu {
+      position: fixed !important;
+      top: 10px !important; left: 10px !important; bottom: 10px !important;
+      width: min(300px, 86vw) !important;
+      z-index: 210 !important;
+      border-radius: 24px !important;
+      background: linear-gradient(165deg, rgba(48, 28, 95, 0.92), rgba(18, 12, 48, 0.95)) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5) !important;
+      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      transform: translateX(-120%);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex !important;
+      flex-direction: column !important;
+      color: #f1f0ff !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      padding: 0 !important;
+    }
+    #glassMenu.glass-menu.open {
+      transform: translateX(0) !important;
+    }
+    #glassMenu .gm-brand {
+      font-weight: 800 !important; font-size: 1.2rem !important;
+      letter-spacing: 0.06em !important;
+      color: #c4b5fd !important;
+    }
+    #glassMenu .gm-user {
+      display: flex !important; align-items: center !important; gap: 12px !important;
+      padding: 12px 14px !important; margin: 8px 12px !important;
+      border-radius: 16px !important;
+      background: rgba(255,255,255,0.08) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    #glassMenu .gm-label {
+      display: block !important;
+      font-size: 10px !important; letter-spacing: 0.14em !important;
+      text-transform: uppercase !important;
+      color: rgba(255,255,255,0.35) !important;
+      padding: 14px 20px 6px !important; margin: 0 !important;
+    }
+    #glassMenu .gm-item {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 14px !important;
+      padding: 12px 16px !important;
+      margin: 2px 12px !important;
+      border-radius: 14px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: rgba(255,255,255,0.85) !important;
+      background: transparent !important;
+      border: none !important;
+      width: calc(100% - 24px) !important;
+      text-align: left !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+    }
+    #glassMenu .gm-item:hover,
+    #glassMenu .gm-item.active {
+      background: rgba(255,255,255,0.12) !important;
+      color: #fff !important;
+    }
+    #glassMenu .gm-item svg {
+      width: 20px !important; height: 20px !important;
+      flex-shrink: 0 !important; display: block !important;
+      stroke: currentColor !important;
+    }
+    #glassMenu .gm-badge {
+      margin-left: auto !important;
+      min-width: 20px !important; height: 20px !important;
+      padding: 0 6px !important; border-radius: 999px !important;
+      background: #fff !important; color: #1e1b4b !important;
+      font-size: 11px !important; font-weight: 700 !important;
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    }
+    #glassMenu .gm-badge.hidden { display: none !important; }
+    #glassMenu .gm-footer {
+      margin-top: auto !important;
+      padding: 8px 0 18px !important;
+      border-top: 1px solid rgba(255,255,255,0.1) !important;
+    }
+
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
